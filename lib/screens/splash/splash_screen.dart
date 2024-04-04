@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    Future.delayed(const Duration(milliseconds: 2222), () {
+    Future.delayed(const Duration(milliseconds: 3000), () {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()));
     });
@@ -44,13 +44,13 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
         const Align(
-          alignment: Alignment.bottomCenter,
+          alignment: Alignment(0.0, 0.9),
           child: Text(
-            "From Minhthwhite 💗",
+            "Tuananhzip © 2024 All Rights Reserved",
             style: TextStyle(
-                fontFamily: 'Italianno',
+                fontFamily: 'Roboto',
                 color: AppColors.blackColor,
-                fontSize: 42),
+                fontSize: 20),
           ),
         ),
       ],
