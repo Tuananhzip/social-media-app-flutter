@@ -1,0 +1,4 @@
+enum HandleIconField {
+  clear,
+  visibility,
+}

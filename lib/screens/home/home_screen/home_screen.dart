@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/components/story_screen.dart';
+import 'package:social_media_app/screens/components/story/story_screen.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -64,7 +64,6 @@ class HomeScreen extends StatelessWidget {
       String lastNameOverflow, bool statusStory) {
     return GestureDetector(
       onTap: () {
-        print(index);
         Navigator.push(
             context,
             MaterialPageRoute(

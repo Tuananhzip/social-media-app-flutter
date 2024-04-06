@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/home/home.dart';
+import 'package:social_media_app/screens/home/home_screen/home_screen.dart';
+import 'package:social_media_app/screens/login/login.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -11,14 +13,23 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+  bool isLoggedIn = false;
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1400), () {
+    if (FirebaseAuth.instance.currentUser != null) {
+      setState(() {
+        isLoggedIn = true;
+      });
+    }
+    // Check xem người dùng đã đăng nhập chưa sẽ chuyển qua những trang khác nhau
+    Future.delayed(const Duration(milliseconds: 2000), () {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 600),
-          pageBuilder: (context, animation1, animation2) => const HomeMain(),
+          transitionDuration: const Duration(milliseconds: 1000),
+          pageBuilder: (context, animation1, animation2) =>
+              isLoggedIn ? const HomeScreen() : const LoginScreen(),
           transitionsBuilder: (context, animation1, animation2, child) {
             return FadeTransition(
               opacity: animation1,
@@ -51,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen>
             style: TextStyle(
                 fontFamily: 'Roboto',
                 color: AppColors.blackColor,
-                fontSize: 20),
+                fontSize: 16.0),
           ),
         ),
       ],
