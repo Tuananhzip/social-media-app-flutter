@@ -8,23 +8,24 @@ class InputFieldLogin extends StatelessWidget {
     required this.text,
     required this.textInputType,
     required this.obscure,
-    required this.prefixIcon,
+    this.prefixIcon,
     this.suffixIcon,
     this.onPressSuffixIcon,
+    this.isValidation,
   });
 
   final TextEditingController controller;
   final String text;
   final TextInputType textInputType;
   final bool obscure;
-  final Icon prefixIcon;
+  final Icon? prefixIcon;
   final Icon? suffixIcon;
   final void Function()? onPressSuffixIcon;
+  final String? Function(String?)? isValidation;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 55.0,
       padding: const EdgeInsets.only(top: 3.0, left: 15),
       decoration: BoxDecoration(
           color: AppColors.primaryColor,
@@ -36,6 +37,7 @@ class InputFieldLogin extends StatelessWidget {
             )
           ]),
       child: TextFormField(
+        textAlign: TextAlign.start,
         controller: controller,
         keyboardType: textInputType,
         obscureText: obscure,
@@ -49,6 +51,7 @@ class InputFieldLogin extends StatelessWidget {
           ),
           contentPadding: const EdgeInsets.all(0),
         ),
+        validator: isValidation,
       ),
     );
   }

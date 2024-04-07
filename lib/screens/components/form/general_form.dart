@@ -19,7 +19,6 @@ class GeneralForm extends StatelessWidget {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight)),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: listWidget,
           ),

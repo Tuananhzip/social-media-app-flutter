@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/screens/components/button/button_login.dart';
 import 'package:social_media_app/screens/components/button/outline_button_login.dart';
@@ -5,6 +6,8 @@ import 'package:social_media_app/screens/components/button/social_button_login.d
 import 'package:social_media_app/screens/components/field/field_login.dart';
 import 'package:social_media_app/screens/components/form/general_form.dart';
 import 'package:social_media_app/screens/components/text/forgot_password.dart';
+import 'package:social_media_app/screens/home/home_main.dart';
+import 'package:social_media_app/serviecs/Authentication/google_services.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -36,6 +39,24 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.pushNamed(context, "/register");
   }
 
+  signInWithGoogle() async {
+    AuthenticationSocialMediaApp authenticationSocialMediaApp =
+        AuthenticationSocialMediaApp();
+    final userCredential =
+        await authenticationSocialMediaApp.signInWithGoogle();
+
+    if (userCredential != null) {
+      print('Đã đăng nhập với người dùng: ${userCredential.user.displayName}');
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (context) => HomeMain(
+          user: userCredential.user,
+        ),
+      ));
+    } else {
+      print('Đăng nhập không thành công.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GeneralForm(
@@ -54,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         fit: BoxFit.cover)),
               ),
               const SizedBox(
-                height: 100.0,
+                height: 16.0,
               ),
               //Email Input
               InputFieldLogin(
@@ -67,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressSuffixIcon: () => handleIcon(HandleIconField.clear),
               ),
               const SizedBox(
-                height: 20.0,
+                height: 16.0,
               ),
               InputFieldLogin(
                 controller: passwordController,
@@ -83,7 +104,10 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(
                 height: 16,
               ),
-              const ButtonLogin(),
+              ButtonLogin(
+                text: "Login",
+                onTap: () => {},
+              ),
               const SizedBox(
                 height: 16,
               ),
@@ -91,7 +115,9 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(
                 height: 25.0,
               ),
-              const SocialLoginButtonImage(),
+              SocialLoginButtonImage(
+                onTapGoogle: signInWithGoogle,
+              ),
             ],
           ),
         ),

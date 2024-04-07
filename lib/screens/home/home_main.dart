@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/screens/home/create_post/create_post.dart';
 import 'package:social_media_app/screens/home/home_screen/home_screen.dart';
@@ -8,7 +9,8 @@ import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/list_fragment.dart';
 
 class HomeMain extends StatefulWidget {
-  const HomeMain({super.key});
+  const HomeMain({super.key, required this.user});
+  final User user;
 
   @override
   State<HomeMain> createState() => _HomeMainState();
@@ -49,12 +51,14 @@ class _HomeMainState extends State<HomeMain> {
     return Scaffold(
         body: IndexedStack(
           index: fragmentToIndex(currentFragment),
-          children: const [
-            HomeScreen(),
-            SearchScreen(),
-            CreatePostScreen(),
-            ListVideoScreen(),
-            ProfileScreen()
+          children: [
+            const HomeScreen(),
+            const SearchScreen(),
+            const CreatePostScreen(),
+            const ListVideoScreen(),
+            ProfileScreen(
+              user: widget.user,
+            )
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(

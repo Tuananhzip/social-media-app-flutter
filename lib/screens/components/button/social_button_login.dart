@@ -3,7 +3,10 @@ import 'package:flutter/widgets.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
 class SocialLoginButtonImage extends StatelessWidget {
-  const SocialLoginButtonImage({super.key});
+  const SocialLoginButtonImage(
+      {super.key, this.onTapFacebook, this.onTapGoogle});
+  final void Function()? onTapFacebook;
+  final void Function()? onTapGoogle;
 
   @override
   Widget build(BuildContext context) {
@@ -11,9 +14,7 @@ class SocialLoginButtonImage extends StatelessWidget {
       children: [
         Expanded(
           child: GestureDetector(
-            onTap: () => {
-              // Sự kiện của Google login
-            },
+            onTap: onTapGoogle,
             child: Container(
               height: 55,
               alignment: Alignment.center,
@@ -38,9 +39,7 @@ class SocialLoginButtonImage extends StatelessWidget {
         ),
         Expanded(
           child: GestureDetector(
-            onTap: () => {
-              // Sự kiện của Facebook login
-            },
+            onTap: onTapFacebook,
             child: Container(
               height: 55,
               alignment: Alignment.center,

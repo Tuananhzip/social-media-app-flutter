@@ -38,6 +38,8 @@ dependencies:
   firebase_core: ^2.28.0
   cloud_firestore: ^4.16.0
   firebase_auth: ^4.19.0
+  form_validator: ^2.1.1
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +64,14 @@ flutter:
     - family: Roboto
       fonts:
         - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 600
+        - asset: assets/fonts/Roboto-Light.ttf
+          weight: 300
   assets:
     - assets/images/logo_social_media.jpg
     - assets/images/logo_social_media.png

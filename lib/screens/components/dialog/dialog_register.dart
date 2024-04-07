@@ -30,9 +30,9 @@ class DialogScreen extends StatelessWidget {
         onTap: () => dialogBuilder(context),
       );
     } else {
-      return IconButton(
-          onPressed: () => dialogBuilder(context),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded));
+      return InkWell(
+          onTap: () => dialogBuilder(context),
+          child: const Icon(Icons.arrow_back_ios_new_rounded));
     }
   }
 

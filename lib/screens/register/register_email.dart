@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:form_validator/form_validator.dart';
+import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/components/button/button_login.dart';
 import 'package:social_media_app/screens/components/dialog/dialog_register.dart';
 import 'package:social_media_app/screens/components/field/field_login.dart';
@@ -12,7 +14,9 @@ class RegisterEmailScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterEmailScreen> {
+  final formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
+  Users? user;
   void navigationToLoginScreen() {
     Navigator.pushNamed(context, '/login');
   }
@@ -23,11 +27,16 @@ class _RegisterScreenState extends State<RegisterEmailScreen> {
     });
   }
 
+  void onSubmit() {
+    bool isValidation = formKey.currentState!.validate();
+    if (isValidation) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return GeneralForm(listWidget: [
       const SizedBox(
-        height: 30.0,
+        height: 45.0,
       ),
       DialogScreen(
         title: "Do you want to stop creating your account?",
@@ -39,25 +48,44 @@ class _RegisterScreenState extends State<RegisterEmailScreen> {
         onPressedContinue: () => {Navigator.pop(context)},
         typeDialogButtonBack: true,
       ),
+      const SizedBox(
+        height: 16.0,
+      ),
+      const Text(
+        "What's your email?",
+        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24.0),
+      ),
+      const Text(
+        "Enter the email where you can be contacted. No one will see this on your profile.",
+        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16.0),
+      ),
+      const SizedBox(
+        height: 16.0,
+      ),
       Expanded(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            //Email Input
-            InputFieldLogin(
-              controller: emailController,
-              text: 'Email',
-              obscure: false,
-              textInputType: TextInputType.emailAddress,
-              prefixIcon: const Icon(Icons.email_outlined),
-              suffixIcon: const Icon(Icons.close),
-              onPressSuffixIcon: clearEmailText,
-            ),
-            const SizedBox(
-              height: 16.0,
-            ),
-            const ButtonLogin(),
-          ],
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              //Email Input
+              InputFieldLogin(
+                controller: emailController,
+                text: 'Email',
+                obscure: false,
+                textInputType: TextInputType.emailAddress,
+                suffixIcon: const Icon(Icons.close),
+                isValidation: ValidationBuilder().required().email().build(),
+              ),
+              const SizedBox(
+                height: 16.0,
+              ),
+              ButtonLogin(
+                text: "Next",
+                onTap: onSubmit,
+              ),
+            ],
+          ),
         ),
       ),
       DialogScreen(
