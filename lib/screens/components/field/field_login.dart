@@ -25,34 +25,33 @@ class InputFieldLogin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(top: 3.0, left: 15),
-      decoration: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(15.0),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.blackColor.withOpacity(0.2),
-              blurRadius: 10,
-            )
-          ]),
-      child: TextFormField(
-        textAlign: TextAlign.start,
-        controller: controller,
-        keyboardType: textInputType,
-        obscureText: obscure,
-        decoration: InputDecoration(
-          prefixIcon: prefixIcon,
-          labelText: text,
-          border: InputBorder.none,
-          suffixIcon: IconButton(
-            icon: suffixIcon ?? const Icon(null),
-            onPressed: onPressSuffixIcon,
-          ),
-          contentPadding: const EdgeInsets.all(0),
+    return TextFormField(
+      textAlign: TextAlign.start,
+      controller: controller,
+      keyboardType: textInputType,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        fillColor: AppColors.primaryColor,
+        filled: true,
+        prefixIcon: prefixIcon,
+        labelText: text,
+        errorStyle: const TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 14.0,
         ),
-        validator: isValidation,
+        errorMaxLines: 3,
+        labelStyle:
+            const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+        suffixIcon: IconButton(
+          icon: suffixIcon ?? const Icon(null),
+          onPressed: onPressSuffixIcon,
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 5.0, vertical: 15.0),
       ),
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: isValidation,
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/screens/home/home_main.dart';
 import 'package:social_media_app/screens/login/login.dart';
-import 'package:social_media_app/screens/register/register_email.dart';
+import 'package:social_media_app/screens/register/register_account.dart';
 import 'package:social_media_app/screens/splash/splash_screen.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -29,7 +29,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterEmailScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/home-main': (context) => const HomeMain(),
       },
     );
   }

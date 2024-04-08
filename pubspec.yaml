@@ -38,7 +38,6 @@ dependencies:
   firebase_core: ^2.28.0
   cloud_firestore: ^4.16.0
   firebase_auth: ^4.19.0
-  form_validator: ^2.1.1
   google_sign_in: ^6.2.1
 
 dev_dependencies:

@@ -1,4 +1,5 @@
 enum HandleIconField {
   clear,
-  visibility,
+  visibilityPassword,
+  visibilityConfirmPassword,
 }

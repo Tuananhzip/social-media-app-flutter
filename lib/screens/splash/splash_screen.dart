@@ -19,8 +19,8 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> navigateToHome(User user) async {
     await Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 1000),
-        pageBuilder: (context, animation1, animation2) => HomeMain(user: user),
+        transitionDuration: const Duration(milliseconds: 2000),
+        pageBuilder: (context, animation1, animation2) => const HomeMain(),
         transitionsBuilder: (context, animation1, animation2, child) {
           return FadeTransition(
             opacity: animation1,
@@ -36,12 +36,12 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     // Check xem người dùng đã đăng nhập chưa sẽ chuyển qua những trang khác nhau
     Future.delayed(const Duration(milliseconds: 2000), () {
-      if (isLoggedIn) {
+      if (isLoggedIn && FirebaseAuth.instance.currentUser != null) {
         navigateToHome(FirebaseAuth.instance.currentUser!);
       } else {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 1000),
+            transitionDuration: const Duration(milliseconds: 2000),
             pageBuilder: (context, animation1, animation2) =>
                 const LoginScreen(),
             transitionsBuilder: (context, animation1, animation2, child) {
@@ -68,7 +68,8 @@ class _SplashScreenState extends State<SplashScreen>
         if (snapshot.connectionState == ConnectionState.active) {
           if (snapshot.data == null) {
             isLoggedIn = false;
-          } else {
+          } else if (FirebaseAuth.instance.currentUser!.emailVerified &&
+              FirebaseAuth.instance.currentUser != null) {
             isLoggedIn = true;
           }
         }
