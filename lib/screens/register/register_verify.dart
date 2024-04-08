@@ -24,6 +24,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
     });
     try {
       checkEmailVerified = await authServices.isEmailVerified();
+      // ignore: avoid_print
       print(checkEmailVerified);
     } catch (error) {
       // ignore: avoid_print
@@ -31,12 +32,12 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
     }
     if (checkEmailVerified) {
       Navigator.pushAndRemoveUntil(
+          // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(
             builder: (context) => const HomeMain(),
           ),
           ModalRoute.withName('/'));
-      FocusManager.instance.primaryFocus?.unfocus();
     }
     setState(() {
       isLoading = false;

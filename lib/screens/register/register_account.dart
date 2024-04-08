@@ -7,6 +7,7 @@ import 'package:social_media_app/screens/components/field/field_login.dart';
 import 'package:social_media_app/screens/components/form/general_form.dart';
 import 'package:social_media_app/screens/register/register_verify.dart';
 import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
+import 'package:social_media_app/serviecs/Users/user_services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
 
@@ -24,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
   final AuthenticationServices authServices = AuthenticationServices();
+  final UserServices userServices = UserServices();
   String? emailErrorText, passwordErrorText, confirmPasswordErrorText;
   bool isLoading = false;
   bool obscurePassword = true;
@@ -123,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (querySnapshotEmailExist.docs.isNotEmpty) {
       // xác định email tồn tại
       setState(() {
-        emailErrorText = 'This email is already registered';
+        emailErrorText = '$resultEmail is already registered.';
       });
       // ignore: avoid_print
       print(emailErrorText);
@@ -143,6 +145,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         emailErrorText = error.message;
       }
       if (isRegisterSuccess) {
+        try {
+          await userServices.addUserEmail(resultEmail);
+        } catch (error) {
+          // ignore: avoid_print
+          print("userServices.addUserEmail (Register): ---> $error");
+        }
         // ignore: use_build_context_synchronously
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => const RegisterVerifyScreen(),

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/screens/components/button/button_login.dart';
@@ -8,6 +9,7 @@ import 'package:social_media_app/screens/components/form/general_form.dart';
 import 'package:social_media_app/screens/components/text/forgot_password.dart';
 import 'package:social_media_app/screens/home/home_main.dart';
 import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
+import 'package:social_media_app/serviecs/Users/user_services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
 
@@ -22,6 +24,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthenticationServices authServices = AuthenticationServices();
+  final UserServices userServices = UserServices();
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final formKey = GlobalKey<FormState>();
   String? emailErrorText, passwordErrorText;
   bool obscurePassword = true;
@@ -86,11 +90,27 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       isLoading = true;
     });
-    final userCredential = await authServices.signInWithGoogle();
+    final UserCredential userCredential = await authServices.signInWithGoogle();
 
-    if (userCredential != null) {
+    if (userCredential.user != null) {
       // ignore: avoid_print
-      print('Login successed: ${userCredential.user.displayName}');
+      print('Login successed: ${userCredential.user!.displayName}');
+      final QuerySnapshot querySnapshotEmailExist = await firestore
+          .collection('users')
+          .where('email', isEqualTo: userCredential.user!.email)
+          .get();
+      if (querySnapshotEmailExist.docs.isNotEmpty) {
+        // xác định email tồn tại
+        // ignore: avoid_print
+        print("${userCredential.user!.email} is already registered.");
+      } else {
+        try {
+          await userServices.addUserEmail(userCredential.user!.email!);
+        } catch (error) {
+          // ignore: avoid_print
+          print("userServices.addUserEmail (Login): ---> $error");
+        }
+      }
       // ignore: use_build_context_synchronously
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => const HomeMain(),
