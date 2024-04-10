@@ -111,6 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void onSubmit() async {
+    late User? currentUser;
     setState(() {
       isLoading = true;
     });
@@ -137,8 +138,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (isValidation) {
       try {
         await authServices.createNewAccount(resultEmail, resultPassword);
-        isRegisterSuccess =
-            (FirebaseAuth.instance.currentUser != null) ? true : false;
+        currentUser = FirebaseAuth.instance.currentUser;
+        isRegisterSuccess = (currentUser != null) ? true : false;
       } on FirebaseAuthException catch (error) {
         // ignore: avoid_print
         print("ERROR send email verify !!! $error");
@@ -146,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
       if (isRegisterSuccess) {
         try {
-          await userServices.addUserEmail(resultEmail);
+          await userServices.addUserEmail(currentUser!.uid, currentUser.email!);
         } catch (error) {
           // ignore: avoid_print
           print("userServices.addUserEmail (Register): ---> $error");
@@ -256,7 +257,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: isLoading
                     ? const Center(
                         child: CircularProgressIndicator(
-                        color: AppColors.primaryColor,
+                        color: AppColors.backgroundColor,
                       ))
                     : null,
               )

@@ -20,12 +20,13 @@ class OutlineButtonLogin extends StatelessWidget {
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
             color: Colors.transparent,
-            border: Border.all(width: 1.0, color: AppColors.blueButtonColor)),
+            border:
+                Border.all(width: 1.0, color: AppColors.blueButtonAccentColor)),
         child: Text(
           text,
           style: const TextStyle(
               fontWeight: FontWeight.bold,
-              color: AppColors.blueButtonColor,
+              color: AppColors.blueButtonAccentColor,
               fontSize: 16.0),
         ),
       ),

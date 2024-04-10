@@ -47,65 +47,59 @@ class _HomeMainState extends State<HomeMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: IndexedStack(
-          index: fragmentToIndex(currentFragment),
-          children: const [
-            HomeScreen(),
-            SearchScreen(),
-            CreatePostScreen(),
-            ListVideoScreen(),
-            ProfileScreen()
-          ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-            currentIndex: fragmentToIndex(currentFragment),
-            onTap: onItemTapped,
-            fixedColor: AppColors.blackColor,
-            backgroundColor: AppColors.primaryColor,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            type: BottomNavigationBarType.fixed,
-            items: const [
-              BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.home_outlined,
-                    color: AppColors.blackColor,
-                  ),
-                  label: "Home",
-                  backgroundColor: AppColors.primaryColor,
-                  activeIcon: Icon(Icons.home)),
-              BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.screen_search_desktop_outlined,
-                    color: AppColors.blackColor,
-                  ),
-                  label: "Search",
-                  backgroundColor: AppColors.primaryColor,
-                  activeIcon: Icon(Icons.screen_search_desktop_rounded)),
-              BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.add_box_outlined,
-                    color: AppColors.blackColor,
-                  ),
-                  label: "Post",
-                  backgroundColor: AppColors.primaryColor,
-                  activeIcon: Icon(Icons.add_box)),
-              BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.video_library_outlined,
-                    color: AppColors.blackColor,
-                  ),
-                  label: "Videos",
-                  backgroundColor: AppColors.primaryColor,
-                  activeIcon: Icon(Icons.video_library)),
-              BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.person_outline,
-                    color: AppColors.blackColor,
-                  ),
-                  label: "Personal",
-                  backgroundColor: AppColors.primaryColor,
-                  activeIcon: Icon(Icons.person)),
-            ]));
+      body: IndexedStack(
+        index: fragmentToIndex(currentFragment),
+        children: const [
+          HomeScreen(),
+          SearchScreen(),
+          CreatePostScreen(),
+          ListVideoScreen(),
+          ProfileScreen()
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: fragmentToIndex(currentFragment),
+        onTap: onItemTapped,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor:
+            Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        selectedItemColor:
+            Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.home_outlined,
+              ),
+              label: "Home",
+              activeIcon: Icon(Icons.home)),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.screen_search_desktop_outlined,
+              ),
+              label: "Search",
+              activeIcon: Icon(Icons.screen_search_desktop_rounded)),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.add_box_outlined,
+              ),
+              label: "Post",
+              activeIcon: Icon(Icons.add_box)),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.video_library_outlined,
+              ),
+              label: "Videos",
+              activeIcon: Icon(Icons.video_library)),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.person_outline,
+              ),
+              label: "Personal",
+              activeIcon: Icon(Icons.person)),
+        ],
+      ),
+    );
   }
 }

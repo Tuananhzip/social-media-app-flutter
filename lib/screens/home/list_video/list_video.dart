@@ -9,7 +9,7 @@ class ListVideoScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
-        backgroundColor: AppColors.blueColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
       ),
     );
   }

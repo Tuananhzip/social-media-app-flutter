@@ -91,21 +91,22 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
     });
     final UserCredential userCredential = await authServices.signInWithGoogle();
+    final User? currentUser = userCredential.user;
 
-    if (userCredential.user != null) {
+    if (currentUser != null) {
       // ignore: avoid_print
       print('Login successed: ${userCredential.user!.displayName}');
       final QuerySnapshot querySnapshotEmailExist = await firestore
           .collection('users')
-          .where('email', isEqualTo: userCredential.user!.email)
+          .where('email', isEqualTo: currentUser.email)
           .get();
       if (querySnapshotEmailExist.docs.isNotEmpty) {
         // xác định email tồn tại
         // ignore: avoid_print
-        print("${userCredential.user!.email} is already registered.");
+        print("${currentUser.email} is already registered.");
       } else {
         try {
-          await userServices.addUserEmail(userCredential.user!.email!);
+          await userServices.addUserEmail(currentUser.uid, currentUser.email!);
         } catch (error) {
           // ignore: avoid_print
           print("userServices.addUserEmail (Login): ---> $error");
@@ -191,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: isLoading
                       ? const Center(
                           child: CircularProgressIndicator(
-                          color: AppColors.primaryColor,
+                          color: AppColors.backgroundColor,
                         ))
                       : null,
                 ),

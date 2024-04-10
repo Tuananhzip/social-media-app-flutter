@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:social_media_app/screens/components/button/outline_button_login.dart';
 import 'package:social_media_app/screens/components/form/general_form.dart';
 import 'package:social_media_app/screens/home/home_main.dart';
 import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
@@ -85,9 +86,12 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
       const SizedBox(
         height: 16.0,
       ),
-      OutlinedButton(
-        onPressed: onSubmit,
-        child: const Text("Continue"),
+      SizedBox(
+        width: 250.0,
+        child: OutlineButtonLogin(
+          text: 'Continue',
+          onTap: onSubmit,
+        ),
       ),
       SizedBox(
         child: checkEmailVerified

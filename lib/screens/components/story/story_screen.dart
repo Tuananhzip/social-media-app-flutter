@@ -10,7 +10,7 @@ class StoryScreen extends StatelessWidget {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
-      color: AppColors.blueColor,
+      color: Theme.of(context).colorScheme.background,
       child: Text("Video story của $userName"),
     );
   }

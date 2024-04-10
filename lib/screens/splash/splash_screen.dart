@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/screens/home/home_main.dart';
 import 'package:social_media_app/screens/login/login.dart';
-import 'package:social_media_app/utils/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -94,10 +93,7 @@ class _SplashScreenState extends State<SplashScreen>
           alignment: Alignment(0.0, 0.9),
           child: Text(
             "Tuananhzip © 2024 All Rights Reserved",
-            style: TextStyle(
-                fontFamily: 'Roboto',
-                color: AppColors.blackColor,
-                fontSize: 16.0),
+            style: TextStyle(fontFamily: 'Roboto', fontSize: 16.0),
           ),
         ),
       ],

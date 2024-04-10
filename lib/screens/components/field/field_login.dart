@@ -28,10 +28,12 @@ class InputFieldLogin extends StatelessWidget {
     return TextFormField(
       textAlign: TextAlign.start,
       controller: controller,
+      style: const TextStyle(color: AppColors.blackColor),
+      cursorColor: AppColors.blackColor,
       keyboardType: textInputType,
       obscureText: obscure,
       decoration: InputDecoration(
-        fillColor: AppColors.primaryColor,
+        fillColor: AppColors.backgroundColor,
         filled: true,
         prefixIcon: prefixIcon,
         labelText: text,
@@ -40,8 +42,16 @@ class InputFieldLogin extends StatelessWidget {
           fontSize: 14.0,
         ),
         errorMaxLines: 3,
-        labelStyle:
-            const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15.0),
+          borderSide: const BorderSide(
+            color: AppColors.blackColor,
+          ),
+        ),
+        labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16.0,
+            color: AppColors.blackColor),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
         suffixIcon: IconButton(
           icon: suffixIcon ?? const Icon(null),

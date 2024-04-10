@@ -9,7 +9,7 @@ class CreatePostScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Create Post"),
-        backgroundColor: AppColors.blueColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
       ),
     );
   }

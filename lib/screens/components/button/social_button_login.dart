@@ -19,7 +19,7 @@ class SocialLoginButtonImage extends StatelessWidget {
               height: 55,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
+                  color: AppColors.backgroundColor,
                   borderRadius: BorderRadius.circular(5.0),
                   boxShadow: [
                     BoxShadow(
@@ -44,7 +44,7 @@ class SocialLoginButtonImage extends StatelessWidget {
               height: 55,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
+                  color: AppColors.backgroundColor,
                   borderRadius: BorderRadius.circular(5.0),
                   boxShadow: [
                     BoxShadow(

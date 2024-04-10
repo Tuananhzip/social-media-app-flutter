@@ -19,12 +19,12 @@ class ButtonLogin extends StatelessWidget {
         height: 40,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
-            color: AppColors.blueButtonColor),
+            color: AppColors.blueButtonAccentColor),
         child: Text(
           text,
           style: const TextStyle(
               fontWeight: FontWeight.bold,
-              color: AppColors.primaryColor,
+              color: AppColors.backgroundColor,
               fontSize: 16.0),
         ),
       ),
