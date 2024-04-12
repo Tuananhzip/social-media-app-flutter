@@ -4,7 +4,6 @@ import 'package:social_media_app/screens/home/home_screen/home_screen.dart';
 import 'package:social_media_app/screens/home/list_video/list_video.dart';
 import 'package:social_media_app/screens/home/profile/profile.dart';
 import 'package:social_media_app/screens/home/search/search.dart';
-import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/list_fragment.dart';
 
 class HomeMain extends StatefulWidget {

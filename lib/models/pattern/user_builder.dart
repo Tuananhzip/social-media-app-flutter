@@ -4,11 +4,10 @@ import 'package:social_media_app/models/pattern/builder.dart';
 class UsersBuilder implements Builder<Users> {
   Users user;
 
-  UsersBuilder({
-    required String username,
-    required String email,
-    required String password,
-  }) : user = Users(username: username, email: email, password: password);
+  UsersBuilder({required String email})
+      : user = Users(
+          email: email,
+        );
 
   @override
   Users build() {
@@ -20,7 +19,6 @@ class UsersBuilder implements Builder<Users> {
     return user = Users(
       username: '',
       email: '',
-      password: '',
       address: '',
       dateOfBirth: null,
       description: '',

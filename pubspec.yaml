@@ -41,6 +41,8 @@ dependencies:
   google_sign_in: ^6.2.1
   provider: ^6.1.2
   shared_preferences: ^2.2.2
+  image_picker: ^1.0.7
+  firebase_storage: ^11.7.1
 
 dev_dependencies:
   flutter_test:
@@ -80,7 +82,6 @@ flutter:
     - assets/images/logo_social_media_second.png
     - assets/images/facebook_icon.png
     - assets/images/google_icon.png
-    - assets/images/personal_image_default.png
     - assets/images/moon.png
     - assets/images/sun.png
   # The following line ensures that the Material Icons font is

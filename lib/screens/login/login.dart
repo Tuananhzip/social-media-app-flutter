@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/components/button/button_login.dart';
+import 'package:social_media_app/screens/components/button/button_default.dart';
 import 'package:social_media_app/screens/components/button/outline_button_login.dart';
 import 'package:social_media_app/screens/components/button/social_button_login.dart';
-import 'package:social_media_app/screens/components/field/field_login.dart';
+import 'package:social_media_app/screens/components/field/field_default.dart';
 import 'package:social_media_app/screens/components/form/general_form.dart';
 import 'package:social_media_app/screens/components/text/forgot_password.dart';
 import 'package:social_media_app/screens/home/home_main.dart';
@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.pushNamed(context, "/register");
   }
 
-  signInWithGoogle() async {
+  Future<void> signInWithGoogle() async {
     setState(() {
       isLoading = true;
     });
@@ -95,23 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (currentUser != null) {
       // ignore: avoid_print
-      print('Login successed: ${userCredential.user!.displayName}');
-      final QuerySnapshot querySnapshotEmailExist = await firestore
-          .collection('users')
-          .where('email', isEqualTo: currentUser.email)
-          .get();
-      if (querySnapshotEmailExist.docs.isNotEmpty) {
-        // xác định email tồn tại
-        // ignore: avoid_print
-        print("${currentUser.email} is already registered.");
-      } else {
-        try {
-          await userServices.addUserEmail(currentUser.uid, currentUser.email!);
-        } catch (error) {
-          // ignore: avoid_print
-          print("userServices.addUserEmail (Login): ---> $error");
-        }
-      }
+      print('Login successed: ${currentUser.displayName}');
       // ignore: use_build_context_synchronously
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => const HomeMain(),
@@ -125,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void onSubmit() async {
+  Future<void> onSubmit() async {
     setState(() {
       isLoading = true;
     });
@@ -200,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 20.0,
                 ),
                 //Email Input
-                InputFieldLogin(
+                InputFieldDefault(
                   controller: emailController,
                   text: 'Email',
                   obscure: false,
@@ -213,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(
                   height: 16.0,
                 ),
-                InputFieldLogin(
+                InputFieldDefault(
                   controller: passwordController,
                   text: 'Password',
                   obscure: obscurePassword,
@@ -229,9 +213,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(
                   height: 16,
                 ),
-                ButtonLogin(
+                ButtonDefault(
                   text: "Login",
                   onTap: onSubmit,
+                  colorBackground: AppColors.secondaryColor,
+                  colorText: AppColors.backgroundColor,
                 ),
                 const SizedBox(
                   height: 16,

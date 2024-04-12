@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/components/button/button_login.dart';
+import 'package:social_media_app/screens/components/button/button_default.dart';
 import 'package:social_media_app/screens/components/dialog/dialog_register.dart';
-import 'package:social_media_app/screens/components/field/field_login.dart';
+import 'package:social_media_app/screens/components/field/field_default.dart';
 import 'package:social_media_app/screens/components/form/general_form.dart';
 import 'package:social_media_app/screens/register/register_verify.dart';
 import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
@@ -110,27 +109,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  void onSubmit() async {
+  Future<void> onSubmit() async {
     late User? currentUser;
     setState(() {
       isLoading = true;
     });
-    final resultEmail = emailController.text.trim();
-    final resultPassword = passwordController.text.trim();
-    final resultConfirmPassword = confirmPasswordController.text.trim();
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    final QuerySnapshot querySnapshotEmailExist = await firestore
-        .collection('users')
-        .where('email', isEqualTo: resultEmail)
-        .get();
-    if (querySnapshotEmailExist.docs.isNotEmpty) {
-      // xác định email tồn tại
-      setState(() {
-        emailErrorText = '$resultEmail is already registered.';
-      });
-      // ignore: avoid_print
-      print(emailErrorText);
-    }
+    String resultEmail = emailController.text.trim();
+    String resultPassword = passwordController.text.trim();
+    String resultConfirmPassword = confirmPasswordController.text.trim();
     validateEmail(resultEmail);
     validatePassword(resultPassword);
     validatePasswordConfirm(resultPassword, resultConfirmPassword);
@@ -146,12 +132,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         emailErrorText = error.message;
       }
       if (isRegisterSuccess) {
-        try {
-          await userServices.addUserEmail(currentUser!.uid, currentUser.email!);
-        } catch (error) {
-          // ignore: avoid_print
-          print("userServices.addUserEmail (Register): ---> $error");
-        }
+        emailController.text = '';
+        passwordController.text = '';
+        confirmPasswordController.text = '';
         // ignore: use_build_context_synchronously
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => const RegisterVerifyScreen(),
@@ -200,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               //Email Input
-              InputFieldLogin(
+              InputFieldDefault(
                 controller: emailController,
                 text: 'Email',
                 obscure: false,
@@ -214,7 +197,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 16.0,
               ),
               //Password Input
-              InputFieldLogin(
+              InputFieldDefault(
                 controller: passwordController,
                 text: 'Password',
                 obscure: obscurePassword,
@@ -230,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(
                 height: 16.0,
               ),
-              InputFieldLogin(
+              InputFieldDefault(
                 controller: confirmPasswordController,
                 text: 'Confirm password',
                 obscure: obscureConfirmPassword,
@@ -246,9 +229,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(
                 height: 16.0,
               ),
-              ButtonLogin(
+              ButtonDefault(
                 text: "Next",
                 onTap: onSubmit,
+                colorBackground: AppColors.secondaryColor,
+                colorText: AppColors.backgroundColor,
               ),
               const SizedBox(
                 height: 16.0,

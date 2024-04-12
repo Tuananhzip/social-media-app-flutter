@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
-class InputFieldLogin extends StatelessWidget {
-  const InputFieldLogin({
+class InputFieldDefault extends StatelessWidget {
+  const InputFieldDefault({
     super.key,
     required this.controller,
     required this.text,

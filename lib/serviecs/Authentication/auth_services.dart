@@ -16,17 +16,17 @@ class AuthenticationServices {
     return userCredential;
   }
 
-  Future signInWithEmailPassword(String email, String password) async {
+  Future<void> signInWithEmailPassword(String email, String password) async {
     await FirebaseAuth.instance
         .signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future singOutUser() async {
+  Future<void> singOutUser() async {
     await GoogleSignIn().signOut();
     FirebaseAuth.instance.signOut();
   }
 
-  Future createNewAccount(String email, String password) async {
+  Future<void> createNewAccount(String email, String password) async {
     await FirebaseAuth.instance
         .createUserWithEmailAndPassword(
       email: email,
