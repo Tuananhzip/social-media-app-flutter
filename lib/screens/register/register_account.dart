@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/components/button/button_default.dart';
-import 'package:social_media_app/screens/components/dialog/dialog_register.dart';
-import 'package:social_media_app/screens/components/field/field_default.dart';
-import 'package:social_media_app/screens/components/form/general_form.dart';
+import 'package:social_media_app/components/button/button_default.dart';
+import 'package:social_media_app/components/dialog/dialog_register.dart';
+import 'package:social_media_app/components/field/field_default.dart';
+import 'package:social_media_app/components/form/general_form.dart';
 import 'package:social_media_app/screens/register/register_verify.dart';
 import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
 import 'package:social_media_app/serviecs/Users/user_services.dart';
@@ -120,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     validateEmail(resultEmail);
     validatePassword(resultPassword);
     validatePasswordConfirm(resultPassword, resultConfirmPassword);
-    bool isValidation = formKey.currentState!.validate();
+    final bool isValidation = formKey.currentState!.validate();
     if (isValidation) {
       try {
         await authServices.createNewAccount(resultEmail, resultPassword);

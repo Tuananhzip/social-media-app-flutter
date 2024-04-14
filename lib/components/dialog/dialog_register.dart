@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/components/button/outline_button_login.dart';
+import 'package:social_media_app/components/button/outline_button_login.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
 class DialogScreen extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:social_media_app/screens/components/story/story_screen.dart';
+import 'package:social_media_app/components/story/story_screen.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 

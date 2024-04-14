@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Users {
   String? email;
   String? username;
@@ -40,8 +42,10 @@ class Users {
           address: map['address'],
           phoneNumber: map['phoneNumber'],
           gender: map['gender'],
-          dateOfBirth: map['dateOfBirth'],
-          description: map['descriptiong'],
+          dateOfBirth: map['dateOfBirth'] != null
+              ? map['dateOfBirth'].toDate()
+              : map['dateOfBirth'],
+          description: map['description'],
         );
 
   Map<String, dynamic> asMap() => {

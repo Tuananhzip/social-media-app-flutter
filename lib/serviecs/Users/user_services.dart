@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:social_media_app/models/users.dart';
 
 class UserServices {
   final CollectionReference usersCollection =
@@ -8,28 +7,30 @@ class UserServices {
   final currentUser = FirebaseAuth.instance.currentUser;
 
   Stream<DocumentSnapshot> getUserStream() {
-    return FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUser!.uid)
-        .snapshots();
+    String uid = currentUser!.uid;
+    if (uid.isNotEmpty) {
+      createDocumentIfNotExists(uid);
+    }
+    return usersCollection.doc(currentUser!.uid).snapshots();
   }
 
-  Future<Users?> fetchDataUserInfo() async {
-    try {
-      DocumentSnapshot userSnapshot =
-          await usersCollection.doc(currentUser!.uid).get();
+  Future<DocumentSnapshot> getUserFuture() async {
+    String uid = currentUser!.uid;
+    return await usersCollection.doc(uid).get();
+  }
 
-      if (userSnapshot.exists) {
-        Map<String, dynamic> userDate = Users().asMap();
-        Users user = Users.formMap(userDate);
-        return user;
-      } else {
-        return null;
+  Future<void> createDocumentIfNotExists(String docId) async {
+    try {
+      DocumentReference docRef = usersCollection.doc(docId);
+
+      DocumentSnapshot docSnapshot = await docRef.get();
+
+      if (!docSnapshot.exists) {
+        await docRef.set(<String, dynamic>{});
       }
     } catch (error) {
       // ignore: avoid_print
-      print('Error fetching user data (fetchDataUserInfo): $error');
-      return null;
+      print("createDocumentIfNotExists ERROR ---> $error");
     }
   }
 
@@ -41,5 +42,12 @@ class UserServices {
       // ignore: avoid_print
       print("addAndEditProfileUser Services ERROR ---> $error");
     }
+  }
+
+  Stream<QuerySnapshot> getUsernameStream(String searchQuery) {
+    return usersCollection
+        .where('username', isGreaterThanOrEqualTo: searchQuery)
+        .where('username', isLessThanOrEqualTo: searchQuery + '\uf7ff')
+        .snapshots();
   }
 }

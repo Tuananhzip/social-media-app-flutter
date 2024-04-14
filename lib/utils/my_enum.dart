@@ -5,3 +5,5 @@ enum Fragments {
   listVideoScreen,
   profileScreen
 }
+
+enum Genders { male, female }
