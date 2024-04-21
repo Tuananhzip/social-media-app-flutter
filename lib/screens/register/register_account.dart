@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/button/button_default.dart';
-import 'package:social_media_app/components/dialog/dialog_register.dart';
-import 'package:social_media_app/components/field/field_default.dart';
-import 'package:social_media_app/components/form/general_form.dart';
+import 'package:flutter_pw_validator/flutter_pw_validator.dart';
+import 'package:social_media_app/components/button/button_default.component.dart';
+import 'package:social_media_app/components/dialog/dialog_register.component.dart';
+import 'package:social_media_app/components/field/field_default.component.dart';
+import 'package:social_media_app/components/form/general_form.component.dart';
 import 'package:social_media_app/screens/register/register_verify.dart';
-import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
-import 'package:social_media_app/serviecs/Users/user_services.dart';
+import 'package:social_media_app/services/authentication/authentication.services.dart';
+import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
 
@@ -30,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
   bool isRegisterSuccess = false;
+  bool isVisibility = false;
 
   void validateEmail(String value) {
     setState(() {
@@ -48,8 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (value.isEmpty) {
         passwordErrorText = 'Password is required';
       } else if (!isValidPassword(value)) {
-        passwordErrorText =
-            'Enter a valid password (least one upper case, least one lower case, least one digit,least one Special character, least 8 characters in length) example: Vignesh123!';
+        passwordErrorText = 'Enter a valid password (example: Vignesh123!)';
       } else {
         passwordErrorText = null;
       }
@@ -148,11 +149,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GeneralForm(listWidget: [
+    return GeneralFormComponent(listWidget: [
       const SizedBox(
         height: 45.0,
       ),
-      DialogScreen(
+      DialogComponent(
         title: "Do you want to stop creating your account?",
         content: const Text(
             "If you stop now, you'll lose any progress you've made."),
@@ -183,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               //Email Input
-              InputFieldDefault(
+              InputFieldDefaultComponent(
                 controller: emailController,
                 text: 'Email',
                 obscure: false,
@@ -191,13 +192,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 prefixIcon: const Icon(Icons.email_outlined),
                 suffixIcon: const Icon(Icons.close),
                 isValidation: (value) => emailErrorText,
-                onPressSuffixIcon: () => handleIcon(HandleIconField.clear),
+                onPressSuffixIcon: () => handleIcon(
+                  HandleIconField.clear,
+                ),
+                onTap: () {
+                  setState(() {
+                    isVisibility = false;
+                  });
+                },
               ),
               const SizedBox(
                 height: 16.0,
               ),
               //Password Input
-              InputFieldDefault(
+              InputFieldDefaultComponent(
                 controller: passwordController,
                 text: 'Password',
                 obscure: obscurePassword,
@@ -207,13 +215,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ? const Icon(Icons.visibility)
                     : const Icon(Icons.visibility_off),
                 isValidation: (value) => passwordErrorText,
-                onPressSuffixIcon: () =>
-                    handleIcon(HandleIconField.visibilityPassword),
+                onPressSuffixIcon: () => handleIcon(
+                  HandleIconField.visibilityPassword,
+                ),
+                onTap: () {
+                  setState(() {
+                    isVisibility = true;
+                  });
+                },
               ),
               const SizedBox(
                 height: 16.0,
               ),
-              InputFieldDefault(
+              Visibility(
+                visible: isVisibility,
+                child: FlutterPwValidator(
+                  width: 300,
+                  height: 150,
+                  minLength: 8,
+                  normalCharCount: 1,
+                  numericCharCount: 1,
+                  uppercaseCharCount: 1,
+                  lowercaseCharCount: 1,
+                  specialCharCount: 1,
+                  onSuccess: () {},
+                  controller: passwordController,
+                  defaultColor: Theme.of(context).colorScheme.background,
+                ),
+              ),
+              Visibility(
+                visible: isVisibility,
+                child: const SizedBox(
+                  height: 16.0,
+                ),
+              ),
+              InputFieldDefaultComponent(
                 controller: confirmPasswordController,
                 text: 'Confirm password',
                 obscure: obscureConfirmPassword,
@@ -223,13 +259,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ? const Icon(Icons.visibility)
                     : const Icon(Icons.visibility_off),
                 isValidation: (value) => confirmPasswordErrorText,
-                onPressSuffixIcon: () =>
-                    handleIcon(HandleIconField.visibilityConfirmPassword),
+                onPressSuffixIcon: () => handleIcon(
+                  HandleIconField.visibilityConfirmPassword,
+                ),
+                onTap: () {
+                  setState(() {
+                    isVisibility = false;
+                  });
+                },
               ),
               const SizedBox(
                 height: 16.0,
               ),
-              ButtonDefault(
+              ButtonDefaultComponent(
                 text: "Next",
                 onTap: onSubmit,
                 colorBackground: AppColors.secondaryColor,
@@ -250,7 +292,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-      DialogScreen(
+      DialogComponent(
         title: "Already have an account?",
         labelStatusStop: "Login",
         labelStatusContinue: "Continue creating account",

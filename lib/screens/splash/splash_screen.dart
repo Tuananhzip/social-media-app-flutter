@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen>
   bool isLoggedIn = false;
   Stream<User?> userState = FirebaseAuth.instance.authStateChanges();
 
-  Future<void> navigateToHome(User user) async {
+  Future<void> navigateToHome() async {
     await Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 2000),
@@ -33,10 +33,9 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    // Check xem người dùng đã đăng nhập chưa sẽ chuyển qua những trang khác nhau
     Future.delayed(const Duration(milliseconds: 2000), () {
       if (isLoggedIn && FirebaseAuth.instance.currentUser != null) {
-        navigateToHome(FirebaseAuth.instance.currentUser!);
+        navigateToHome();
       } else {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(

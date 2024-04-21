@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/button/outline_button_login.dart';
-import 'package:social_media_app/components/form/general_form.dart';
+import 'package:social_media_app/components/button/outline_button_login.component.dart';
+import 'package:social_media_app/components/form/general_form.component.dart';
 import 'package:social_media_app/screens/home/home_main.dart';
-import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
+import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
 class RegisterVerifyScreen extends StatefulWidget {
@@ -51,7 +51,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GeneralForm(listWidget: [
+    return GeneralFormComponent(listWidget: [
       const SizedBox(
         height: 45.0,
       ),
@@ -88,7 +88,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
       ),
       SizedBox(
         width: 250.0,
-        child: OutlineButtonLogin(
+        child: OutlineButtonLoginComponent(
           text: 'Continue',
           onTap: onSubmit,
         ),

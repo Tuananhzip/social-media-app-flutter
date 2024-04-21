@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/utils/collection_names.dart';
+import 'package:social_media_app/utils/field_names.dart';
 
 class UserServices {
-  final CollectionReference usersCollection =
-      FirebaseFirestore.instance.collection('users');
+  final usersCollection =
+      FirebaseFirestore.instance.collection(FirestoreCollectionNames.users);
   final currentUser = FirebaseAuth.instance.currentUser;
 
   Stream<DocumentSnapshot> getUserStream() {
@@ -14,7 +18,7 @@ class UserServices {
     return usersCollection.doc(currentUser!.uid).snapshots();
   }
 
-  Future<DocumentSnapshot> getUserFuture() async {
+  Future<DocumentSnapshot> getUserEdit() async {
     String uid = currentUser!.uid;
     return await usersCollection.doc(uid).get();
   }
@@ -34,9 +38,9 @@ class UserServices {
     }
   }
 
-  Future<void> addAndEditProfileUser(
-      String uid, Map<String, dynamic> userInfo) async {
+  Future<void> addAndEditProfileUser(Map<String, dynamic> userInfo) async {
     try {
+      String uid = currentUser!.uid;
       await usersCollection.doc(uid).set(userInfo, SetOptions(merge: true));
     } catch (error) {
       // ignore: avoid_print
@@ -46,8 +50,23 @@ class UserServices {
 
   Stream<QuerySnapshot> getUsernameStream(String searchQuery) {
     return usersCollection
-        .where('username', isGreaterThanOrEqualTo: searchQuery)
-        .where('username', isLessThanOrEqualTo: searchQuery + '\uf7ff')
-        .snapshots();
+        .where(DocumentFieldNames.username, isGreaterThanOrEqualTo: searchQuery)
+        .where(DocumentFieldNames.username,
+            isLessThanOrEqualTo: '$searchQuery\uf7ff')
+        .snapshots()
+        .debounceTime(const Duration(milliseconds: 500));
+  }
+
+  Future<Users?> getUserDetailsByID(String documentID) async {
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+        .collection(FirestoreCollectionNames.users)
+        .doc(documentID)
+        .get();
+    if (docSnapshot.exists) {
+      Map<String, dynamic> userData =
+          docSnapshot.data() as Map<String, dynamic>;
+      return Users.formMap(userData);
+    }
+    return null;
   }
 }

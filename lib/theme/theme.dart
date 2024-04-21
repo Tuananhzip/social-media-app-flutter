@@ -13,6 +13,17 @@ ThemeData lightMode = ThemeData(
     selectedItemColor: Colors.black,
     unselectedItemColor: Colors.black,
   ),
+  textTheme: const TextTheme(
+    bodyMedium: TextStyle(color: AppColors.blackColor),
+    titleMedium: TextStyle(color: AppColors.blackColor),
+    labelMedium: TextStyle(color: AppColors.blackColor),
+    bodyLarge: TextStyle(color: AppColors.blackColor),
+    titleLarge: TextStyle(color: AppColors.blackColor),
+    labelLarge: TextStyle(color: AppColors.blackColor),
+    bodySmall: TextStyle(color: AppColors.blackColor),
+    titleSmall: TextStyle(color: AppColors.blackColor),
+    labelSmall: TextStyle(color: AppColors.blackColor),
+  ),
 );
 
 ThemeData darkMode = ThemeData(
@@ -26,5 +37,16 @@ ThemeData darkMode = ThemeData(
     backgroundColor: Colors.black,
     selectedItemColor: Colors.white,
     unselectedItemColor: Colors.white,
+  ),
+  textTheme: const TextTheme(
+    bodyMedium: TextStyle(color: AppColors.backgroundColor),
+    titleMedium: TextStyle(color: AppColors.backgroundColor),
+    labelMedium: TextStyle(color: AppColors.backgroundColor),
+    bodyLarge: TextStyle(color: AppColors.backgroundColor),
+    titleLarge: TextStyle(color: AppColors.backgroundColor),
+    labelLarge: TextStyle(color: AppColors.backgroundColor),
+    bodySmall: TextStyle(color: AppColors.backgroundColor),
+    titleSmall: TextStyle(color: AppColors.backgroundColor),
+    labelSmall: TextStyle(color: AppColors.backgroundColor),
   ),
 );

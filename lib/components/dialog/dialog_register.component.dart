@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/button/outline_button_login.dart';
+import 'package:social_media_app/components/button/outline_button_login.component.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
-class DialogScreen extends StatelessWidget {
-  const DialogScreen({
+class DialogComponent extends StatelessWidget {
+  const DialogComponent({
     super.key,
     required this.title,
     this.content,
@@ -25,7 +25,7 @@ class DialogScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!typeDialogButtonBack) {
-      return OutlineButtonLogin(
+      return OutlineButtonLoginComponent(
         text: "Already have an account?",
         onTap: () => dialogBuilder(context),
       );

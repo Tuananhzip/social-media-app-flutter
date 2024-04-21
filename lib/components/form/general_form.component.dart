@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class GeneralForm extends StatelessWidget {
-  const GeneralForm({super.key, required this.listWidget});
+class GeneralFormComponent extends StatelessWidget {
+  const GeneralFormComponent({super.key, required this.listWidget});
   final List<Widget> listWidget;
 
   @override

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
-class ForgotPasswordText extends StatelessWidget {
-  const ForgotPasswordText({super.key});
+class ForgotPasswordTextComponent extends StatelessWidget {
+  const ForgotPasswordTextComponent({super.key});
 
   @override
   Widget build(BuildContext context) {

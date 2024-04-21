@@ -1,16 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:social_media_app/models/Users.dart';
-import 'package:social_media_app/components/button/button_default.dart';
-import 'package:social_media_app/components/list_post/list_post.dart';
-import 'package:social_media_app/components/story/story_screen.dart';
+import 'package:social_media_app/components/button/button_default.component.dart';
+import 'package:social_media_app/components/list/list_post.component.dart';
+import 'package:social_media_app/components/story/story_screen.component.dart';
 import 'package:social_media_app/screens/home/profile/update_profile_screen.dart';
 import 'package:social_media_app/screens/login/login.dart';
-import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
-import 'package:social_media_app/serviecs/Images/images_services.dart';
-import 'package:social_media_app/serviecs/Users/user_services.dart';
+import 'package:social_media_app/services/authentication/authentication.services.dart';
+import 'package:social_media_app/services/images/images.services.dart';
+import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -21,6 +20,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
   final currentUser = FirebaseAuth.instance.currentUser;
   final UserServices userServices = UserServices();
   Users user = Users(email: FirebaseAuth.instance.currentUser!.email!);
@@ -60,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  showSignOutSnackBar() {
+  void showSignOutSnackBar() {
     final snackBar = SnackBar(
       content: Text("Do you want to sign out? '${currentUser?.email}' "),
       action: SnackBarAction(
@@ -71,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  editProfile() {
+  void editProfile() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -81,12 +82,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String? getUsername() {
-    if (currentUser!.displayName != '' && currentUser!.displayName != null) {
-      return currentUser!.displayName!;
-    } else if (user.username != '' && user.username != null) {
-      return user.username!;
+    if (user.username != '' && user.username != null) {
+      return user.username;
+    } else if (currentUser!.displayName != '' &&
+        currentUser!.displayName != null) {
+      return currentUser!.displayName;
     } else {
       return "Hello name";
+    }
+  }
+
+  String getImageProfile() {
+    if (user.imageProfile != null &&
+        user.imageProfile != '' &&
+        !isImageLoading) {
+      return user.imageProfile!;
+    } else if (currentUser!.photoURL != null && !isImageLoading) {
+      return currentUser!.photoURL!;
+    } else {
+      return 'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png';
     }
   }
 
@@ -112,8 +126,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         return Scaffold(
-          body: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          key: scaffoldKey,
+          body: CustomScrollView(
+            slivers: [
               SliverAppBar(
                 title: Text.rich(
                   TextSpan(children: [
@@ -138,176 +153,177 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: const Icon(Icons.notifications_none_outlined))
                 ],
               ),
-            ],
-            body: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              color: Theme.of(context).colorScheme.background,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 140.0,
-                          height: 140.0,
-                          child: CircleAvatar(
-                            backgroundImage: user.imageProfile != null &&
-                                    user.imageProfile != '' &&
-                                    !isImageLoading
-                                ? NetworkImage(user.imageProfile!)
-                                : currentUser!.photoURL != null &&
-                                        !isImageLoading
-                                    ? NetworkImage(currentUser!.photoURL!)
-                                    : const NetworkImage(
-                                        "https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png"),
-                            child: Stack(
-                              children: [
-                                GestureDetector(
-                                  onTap: updateImageProfile,
-                                  child: Align(
-                                    alignment: Alignment.bottomRight,
-                                    child: Container(
-                                      width: 40.0,
-                                      height: 40.0,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(30.0),
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary),
-                                      child: const Icon(
-                                        Icons.add,
-                                        color: AppColors.primaryColor,
-                                        size: 32.0,
+              SliverToBoxAdapter(
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  color: Theme.of(context).colorScheme.background,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 140.0,
+                              height: 140.0,
+                              child: CircleAvatar(
+                                backgroundImage:
+                                    NetworkImage(getImageProfile()),
+                                child: Stack(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: updateImageProfile,
+                                      child: Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: Container(
+                                          width: 40.0,
+                                          height: 40.0,
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(30.0),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary),
+                                          child: const Icon(
+                                            Icons.add,
+                                            color: AppColors.primaryColor,
+                                            size: 32.0,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                    Visibility(
+                                      visible: isImageLoading,
+                                      child: const Align(
+                                        alignment: Alignment.center,
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                  ],
                                 ),
-                                Visibility(
-                                  visible: isImageLoading,
-                                  child: const Align(
-                                    alignment: Alignment.center,
-                                    child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            const Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Post",
+                                    style: TextStyle(fontSize: 22.0),
                                   ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                        const Expanded(
-                          child: Column(
-                            children: [
-                              Text(
-                                "Post",
-                                style: TextStyle(fontSize: 22.0),
+                                  Text("202"),
+                                ],
                               ),
-                              Text("202"),
-                            ],
-                          ),
-                        ),
-                        const Expanded(
-                          child: Column(
-                            children: [
-                              Text(
-                                "Friends",
-                                style: TextStyle(fontSize: 22.0),
+                            ),
+                            const Expanded(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Friends",
+                                    style: TextStyle(fontSize: 22.0),
+                                  ),
+                                  Text("12"),
+                                ],
                               ),
-                              Text("12"),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 0, horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          child: Text(
-                            getUsername()!,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 24.0,
                             ),
-                          ),
+                          ],
                         ),
-                        SizedBox(
-                          child: Text(
-                            user.description ?? '',
-                            style: const TextStyle(
-                              fontSize: 16.0,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 280.0,
-                          child: ButtonDefault(
-                            text: 'Edit profile',
-                            onTap: editProfile,
-                            colorBackground:
-                                Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 16.0,
-                        ),
-                        Expanded(
-                            child: ButtonDefault(
-                          onTap: () {},
-                          icon: Icons.person_add_alt_rounded,
-                          colorBackground:
-                              Theme.of(context).colorScheme.primary,
-                        ))
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 0, horizontal: 16.0),
-                    child: SizedBox(
-                      height: 115,
-                      child: ListView.builder(
-                        itemCount: 15,
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          bool statusStory = false;
-                          String userName = "Trần Ngọc Khánhsdsada";
-                          List<String> nameParts = userName.split(' ');
-                          String lastName =
-                              nameParts.isNotEmpty ? nameParts.last : userName;
-                          String lastNameOverflow = lastName.length > 8
-                              ? '${lastName.substring(0, 6)}...'
-                              : lastName;
-                          String imageUser =
-                              "https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg";
-                          return buildListItemStory(
-                            context,
-                            index,
-                            imageUser,
-                            lastNameOverflow,
-                            statusStory,
-                          ); // username, status story video (User and VideoStories)
-                        },
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 0, horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              child: Text(
+                                getUsername()!,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24.0,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              child: Text(
+                                user.description ?? '',
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 280.0,
+                              child: ButtonDefaultComponent(
+                                text: 'Edit profile',
+                                onTap: editProfile,
+                                colorBackground:
+                                    Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 16.0,
+                            ),
+                            Expanded(
+                                child: ButtonDefaultComponent(
+                              onTap: () {},
+                              icon: Icons.person_add_alt_rounded,
+                              colorBackground:
+                                  Theme.of(context).colorScheme.primary,
+                            ))
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 95.0,
+                        child: ListView.builder(
+                          itemCount: 15,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index) {
+                            bool statusStory = false;
+                            String userName = "Trần Ngọc Khánhsdsada";
+                            List<String> nameParts = userName.split(' ');
+                            String lastName = nameParts.isNotEmpty
+                                ? nameParts.last
+                                : userName;
+                            String lastNameOverflow = lastName.length > 8
+                                ? '${lastName.substring(0, 6)}...'
+                                : lastName;
+                            String imageUser =
+                                "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
+                            return buildListItemStory(
+                              context,
+                              index,
+                              imageUser,
+                              lastNameOverflow,
+                              statusStory,
+                            ); // username, status story video (User and VideoStories)
+                          },
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: IconButton(
+                            onPressed: () {},
+                            icon: const Icon(Icons.grid_4x4_outlined),
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: ListPostComponent())
+                    ],
                   ),
-                  const Expanded(child: ListPost())
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         );
       },
@@ -321,10 +337,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => StoryScreen(userName: lastNameOverflow)));
+                builder: (context) =>
+                    StoryComponent(userName: lastNameOverflow)));
       },
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
         child: Column(
           children: [
             Container(

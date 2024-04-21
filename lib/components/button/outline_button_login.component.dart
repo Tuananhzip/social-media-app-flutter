@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
-class OutlineButtonLogin extends StatelessWidget {
-  const OutlineButtonLogin({
+class OutlineButtonLoginComponent extends StatelessWidget {
+  const OutlineButtonLoginComponent({
     super.key,
     this.onTap,
     required this.text,

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 
-class RadioButtonWidget extends StatelessWidget {
-  const RadioButtonWidget(
+class RadioButtonWidgetComponent extends StatelessWidget {
+  const RadioButtonWidgetComponent(
       {super.key, this.onChanged, required this.groupValue});
   final Genders? groupValue;
   final void Function(Genders?)? onChanged;

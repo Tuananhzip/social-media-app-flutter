@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:social_media_app/utils/field_names.dart';
 
 class Users {
   String? email;
@@ -23,39 +23,39 @@ class Users {
   @override
   String toString() {
     return 'Users {\n'
-        '  email: $email,\n'
-        '  username: $username,\n'
-        '  imageProfile: $imageProfile,\n'
-        '  address: $address,\n'
-        '  phoneNumber: $phoneNumber,\n'
-        '  gender: $gender,\n'
-        '  dateOfBirth: $dateOfBirth,\n'
-        '  description: $description\n'
+        '  ${DocumentFieldNames.email}: $email,\n'
+        '  ${DocumentFieldNames.username}: $username,\n'
+        '  ${DocumentFieldNames.imageProfile}: $imageProfile,\n'
+        '  ${DocumentFieldNames.address}: $address,\n'
+        '  ${DocumentFieldNames.phoneNumber}: $phoneNumber,\n'
+        '  ${DocumentFieldNames.gender}: $gender,\n'
+        '  ${DocumentFieldNames.dateOfBirth}: $dateOfBirth,\n'
+        '  ${DocumentFieldNames.description}: $description\n'
         '}';
   }
 
   Users.formMap(Map map)
       : this(
-          email: map['email'],
-          username: map['username'],
-          imageProfile: map['imageProfile'],
-          address: map['address'],
-          phoneNumber: map['phoneNumber'],
-          gender: map['gender'],
-          dateOfBirth: map['dateOfBirth'] != null
-              ? map['dateOfBirth'].toDate()
-              : map['dateOfBirth'],
-          description: map['description'],
+          email: map[DocumentFieldNames.email],
+          username: map[DocumentFieldNames.username],
+          imageProfile: map[DocumentFieldNames.imageProfile],
+          address: map[DocumentFieldNames.address],
+          phoneNumber: map[DocumentFieldNames.phoneNumber],
+          gender: map[DocumentFieldNames.gender],
+          dateOfBirth: map[DocumentFieldNames.dateOfBirth] != null
+              ? map[DocumentFieldNames.dateOfBirth].toDate()
+              : map[DocumentFieldNames.dateOfBirth],
+          description: map[DocumentFieldNames.description],
         );
 
   Map<String, dynamic> asMap() => {
-        'email': email,
-        'username': username,
-        'imageProfile': imageProfile,
-        'address': address,
-        'phoneNumber': phoneNumber,
-        'gender': gender,
-        'dateOfBirth': dateOfBirth,
-        'description': description,
+        DocumentFieldNames.email: email,
+        DocumentFieldNames.username: username,
+        DocumentFieldNames.imageProfile: imageProfile,
+        DocumentFieldNames.address: address,
+        DocumentFieldNames.phoneNumber: phoneNumber,
+        DocumentFieldNames.gender: gender,
+        DocumentFieldNames.dateOfBirth: dateOfBirth,
+        DocumentFieldNames.description: description,
       };
 }

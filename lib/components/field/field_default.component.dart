@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
-class InputFieldDefault extends StatelessWidget {
-  const InputFieldDefault({
+class InputFieldDefaultComponent extends StatelessWidget {
+  const InputFieldDefaultComponent({
     super.key,
     required this.controller,
     required this.text,
@@ -12,6 +12,7 @@ class InputFieldDefault extends StatelessWidget {
     this.suffixIcon,
     this.onPressSuffixIcon,
     this.isValidation,
+    this.onTap,
   });
 
   final TextEditingController controller;
@@ -22,6 +23,7 @@ class InputFieldDefault extends StatelessWidget {
   final Icon? suffixIcon;
   final void Function()? onPressSuffixIcon;
   final String? Function(String?)? isValidation;
+  final void Function()? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +38,7 @@ class InputFieldDefault extends StatelessWidget {
         fillColor: AppColors.backgroundColor,
         filled: true,
         prefixIcon: prefixIcon,
+        prefixIconColor: AppColors.blackColor,
         labelText: text,
         errorStyle: const TextStyle(
           fontWeight: FontWeight.w900,
@@ -57,11 +60,13 @@ class InputFieldDefault extends StatelessWidget {
           icon: suffixIcon ?? const Icon(null),
           onPressed: onPressSuffixIcon,
         ),
+        suffixIconColor: AppColors.blackColor,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 5.0, vertical: 15.0),
       ),
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: isValidation,
+      onTap: onTap,
     );
   }
 }

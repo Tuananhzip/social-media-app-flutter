@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
-class FieldEditProfile extends StatelessWidget {
-  const FieldEditProfile(
+class FieldEditProfileComponent extends StatelessWidget {
+  const FieldEditProfileComponent(
       {super.key,
       required this.controller,
       this.validation,

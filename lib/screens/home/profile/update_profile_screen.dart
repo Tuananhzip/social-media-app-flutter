@@ -1,15 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:elegant_notification/elegant_notification.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:social_media_app/models/users.dart';
-import 'package:social_media_app/components/button/radio_button_gender.dart';
-import 'package:social_media_app/components/field/field_edit_profile.dart';
-import 'package:social_media_app/components/loading/overlay_loading.dart';
-import 'package:social_media_app/serviecs/Images/images_services.dart';
-import 'package:social_media_app/serviecs/Users/user_services.dart';
+import 'package:social_media_app/components/button/radio_button_gender.component.dart';
+import 'package:social_media_app/components/field/field_edit_profile.component.dart';
+import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/services/images/images.services.dart';
+import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
@@ -45,7 +43,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
 
   Future<void> getUserEdit() async {
     try {
-      final data = await userService.getUserFuture();
+      final data = await userService.getUserEdit();
       Map<String, dynamic> userData = data.data() as Map<String, dynamic>;
       user = Users.formMap(userData);
 
@@ -59,9 +57,10 @@ class _UpdateProfileState extends State<UpdateProfile> {
       dateOfBirthController.text = dateNew;
       descriptionController.text = user.description ?? '';
       setState(() {
-        urlImage = user.imageProfile ?? '';
+        urlImage = user.imageProfile;
       });
     } catch (error) {
+      // ignore: avoid_print
       print("getUserEdit :---> $error");
     }
     // ignore: avoid_print
@@ -77,14 +76,13 @@ class _UpdateProfileState extends State<UpdateProfile> {
       // ignore: avoid_print
       print("Update Image Profile User ERROR (updateImageProfile) ---> $error");
     } finally {
-      // ignore: use_build_context_synchronously
       final dataImage = await imageService.getImageFromFirestore();
       setState(() {
         urlImage = dataImage ?? user.imageProfile;
       });
-      // ignore: use_build_context_synchronously
-      context.loaderOverlay.hide();
     }
+    // ignore: use_build_context_synchronously
+    context.loaderOverlay.hide();
   }
 
   Future<void> saveUserInfo() async {
@@ -92,9 +90,11 @@ class _UpdateProfileState extends State<UpdateProfile> {
       widgetBuilder: (progress) => const OverlayLoadingWidget(),
     );
     final bool isValidation = formKey.currentState!.validate();
-    if (!isValidation) return;
+    if (!isValidation) {
+      context.loaderOverlay.hide();
+      return;
+    }
     try {
-      final String uid = currentUser!.uid;
       final String email = currentUser!.email!;
       final String username = usernameController.text.trim();
       final String address = addressController.text.trim();
@@ -124,7 +124,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
         imageProfile: imageProfile,
       ).asMap();
 
-      await userService.addAndEditProfileUser(uid, userInfo);
+      await userService.addAndEditProfileUser(userInfo);
       // ignore: avoid_print
       print('User info saved successfully! ---> $userInfo');
       DialogNotifications.notificationSuccess(
@@ -134,12 +134,13 @@ class _UpdateProfileState extends State<UpdateProfile> {
         "Your profile has been updated",
       );
       // ignore: use_build_context_synchronously
-      context.loaderOverlay.hide();
-      // ignore: use_build_context_synchronously
       Navigator.pop(context);
     } catch (error) {
       // ignore: avoid_print
       print('ERROR (saveUserInfo) ---> $error');
+    } finally {
+      // ignore: use_build_context_synchronously
+      context.loaderOverlay.hide();
     }
   }
 
@@ -258,7 +259,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                         ),
                       ),
                       Expanded(
-                        child: FieldEditProfile(
+                        child: FieldEditProfileComponent(
                           controller: usernameController,
                           textInputType: TextInputType.multiline,
                           validation: (_) =>
@@ -278,7 +279,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                         ),
                       ),
                       Expanded(
-                        child: FieldEditProfile(
+                        child: FieldEditProfileComponent(
                           controller: addressController,
                           textInputType: TextInputType.streetAddress,
                         ),
@@ -296,7 +297,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                         ),
                       ),
                       Expanded(
-                        child: FieldEditProfile(
+                        child: FieldEditProfileComponent(
                           controller: phoneNumberController,
                           textInputType: TextInputType.phone,
                           validation: (_) =>
@@ -316,7 +317,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                         ),
                       ),
                       Expanded(
-                          child: RadioButtonWidget(
+                          child: RadioButtonWidgetComponent(
                         groupValue: genders,
                         onChanged: (Genders? value) {
                           setState(() {
@@ -337,7 +338,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                         ),
                       ),
                       Expanded(
-                        child: FieldEditProfile(
+                        child: FieldEditProfileComponent(
                           controller: dateOfBirthController,
                           readOnly: true,
                           onTap: selectDate,
@@ -359,7 +360,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                         ),
                       ),
                       Expanded(
-                        child: FieldEditProfile(
+                        child: FieldEditProfileComponent(
                           controller: descriptionController,
                           textInputType: TextInputType.text,
                         ),

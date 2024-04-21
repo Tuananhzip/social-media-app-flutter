@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
-class ListPost extends StatelessWidget {
-  const ListPost({super.key});
+class ListPostComponent extends StatelessWidget {
+  const ListPostComponent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,6 +9,7 @@ class ListPost extends StatelessWidget {
       children: [
         Expanded(
           child: GridView.count(
+            padding: const EdgeInsets.only(top: 0),
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
             crossAxisCount: 3, // Số lượng cột trong GridView
@@ -17,7 +17,7 @@ class ListPost extends StatelessWidget {
               return buildListItemStory(
                 context,
                 index,
-                "https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg",
+                "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg",
               );
             }),
           ),

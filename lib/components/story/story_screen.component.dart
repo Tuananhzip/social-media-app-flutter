@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class StoryScreen extends StatelessWidget {
+class StoryComponent extends StatelessWidget {
   final String userName;
-  const StoryScreen({super.key, required this.userName});
+  const StoryComponent({super.key, required this.userName});
 
   @override
   Widget build(BuildContext context) {

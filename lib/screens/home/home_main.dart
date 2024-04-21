@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/home/create_post/create_post.dart';
+import 'package:social_media_app/screens/home/create_post/create_post_screen.dart';
 import 'package:social_media_app/screens/home/home_screen/home_screen.dart';
-import 'package:social_media_app/screens/home/list_video/list_video.dart';
+import 'package:social_media_app/screens/home/list_video/list_video_screen.dart';
 import 'package:social_media_app/screens/home/profile/profile_screen.dart';
 import 'package:social_media_app/screens/home/search/search_screen.dart';
 import 'package:social_media_app/utils/my_enum.dart';
@@ -43,18 +43,20 @@ class _HomeMainState extends State<HomeMain> {
     return fragment.index;
   }
 
+  final List<Widget> screens = [
+    const HomeScreen(),
+    const SearchScreen(),
+    const CreatePostScreen(),
+    const ListVideoScreen(),
+    const ProfileScreen()
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: fragmentToIndex(currentFragment),
-        children: const [
-          HomeScreen(),
-          SearchScreen(),
-          CreatePostScreen(),
-          ListVideoScreen(),
-          ProfileScreen()
-        ],
+        children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: fragmentToIndex(currentFragment),

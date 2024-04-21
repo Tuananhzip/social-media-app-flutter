@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 
-class SocialLoginButtonImage extends StatelessWidget {
-  const SocialLoginButtonImage(
+class SocialLoginButtonImageComponent extends StatelessWidget {
+  const SocialLoginButtonImageComponent(
       {super.key, this.onTapFacebook, this.onTapGoogle});
   final void Function()? onTapFacebook;
   final void Function()? onTapGoogle;

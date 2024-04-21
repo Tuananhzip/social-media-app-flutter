@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/button/button_default.dart';
-import 'package:social_media_app/components/button/outline_button_login.dart';
-import 'package:social_media_app/components/button/social_button_login.dart';
-import 'package:social_media_app/components/field/field_default.dart';
-import 'package:social_media_app/components/form/general_form.dart';
-import 'package:social_media_app/components/text/forgot_password.dart';
+import 'package:social_media_app/components/button/button_default.component.dart';
+import 'package:social_media_app/components/button/outline_button_login.component.dart';
+import 'package:social_media_app/components/button/social_button_login.component.dart';
+import 'package:social_media_app/components/field/field_default.component.dart';
+import 'package:social_media_app/components/form/general_form.component.dart';
+import 'package:social_media_app/components/text/forgot_password.component.dart';
 import 'package:social_media_app/screens/home/home_main.dart';
-import 'package:social_media_app/serviecs/Authentication/auth_services.dart';
-import 'package:social_media_app/serviecs/Users/user_services.dart';
+import 'package:social_media_app/services/authentication/authentication.services.dart';
+import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
 
@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GeneralForm(
+    return GeneralFormComponent(
       listWidget: [
         Expanded(
           child: Form(
@@ -184,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 20.0,
                 ),
                 //Email Input
-                InputFieldDefault(
+                InputFieldDefaultComponent(
                   controller: emailController,
                   text: 'Email',
                   obscure: false,
@@ -197,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(
                   height: 16.0,
                 ),
-                InputFieldDefault(
+                InputFieldDefaultComponent(
                   controller: passwordController,
                   text: 'Password',
                   obscure: obscurePassword,
@@ -213,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(
                   height: 16,
                 ),
-                ButtonDefault(
+                ButtonDefaultComponent(
                   text: "Login",
                   onTap: onSubmit,
                   colorBackground: AppColors.secondaryColor,
@@ -222,11 +222,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(
                   height: 16,
                 ),
-                const ForgotPasswordText(),
+                const ForgotPasswordTextComponent(),
                 const SizedBox(
                   height: 25.0,
                 ),
-                SocialLoginButtonImage(
+                SocialLoginButtonImageComponent(
                   onTapFacebook: () {},
                   onTapGoogle: signInWithGoogle,
                 ),
@@ -237,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-        OutlineButtonLogin(
+        OutlineButtonLoginComponent(
             text: "Create new account", onTap: navigationToRegisterScreen),
       ],
     );
