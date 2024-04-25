@@ -1,11 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/models/Users.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
 import 'package:social_media_app/components/list/list_post.component.dart';
 import 'package:social_media_app/components/story/story_screen.component.dart';
-import 'package:social_media_app/screens/home/profile/update_profile_screen.dart';
+import 'package:social_media_app/screens/home_main/profile/update_profile_screen.dart';
 import 'package:social_media_app/screens/login/login.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/services/images/images.services.dart';
@@ -168,41 +170,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             SizedBox(
                               width: 140.0,
                               height: 140.0,
-                              child: CircleAvatar(
-                                backgroundImage:
-                                    NetworkImage(getImageProfile()),
-                                child: Stack(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: updateImageProfile,
-                                      child: Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: Container(
-                                          width: 40.0,
-                                          height: 40.0,
-                                          decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(30.0),
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .secondary),
-                                          child: const Icon(
-                                            Icons.add,
-                                            color: AppColors.primaryColor,
-                                            size: 32.0,
+                              child: CachedNetworkImage(
+                                imageUrl: getImageProfile(),
+                                placeholder: (context, url) =>
+                                    const OverlayLoadingWidget(),
+                                imageBuilder: (context, imageProvider) {
+                                  return SizedBox(
+                                    height: 140.0,
+                                    width: 140.0,
+                                    child: CircleAvatar(
+                                      backgroundImage: imageProvider,
+                                      child: Stack(
+                                        children: [
+                                          GestureDetector(
+                                            onTap: updateImageProfile,
+                                            child: Align(
+                                              alignment: Alignment.bottomRight,
+                                              child: Container(
+                                                width: 40.0,
+                                                height: 40.0,
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            30.0),
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .secondary),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  color: AppColors.primaryColor,
+                                                  size: 32.0,
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ),
                                     ),
-                                    Visibility(
-                                      visible: isImageLoading,
-                                      child: const Align(
-                                        alignment: Alignment.center,
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    )
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
                             ),
                             const Expanded(

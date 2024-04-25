@@ -24,6 +24,16 @@ ThemeData lightMode = ThemeData(
     titleSmall: TextStyle(color: AppColors.blackColor),
     labelSmall: TextStyle(color: AppColors.blackColor),
   ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.blueColor,
+      foregroundColor: AppColors.backgroundColor,
+      textStyle: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+      ),
+    ),
+  ),
 );
 
 ThemeData darkMode = ThemeData(
@@ -48,5 +58,15 @@ ThemeData darkMode = ThemeData(
     bodySmall: TextStyle(color: AppColors.backgroundColor),
     titleSmall: TextStyle(color: AppColors.backgroundColor),
     labelSmall: TextStyle(color: AppColors.backgroundColor),
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.blueColor,
+      foregroundColor: AppColors.backgroundColor,
+      textStyle: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+      ),
+    ),
   ),
 );

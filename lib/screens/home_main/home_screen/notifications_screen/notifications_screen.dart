@@ -4,7 +4,7 @@ import 'package:social_media_app/components/list/list_friend_request.component.d
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/models/notifications.dart';
 import 'package:social_media_app/models/users.dart';
-import 'package:social_media_app/screens/home/home_screen/list_friend_request_screen.dart';
+import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/list_friend_request_screen.dart';
 import 'package:social_media_app/services/notifications/notifications.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/my_enum.dart';
@@ -44,14 +44,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: StreamBuilder<List<Notifications>>(
               stream: notificationServices.getNotificationsForFriendRequest(),
               builder: (context, snapshot) {
-                if (snapshot.hasError) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const OverlayLoadingWidget();
+                } else if (snapshot.hasError) {
                   return Center(
                     child: Text('ERROR : ---> ${snapshot.error}'),
                   );
-                } else if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const OverlayLoadingWidget();
-                } else {
+                } else if (snapshot.hasData) {
                   final List<Notifications> dataNotifications =
                       snapshot.data ?? [];
                   if (dataNotifications.isNotEmpty) {
@@ -112,11 +111,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         },
                       );
                     } else {
-                      return const SizedBox();
+                      return Container();
                     }
                   } else {
-                    return const SizedBox();
+                    return Container();
                   }
+                } else {
+                  return Container();
                 }
               },
             ),
@@ -130,10 +131,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   return Center(
                     child: Text('ERROR : ---> ${snapshot.error}'),
                   );
-                } else if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const OverlayLoadingWidget();
-                } else {
+                } else if (snapshot.hasData) {
                   final List<Notifications> dataNotifications =
                       snapshot.data ?? [];
                   return ListView.builder(
@@ -162,10 +160,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           },
                         );
                       } else {
-                        return const SizedBox();
+                        return Container();
                       }
                     },
                   );
+                } else {
+                  return Container();
                 }
               },
             ),

@@ -58,24 +58,34 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
 
   Widget buildImage(File file) => Container(
         width: 400.0,
-        height: 500.0,
+        height: 600.0,
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        decoration: BoxDecoration(border: Border.all(width: 2.0)),
-        child: Image.file(
-          file,
-          fit: BoxFit.cover,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.file(
+            file,
+            fit: BoxFit.cover,
+          ),
         ),
       );
   Widget buildVideo(VideoPlayerController videoController) => Container(
         width: 400.0,
-        height: 500.0,
+        height: 600.0,
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        decoration: BoxDecoration(border: Border.all(width: 2.0)),
-        child: videoController.value.isInitialized
-            ? AspectRatio(
-                aspectRatio: videoController.value.aspectRatio,
-                child: VideoPlayer(videoController),
-              )
-            : const SizedBox(),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: videoController.value.isInitialized
+              ? AspectRatio(
+                  aspectRatio: videoController.value.aspectRatio,
+                  child: VideoPlayer(videoController),
+                )
+              : const SizedBox(),
+        ),
       );
 }

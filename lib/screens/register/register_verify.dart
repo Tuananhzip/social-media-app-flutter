@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/components/button/outline_button_login.component.dart';
 import 'package:social_media_app/components/form/general_form.component.dart';
-import 'package:social_media_app/screens/home/home_main.dart';
+import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 

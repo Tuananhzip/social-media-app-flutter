@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:social_media_app/screens/home/home_main.dart';
+import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/screens/login/login.dart';
 import 'package:social_media_app/screens/register/register_account.dart';
 import 'package:social_media_app/screens/splash/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:social_media_app/services/notifications/local_notifications_plugin.services.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
 import 'firebase/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  LocalNotificationServices().initNotification();
   runApp(ChangeNotifierProvider(
     create: (context) => ThemeProvider(),
     child: const MyApp(),

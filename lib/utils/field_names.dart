@@ -26,5 +26,5 @@ class DocumentFieldNames {
   static const String postCreatedDate = 'post_created_date';
   // MediaPosts
   static const String mediaLink = 'media_link';
-  static const String mediaType = 'media_type';
+  static const String mediaPostFile = 'media_post_file';
 }

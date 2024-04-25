@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/home/create_post/create_post_screen.dart';
-import 'package:social_media_app/screens/home/home_screen/home_screen.dart';
-import 'package:social_media_app/screens/home/list_video/list_video_screen.dart';
-import 'package:social_media_app/screens/home/profile/profile_screen.dart';
-import 'package:social_media_app/screens/home/search/search_screen.dart';
+import 'package:social_media_app/screens/home_main/create_post/create_post_screen.dart';
+import 'package:social_media_app/screens/home_main/home_screen/home_screen.dart';
+import 'package:social_media_app/screens/home_main/list_video/list_video_screen.dart';
+import 'package:social_media_app/screens/home_main/profile/profile_screen.dart';
+import 'package:social_media_app/screens/home_main/search/search_screen.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 
 class HomeMain extends StatefulWidget {

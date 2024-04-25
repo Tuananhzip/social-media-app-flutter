@@ -7,7 +7,7 @@ import 'package:social_media_app/components/button/social_button_login.component
 import 'package:social_media_app/components/field/field_default.component.dart';
 import 'package:social_media_app/components/form/general_form.component.dart';
 import 'package:social_media_app/components/text/forgot_password.component.dart';
-import 'package:social_media_app/screens/home/home_main.dart';
+import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';

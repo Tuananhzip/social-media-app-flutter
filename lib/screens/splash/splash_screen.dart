@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/home/home_main.dart';
+import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/screens/login/login.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -15,11 +15,26 @@ class _SplashScreenState extends State<SplashScreen>
   bool isLoggedIn = false;
   Stream<User?> userState = FirebaseAuth.instance.authStateChanges();
 
-  Future<void> navigateToHome() async {
-    await Navigator.of(context).pushReplacement(
+  void navigateToHome() {
+    Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 2000),
+        transitionDuration: const Duration(milliseconds: 1500),
         pageBuilder: (context, animation1, animation2) => const HomeMain(),
+        transitionsBuilder: (context, animation1, animation2, child) {
+          return FadeTransition(
+            opacity: animation1,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+  void navigateToLogin() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 1500),
+        pageBuilder: (context, animation1, animation2) => const LoginScreen(),
         transitionsBuilder: (context, animation1, animation2, child) {
           return FadeTransition(
             opacity: animation1,
@@ -37,19 +52,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (isLoggedIn && FirebaseAuth.instance.currentUser != null) {
         navigateToHome();
       } else {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 2000),
-            pageBuilder: (context, animation1, animation2) =>
-                const LoginScreen(),
-            transitionsBuilder: (context, animation1, animation2, child) {
-              return FadeTransition(
-                opacity: animation1,
-                child: child,
-              );
-            },
-          ),
-        );
+        navigateToLogin();
       }
     });
   }
@@ -62,13 +65,15 @@ class _SplashScreenState extends State<SplashScreen>
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text(snapshot.error.toString());
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.data == null) {
-            isLoggedIn = false;
-          } else if (FirebaseAuth.instance.currentUser!.emailVerified &&
-              FirebaseAuth.instance.currentUser != null) {
+        } else if (snapshot.connectionState == ConnectionState.active &&
+            snapshot.hasData) {
+          //ignore:avoid_print
+          print("User Data for authentication --> ${snapshot.data}");
+          final user = snapshot.data;
+          if (user!.emailVerified) {
             isLoggedIn = true;
+          } else {
+            isLoggedIn = false;
           }
         }
         return splashScreen(context);

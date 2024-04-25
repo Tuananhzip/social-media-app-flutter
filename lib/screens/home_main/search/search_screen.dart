@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
+import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/models/users.dart';
-import 'package:social_media_app/screens/home/search/profile_users_screen.dart';
+import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -87,11 +89,19 @@ class _SearchScreenState extends State<SearchScreen> {
               title: Text('$username [$index]'),
               subtitle: Text(documentData.id),
               contentPadding: const EdgeInsets.all(16.0),
-              leading: CircleAvatar(
-                backgroundImage: imageProfile != null && imageProfile != ''
-                    ? NetworkImage(imageProfile)
-                    : const NetworkImage(
-                        "https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png"),
+              leading: SizedBox(
+                width: 50,
+                height: 50,
+                child: CachedNetworkImage(
+                  imageUrl: imageProfile != null && imageProfile != ''
+                      ? imageProfile
+                      : "https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png",
+                  imageBuilder: (context, imageProvider) => CircleAvatar(
+                    backgroundImage: imageProvider,
+                  ),
+                  placeholder: (context, url) => const OverlayLoadingWidget(),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
               ),
               onTap: () => getUserDetails(documentData.id),
             );

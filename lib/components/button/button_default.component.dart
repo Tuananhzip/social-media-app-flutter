@@ -28,7 +28,7 @@ class ButtonDefaultComponent extends StatelessWidget {
                 icon,
               )
             : Text(
-                text!,
+                text ?? '',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: colorText,

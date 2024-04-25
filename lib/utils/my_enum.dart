@@ -29,4 +29,4 @@ extension NotificationTypeExtension on NotificationTypeEnum {
   }
 }
 
-enum MediaType { image, video, other }
+enum MediaTypeEnum { image, video, other }

@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 
 class ListTileFriendRequestComponent extends StatelessWidget {
   const ListTileFriendRequestComponent({
@@ -35,18 +37,32 @@ class ListTileFriendRequestComponent extends StatelessWidget {
             if (listImages.length > 1)
               Positioned(
                 left: 0,
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(listImages.last ??
-                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png'),
+                child: CachedNetworkImage(
+                  imageUrl: listImages.last ??
+                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                  imageBuilder: (context, imageProvider) {
+                    return CircleAvatar(
+                      backgroundImage: imageProvider,
+                    );
+                  },
+                  placeholder: (context, url) => const OverlayLoadingWidget(),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
               ),
             if (listImages.isNotEmpty)
               Positioned(
                 left: 20.0,
                 top: 10.0,
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(listImages.first ??
-                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png'),
+                child: CachedNetworkImage(
+                  imageUrl: listImages.first ??
+                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                  imageBuilder: (context, imageProvider) {
+                    return CircleAvatar(
+                      backgroundImage: imageProvider,
+                    );
+                  },
+                  placeholder: (context, url) => const OverlayLoadingWidget(),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
               ),
           ],
