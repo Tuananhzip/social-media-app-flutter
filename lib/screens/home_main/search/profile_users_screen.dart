@@ -23,15 +23,11 @@ class ProfileUsersScreen extends StatefulWidget {
 }
 
 class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
-  final currentUser = FirebaseAuth.instance.currentUser;
-  final FriendRequestsServices friendRequestsServices =
+  final _currentUser = FirebaseAuth.instance.currentUser;
+  final FriendRequestsServices _friendRequestsServices =
       FriendRequestsServices();
-  @override
-  void initState() {
-    super.initState();
-  }
 
-  void editProfile() {
+  void _editProfile() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -120,7 +116,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                 ),
               ),
               StreamBuilder<bool?>(
-                stream: friendRequestsServices.checkFriendRequests(widget.uid),
+                stream: _friendRequestsServices.checkFriendRequests(widget.uid),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const OverlayLoadingWidget();
@@ -131,7 +127,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                       final isFriendRequest = snapshot.data;
                       //ignore:avoid_print
                       print('---> result display button: $isFriendRequest');
-                      if (currentUser!.uid == widget.uid) {
+                      if (_currentUser!.uid == widget.uid) {
                         return Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Row(
@@ -139,7 +135,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                               Expanded(
                                 child: ButtonDefaultComponent(
                                   text: 'Edit profile',
-                                  onTap: editProfile,
+                                  onTap: _editProfile,
                                   colorBackground:
                                       Theme.of(context).colorScheme.primary,
                                 ),
@@ -165,9 +161,9 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                 Expanded(
                                   child: ButtonDefaultComponent(
                                     text: 'Cancel request',
-                                    onTap: () => dialogBuilder(
+                                    onTap: () => _dialogBuilder(
                                         context, 'Cancel friend request?', () {
-                                      friendRequestsServices
+                                      _friendRequestsServices
                                           .cancelRequestAddFriend(widget.uid);
                                       Navigator.pop(context);
                                     },
@@ -182,7 +178,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                 Expanded(
                                   child: ButtonDefaultComponent(
                                     text: 'Add friend',
-                                    onTap: () => friendRequestsServices
+                                    onTap: () => _friendRequestsServices
                                         .sentRequestAddFriend(widget.uid),
                                     colorBackground:
                                         Theme.of(context).colorScheme.primary,
@@ -215,7 +211,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                           : lastName;
                       String imageUser =
                           "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
-                      return buildListItemStory(
+                      return _buildListItemStory(
                         context,
                         index,
                         imageUser,
@@ -234,7 +230,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
     );
   }
 
-  Widget buildListItemStory(BuildContext context, int index, String imageUser,
+  Widget _buildListItemStory(BuildContext context, int index, String imageUser,
       String lastNameOverflow, bool statusStory) {
     return GestureDetector(
       onTap: () {
@@ -274,7 +270,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
     );
   }
 
-  Future<void> dialogBuilder(
+  Future<void> _dialogBuilder(
       BuildContext context,
       String title,
       void Function()? onYes,

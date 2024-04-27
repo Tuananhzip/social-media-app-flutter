@@ -6,7 +6,7 @@ ThemeData lightMode = ThemeData(
   colorScheme: const ColorScheme.light(
     background: AppColors.backgroundColor,
     primary: AppColors.primaryColor,
-    secondary: AppColors.secondaryColor,
+    secondary: AppColors.greyColor,
   ),
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     backgroundColor: Colors.white,
@@ -33,6 +33,9 @@ ThemeData lightMode = ThemeData(
         fontSize: 20,
       ),
     ),
+  ),
+  buttonTheme: const ButtonThemeData(
+    buttonColor: AppColors.primaryColor,
   ),
 );
 
@@ -68,5 +71,8 @@ ThemeData darkMode = ThemeData(
         fontSize: 20,
       ),
     ),
+  ),
+  buttonTheme: const ButtonThemeData(
+    buttonColor: AppColors.secondaryColor,
   ),
 );

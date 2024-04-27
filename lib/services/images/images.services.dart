@@ -9,15 +9,15 @@ import 'package:social_media_app/utils/field_names.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 
 class ImageServices {
-  final userCollection =
+  final _userCollection =
       FirebaseFirestore.instance.collection(FirestoreCollectionNames.users);
-  final currentUser = FirebaseAuth.instance.currentUser;
+  final _currentUser = FirebaseAuth.instance.currentUser;
 
   Future<String> uploadImageToStorage(File file) async {
     String url = '';
     try {
       String fileName =
-          '${currentUser!.email}-${DateTime.now().microsecondsSinceEpoch}.jpg';
+          '${_currentUser!.email}-${DateTime.now().microsecondsSinceEpoch}.jpg';
 
       Reference ref = FirebaseStorage.instance.ref();
       Reference refImage = ref.child(DocumentFieldNames.imageProfile);
@@ -44,9 +44,9 @@ class ImageServices {
 
       String url = await uploadImageToStorage(File(file.path));
 
-      if (currentUser != null) {
-        String uid = currentUser!.uid;
-        final userDoc = await userCollection.doc(uid).get();
+      if (_currentUser != null) {
+        String uid = _currentUser.uid;
+        final userDoc = await _userCollection.doc(uid).get();
         if (userDoc.exists &&
             userDoc.data()!.containsKey(DocumentFieldNames.imageProfile) &&
             userDoc.data()![DocumentFieldNames.imageProfile] != null) {
@@ -54,7 +54,7 @@ class ImageServices {
           await FirebaseStorage.instance.refFromURL(oldImageUrl).delete();
         }
 
-        await userCollection.doc(uid).set(
+        await _userCollection.doc(uid).set(
           {DocumentFieldNames.imageProfile: url},
           SetOptions(merge: true),
         );

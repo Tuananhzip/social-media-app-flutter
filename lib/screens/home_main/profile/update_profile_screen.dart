@@ -20,20 +20,19 @@ class UpdateProfile extends StatefulWidget {
 }
 
 class _UpdateProfileState extends State<UpdateProfile> {
-  final formKey = GlobalKey<FormState>();
-  final UserServices userService = UserServices();
-  final ImageServices imageService = ImageServices();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController genderController = TextEditingController();
-  final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController dateOfBirthController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  final currentUser = FirebaseAuth.instance.currentUser;
-  String? urlImage;
-  Users user = Users();
-  String? dateOfBirthNew = '';
-  Genders? genders = Genders.male;
+  final _formKey = GlobalKey<FormState>();
+  final UserServices _userService = UserServices();
+  final ImageServices _imageService = ImageServices();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _dateOfBirthController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final _currentUser = FirebaseAuth.instance.currentUser;
+  String? _urlImage;
+  Users _user = Users();
+  Genders? _genders = Genders.male;
 
   @override
   initState() {
@@ -43,42 +42,41 @@ class _UpdateProfileState extends State<UpdateProfile> {
 
   Future<void> getUserEdit() async {
     try {
-      final data = await userService.getUserEdit();
+      final data = await _userService.getUserEdit();
       Map<String, dynamic> userData = data.data() as Map<String, dynamic>;
-      user = Users.formMap(userData);
+      _user = Users.formMap(userData);
 
-      usernameController.text = user.username ?? '';
-      addressController.text = user.address ?? '';
-      phoneNumberController.text = user.phoneNumber ?? '';
-      genderController.text = user.gender.toString();
+      _usernameController.text = _user.username ?? '';
+      _addressController.text = _user.address ?? '';
+      _phoneNumberController.text = _user.phoneNumber ?? '';
+      _genderController.text = _user.gender.toString();
       final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
-      final String dateNew =
-          user.dateOfBirth != null ? dateFormat.format(user.dateOfBirth!) : '';
-      dateOfBirthController.text = dateNew;
-      descriptionController.text = user.description ?? '';
+      final String dateNew = _user.dateOfBirth != null
+          ? dateFormat.format(_user.dateOfBirth!)
+          : '';
+      _dateOfBirthController.text = dateNew;
+      _descriptionController.text = _user.description ?? '';
       setState(() {
-        urlImage = user.imageProfile;
+        _urlImage = _user.imageProfile;
       });
     } catch (error) {
       // ignore: avoid_print
       print("getUserEdit :---> $error");
     }
-    // ignore: avoid_print
-    //print(user);
   }
 
   Future<void> updateImageProfile() async {
     context.loaderOverlay
         .show(widgetBuilder: (_) => const OverlayLoadingWidget());
     try {
-      await imageService.updateImageProfile();
+      await _imageService.updateImageProfile();
     } catch (error) {
       // ignore: avoid_print
       print("Update Image Profile User ERROR (updateImageProfile) ---> $error");
     } finally {
-      final dataImage = await imageService.getImageFromFirestore();
+      final dataImage = await _imageService.getImageFromFirestore();
       setState(() {
-        urlImage = dataImage ?? user.imageProfile;
+        _urlImage = dataImage ?? _user.imageProfile;
       });
     }
     // ignore: use_build_context_synchronously
@@ -89,29 +87,29 @@ class _UpdateProfileState extends State<UpdateProfile> {
     context.loaderOverlay.show(
       widgetBuilder: (progress) => const OverlayLoadingWidget(),
     );
-    final bool isValidation = formKey.currentState!.validate();
+    final bool isValidation = _formKey.currentState!.validate();
     if (!isValidation) {
       context.loaderOverlay.hide();
       return;
     }
     try {
-      final String email = currentUser!.email!;
-      final String username = usernameController.text.trim();
-      final String address = addressController.text.trim();
-      final String phoneNumber = phoneNumberController.text.trim();
+      final String email = _currentUser!.email!;
+      final String username = _usernameController.text.trim();
+      final String address = _addressController.text.trim();
+      final String phoneNumber = _phoneNumberController.text.trim();
       // Male (true) || Female (false) || Empty (null)
-      final bool? gender = genders == Genders.female
+      final bool? gender = _genders == Genders.female
           ? false
-          : genders == Genders.male
+          : _genders == Genders.male
               ? true
-              : genders = null;
+              : _genders = null;
       final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
-      final DateTime dateNew = dateFormat.parse(dateOfBirthController.text);
+      final DateTime dateNew = dateFormat.parse(_dateOfBirthController.text);
       final DateTime dateOfBirthUpdate = dateNew;
-      final String description = descriptionController.text.trim();
-      final String? imageProfile = urlImage;
+      final String description = _descriptionController.text.trim();
+      final String? imageProfile = _urlImage;
       setState(() {
-        urlImage = imageProfile ?? user.imageProfile;
+        _urlImage = imageProfile ?? _user.imageProfile;
       });
       Map<String, dynamic> userInfo = Users(
         email: email,
@@ -124,7 +122,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
         imageProfile: imageProfile,
       ).asMap();
 
-      await userService.addAndEditProfileUser(userInfo);
+      await _userService.addAndEditProfileUser(userInfo);
       // ignore: avoid_print
       print('User info saved successfully! ---> $userInfo');
       DialogNotifications.notificationSuccess(
@@ -158,7 +156,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
     );
     if (picked != null && picked != currentDate) {
       setState(() {
-        dateOfBirthController.text = picked.toString().split(" ")[0];
+        _dateOfBirthController.text = picked.toString().split(" ")[0];
       });
     }
   }
@@ -214,7 +212,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
         ),
         body: SingleChildScrollView(
           child: Form(
-            key: formKey,
+            key: _formKey,
             child: Container(
               margin: const EdgeInsets.all(16.0),
               color: Theme.of(context).colorScheme.background,
@@ -230,10 +228,11 @@ class _UpdateProfileState extends State<UpdateProfile> {
                           height: 100.0,
                           child: CircleAvatar(
                             radius: 30.0,
-                            backgroundImage: urlImage != null && urlImage != ''
-                                ? NetworkImage(urlImage!)
-                                : currentUser!.photoURL != null
-                                    ? NetworkImage(currentUser!.photoURL!)
+                            backgroundImage: _urlImage != null &&
+                                    _urlImage != ''
+                                ? NetworkImage(_urlImage!)
+                                : _currentUser!.photoURL != null
+                                    ? NetworkImage(_currentUser.photoURL!)
                                     : const NetworkImage(
                                         "https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png"),
                           ),
@@ -260,10 +259,10 @@ class _UpdateProfileState extends State<UpdateProfile> {
                       ),
                       Expanded(
                         child: FieldEditProfileComponent(
-                          controller: usernameController,
+                          controller: _usernameController,
                           textInputType: TextInputType.multiline,
                           validation: (_) =>
-                              validateUsername(usernameController.text),
+                              validateUsername(_usernameController.text),
                         ),
                       )
                     ],
@@ -280,7 +279,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                       ),
                       Expanded(
                         child: FieldEditProfileComponent(
-                          controller: addressController,
+                          controller: _addressController,
                           textInputType: TextInputType.streetAddress,
                         ),
                       )
@@ -298,10 +297,10 @@ class _UpdateProfileState extends State<UpdateProfile> {
                       ),
                       Expanded(
                         child: FieldEditProfileComponent(
-                          controller: phoneNumberController,
+                          controller: _phoneNumberController,
                           textInputType: TextInputType.phone,
                           validation: (_) =>
-                              validatePhoneNumber(phoneNumberController.text),
+                              validatePhoneNumber(_phoneNumberController.text),
                         ),
                       )
                     ],
@@ -318,10 +317,10 @@ class _UpdateProfileState extends State<UpdateProfile> {
                       ),
                       Expanded(
                           child: RadioButtonWidgetComponent(
-                        groupValue: genders,
+                        groupValue: _genders,
                         onChanged: (Genders? value) {
                           setState(() {
-                            genders = value;
+                            _genders = value;
                           });
                         },
                       ))
@@ -339,12 +338,12 @@ class _UpdateProfileState extends State<UpdateProfile> {
                       ),
                       Expanded(
                         child: FieldEditProfileComponent(
-                          controller: dateOfBirthController,
+                          controller: _dateOfBirthController,
                           readOnly: true,
                           onTap: selectDate,
                           textInputType: TextInputType.datetime,
                           validation: (_) =>
-                              validateDateOfBirth(dateOfBirthController.text),
+                              validateDateOfBirth(_dateOfBirthController.text),
                         ),
                       )
                     ],
@@ -361,7 +360,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                       ),
                       Expanded(
                         child: FieldEditProfileComponent(
-                          controller: descriptionController,
+                          controller: _descriptionController,
                           textInputType: TextInputType.text,
                         ),
                       )

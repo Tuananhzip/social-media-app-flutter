@@ -15,9 +15,9 @@ class ListFriendRequestScreen extends StatefulWidget {
 }
 
 class _ListFriendRequestScreenState extends State<ListFriendRequestScreen> {
-  final FriendRequestsServices friendRequestsServices =
+  final FriendRequestsServices _friendRequestsServices =
       FriendRequestsServices();
-  final UserServices userServices = UserServices();
+  final UserServices _userServices = UserServices();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +26,7 @@ class _ListFriendRequestScreenState extends State<ListFriendRequestScreen> {
           centerTitle: true,
         ),
         body: StreamBuilder<List<FriendRequest>>(
-          stream: friendRequestsServices.getFriendRequests(),
+          stream: _friendRequestsServices.getFriendRequests(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Center(
@@ -43,7 +43,7 @@ class _ListFriendRequestScreenState extends State<ListFriendRequestScreen> {
                   itemBuilder: (context, index) {
                     final friendRequest = dataListFriendRequest[index];
                     return FutureBuilder<Users?>(
-                      future: userServices
+                      future: _userServices
                           .getUserDetailsByID(friendRequest.senderId),
                       builder: (context, userSnapshot) {
                         if (userSnapshot.connectionState ==
@@ -58,10 +58,10 @@ class _ListFriendRequestScreenState extends State<ListFriendRequestScreen> {
                           final user = userSnapshot.data;
                           return ListTileFriendRequestComponent(
                             subtitle: user!.username!,
-                            listImages: [user.imageProfile!],
+                            listImages: [user.imageProfile],
                             listTrailing: [
                               ElevatedButton(
-                                onPressed: () => friendRequestsServices
+                                onPressed: () => _friendRequestsServices
                                     .acceptRequestAddFriend(
                                         friendRequest.senderId),
                                 child: Text(
@@ -71,7 +71,7 @@ class _ListFriendRequestScreenState extends State<ListFriendRequestScreen> {
                                 ),
                               ),
                               OutlinedButton(
-                                onPressed: () => friendRequestsServices
+                                onPressed: () => _friendRequestsServices
                                     .deleteRequestAddFriend(
                                         friendRequest.senderId),
                                 style: OutlinedButton.styleFrom(

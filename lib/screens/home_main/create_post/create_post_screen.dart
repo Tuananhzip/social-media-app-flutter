@@ -15,33 +15,33 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  final ImageServices imageServices = ImageServices();
-  List<File> fileList = [];
-  List<Widget> widgetList = [];
-  List<VideoPlayerController> videoControllers = [];
-  bool isLoading = false;
+  final ImageServices _imageServices = ImageServices();
+  final List<File> _fileList = [];
+  final List<Widget> _widgetList = [];
+  final List<VideoPlayerController> _videoControllers = [];
+  bool _isLoading = false;
 
   @override
   void dispose() {
     super.dispose();
-    for (var controller in videoControllers) {
+    for (var controller in _videoControllers) {
       controller.dispose();
     }
   }
 
-  Future<void> getMedia() async {
+  Future<void> _getMedia() async {
     try {
       setState(() {
-        fileList.clear();
-        widgetList.clear();
-        videoControllers.clear();
+        _fileList.clear();
+        _widgetList.clear();
+        _videoControllers.clear();
       });
 
-      final pickedfileList = await imageServices.pickMedia();
+      final pickedfileList = await _imageServices.pickMedia();
       if (pickedfileList.isEmpty) return;
 
       setState(() {
-        isLoading = true;
+        _isLoading = true;
       });
 
       final List<Future<void>> futures = [];
@@ -50,14 +50,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (pickedMedia == null) continue;
 
         if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
-          futures.add(initializeVideo(pickedMedia));
+          futures.add(_initializeVideo(pickedMedia));
         } else {
-          futures.add(compressImage(pickedMedia));
+          futures.add(_compressImage(pickedMedia));
         }
       }
 
       await Future.wait(futures).whenComplete(() => setState(() {
-            isLoading = false;
+            _isLoading = false;
           }));
     } catch (error) {
       // ignore: avoid_print
@@ -65,63 +65,63 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
-  Future<void> initializeVideo(File pickedMedia) async {
+  Future<void> _initializeVideo(File pickedMedia) async {
     final controller = VideoPlayerController.file(pickedMedia);
     await controller.initialize();
     setState(() {
-      fileList.add(pickedMedia); // add list file store firebase
-      widgetList.add(buildVideo(controller)); // add widget video
-      videoControllers
+      _fileList.add(pickedMedia); // add list file store firebase
+      _widgetList.add(_buildVideo(controller)); // add widget video
+      _videoControllers
           .add(controller); // add controller of video maintain value option
     });
   }
 
-  Future<void> compressImage(File pickedMedia) async {
-    final compressImage = await imageServices.compressImage(pickedMedia);
+  Future<void> _compressImage(File pickedMedia) async {
+    final compressImage = await _imageServices.compressImage(pickedMedia);
     setState(() {
-      fileList.add(compressImage!); // add list file store firebase
-      widgetList.add(buildImage(compressImage)); // add widget image
+      _fileList.add(compressImage!); // add list file store firebase
+      _widgetList.add(_buildImage(compressImage)); // add widget image
     });
   }
 
-  Future<void> getImageOrVideoWithCamera(MediaTypeEnum type) async {
+  Future<void> _getImageOrVideoWithCamera(MediaTypeEnum type) async {
     try {
       setState(() {
-        fileList.clear();
-        widgetList.clear();
-        videoControllers.clear();
+        _fileList.clear();
+        _widgetList.clear();
+        _videoControllers.clear();
       });
 
-      final pickedMedia = await imageServices.pickWithCamera(type);
+      final pickedMedia = await _imageServices.pickWithCamera(type);
       if (pickedMedia == null) return;
 
       setState(() {
-        isLoading = true;
+        _isLoading = true;
       });
 
       if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
-        await initializeVideo(pickedMedia);
+        await _initializeVideo(pickedMedia);
       } else {
-        await compressImage(pickedMedia);
+        await _compressImage(pickedMedia);
       }
     } catch (error) {
       //ignore:avoid_print
       print("ERROR getImageOrVideoWithCamera ---> $error");
     } finally {
       setState(() {
-        isLoading = false;
+        _isLoading = false;
       });
     }
   }
 
-  void navigateToAddContentPost() {
-    if (!isLoading) {
+  void _navigateToAddContentPost() {
+    if (!_isLoading) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => AddContentPost(
-            fileList: fileList,
-            widgetList: widgetList,
+            fileList: _fileList,
+            widgetList: _widgetList,
           ),
         ),
       );
@@ -131,7 +131,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
-  void navigateToMediaDetails(File file) {
+  void _navigateToMediaDetails(File file) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -153,7 +153,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               vertical: 0,
             ),
             child: TextButton(
-              onPressed: navigateToAddContentPost,
+              onPressed: _navigateToAddContentPost,
               child: Text(
                 "Next",
                 style: Theme.of(context).textTheme.titleMedium,
@@ -167,13 +167,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           const SizedBox(
             height: 16.0,
           ),
-          if (widgetList.isNotEmpty)
+          if (_widgetList.isNotEmpty)
             CarouselSlider.builder(
-              itemCount: widgetList.length,
+              itemCount: _widgetList.length,
               itemBuilder: (context, index, realIndex) {
                 return InkWell(
-                  onTap: () => navigateToMediaDetails(fileList[index]),
-                  child: widgetList[index],
+                  onTap: () => _navigateToMediaDetails(_fileList[index]),
+                  child: _widgetList[index],
                 );
               },
               options: CarouselOptions(
@@ -185,9 +185,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 scrollDirection: Axis.horizontal,
               ),
             ),
-          if (widgetList.isEmpty)
+          if (_widgetList.isEmpty)
             GestureDetector(
-              onTap: getMedia,
+              onTap: _getMedia,
               child: Container(
                 width: 400.0,
                 height: 500.0,
@@ -198,7 +198,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   borderRadius: BorderRadius.circular(20.0),
                 ),
                 child: Center(
-                  child: isLoading
+                  child: _isLoading
                       ? const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -213,11 +213,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
               ),
             ),
-          if (widgetList.isEmpty)
+          if (_widgetList.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: InkWell(
-                onTap: navigateToAddContentPost,
+                onTap: _navigateToAddContentPost,
                 child: const Text(
                   'You can skip the image/video and click "Next"',
                   style: TextStyle(
@@ -234,7 +234,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: IconButton(
                     iconSize: 32,
-                    onPressed: getMedia,
+                    onPressed: _getMedia,
                     icon: const Icon(Icons.photo_library_outlined),
                   ),
                 ),
@@ -243,7 +243,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   child: IconButton(
                     iconSize: 32,
                     onPressed: () =>
-                        getImageOrVideoWithCamera(MediaTypeEnum.image),
+                        _getImageOrVideoWithCamera(MediaTypeEnum.image),
                     icon: const Icon(Icons.camera_alt_outlined),
                   ),
                 ),
@@ -252,7 +252,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   child: IconButton(
                     iconSize: 32,
                     onPressed: () =>
-                        getImageOrVideoWithCamera(MediaTypeEnum.video),
+                        _getImageOrVideoWithCamera(MediaTypeEnum.video),
                     icon: const Icon(Icons.video_call_outlined),
                   ),
                 ),
@@ -264,7 +264,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget buildImage(File file) => Container(
+  Widget _buildImage(File file) => Container(
         width: 400.0,
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
         decoration: BoxDecoration(
@@ -278,7 +278,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ),
         ),
       );
-  Widget buildVideo(VideoPlayerController videoController) => Container(
+  Widget _buildVideo(VideoPlayerController videoController) => Container(
         width: 400.0,
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
         decoration: BoxDecoration(

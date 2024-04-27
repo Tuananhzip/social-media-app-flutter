@@ -1,17 +1,19 @@
+import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:social_media_app/components/dialog/dialog_video_player.component.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/components/post/post_srceen.component.dart';
-import 'package:social_media_app/components/story/story_screen.component.dart';
+import 'package:social_media_app/components/post/shimmer_post.component.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
 import 'package:social_media_app/utils/app_colors.dart';
-import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,120 +23,129 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ScrollController scrollController = ScrollController();
-  final PostService postService = PostService();
-  List<Posts> posts = [];
-  late bool isDarkMode = false;
-  bool isLoading = false;
-  late DocumentSnapshot? lastVisible;
-  List<List<Widget>> listOfListUrlPosts = [];
+  final ScrollController _scrollController = ScrollController();
+  final PostService _postService = PostService();
+  final List<Posts> _posts = [];
+  bool _isLoadingDarkMode = false;
+  bool _isLoadingData = false;
+  late DocumentSnapshot? _lastVisible;
+  final List<List<Widget>> _listOfListUrlPosts = [];
 
   @override
   initState() {
     super.initState();
-    initDarkMode();
-    loadPosts();
-    scrollController.addListener(scrollListen);
+    _initDarkMode();
+    _loadPosts();
+    _scrollController.addListener(_scrollListen);
   }
 
   @override
   void dispose() {
     super.dispose();
-
-    scrollController.removeListener(scrollListen);
-    scrollController.dispose();
-    posts.clear();
-    listOfListUrlPosts.clear();
+    _scrollController.removeListener(_scrollListen);
+    _scrollController.dispose();
   }
 
-  void scrollListen() {
-    if (scrollController.position.pixels ==
-        scrollController.position.maxScrollExtent) {
-      if (!isLoading) {
-        isLoading = true;
-        loadMorePosts().then((_) => isLoading = false);
+  void _scrollListen() {
+    if (_scrollController.position.pixels >
+        _scrollController.position.maxScrollExtent * 0.9) {
+      if (!_isLoadingData) {
+        _isLoadingData = true;
+        _loadMorePosts().then((_) {
+          _isLoadingData = false;
+        });
       }
     }
   }
 
-  Future<void> loadPosts() async {
-    List<DocumentSnapshot> postData = await postService.loadPostsLazy();
+  Future<void> _loadPosts() async {
+    List<DocumentSnapshot> postData = await _postService.loadPostsLazy();
     if (postData.isNotEmpty) {
-      lastVisible = postData[postData.length - 1];
+      _lastVisible = postData[postData.length - 1];
       List<Posts> postDummy = postData
           .map((data) => Posts.formMap(data.data() as Map<String, dynamic>))
           .toList();
       setState(() {
-        posts.clear();
-        listOfListUrlPosts.clear();
-        posts.addAll(postDummy);
+        _posts.clear();
+        _listOfListUrlPosts.clear();
+        _posts.addAll(postDummy);
       });
-      checkMediaList(posts);
+      _checkMediaList(_posts);
     }
   }
 
-  Future<void> loadMorePosts() async {
+  Future<void> _loadMorePosts() async {
     List<DocumentSnapshot> morePosts =
-        await postService.loadPostsLazy(lastVisible: lastVisible);
+        await _postService.loadPostsLazy(lastVisible: _lastVisible);
     if (morePosts.isNotEmpty) {
-      lastVisible = morePosts[morePosts.length - 1];
+      _lastVisible = morePosts[morePosts.length - 1];
       List<Posts> postDummy = morePosts
           .map((data) => Posts.formMap(data.data() as Map<String, dynamic>))
           .toList();
       setState(() {
-        posts.addAll(postDummy);
+        _posts.addAll(postDummy);
       });
-      checkMediaList(postDummy);
+      _checkMediaList(postDummy);
     }
   }
 
-  void checkMediaList(List<Posts> postsDummy) {
+  void _checkMediaList(List<Posts> postsDummy) async {
     if (postsDummy.isNotEmpty) {
+      List<List<Widget>> newListOfListUrlPosts = [];
       for (var post in postsDummy) {
         List<Widget> listDummy = [];
         if (post.mediaLink != null || post.mediaLink!.isNotEmpty) {
-          post.mediaLink?.forEach((url) async {
+          List<Future> futures = [];
+          for (var url in post.mediaLink!) {
             final listPart = url.split('.');
             final lastPart = listPart.last.toLowerCase().split('?');
             String extensions = lastPart.first;
             if (extensions == 'jpg' ||
                 extensions == 'png' ||
                 extensions == 'jpeg') {
-              listDummy.add(buildImage(url));
+              listDummy.add(_buildImage(url));
             } else if (extensions == 'mp4') {
-              VideoPlayerController? videoPlayerController;
-
-              videoPlayerController =
-                  VideoPlayerController.networkUrl(Uri.parse(url));
-              await videoPlayerController.initialize().then((value) {
-                setState(() {
-                  listDummy.add(buildVideo(videoPlayerController!));
-                });
-              });
-            } else {
-              listDummy.add(Container());
+              futures.add(
+                VideoThumbnail.thumbnailData(
+                  video: url,
+                  imageFormat: ImageFormat.JPEG,
+                  maxWidth: MediaQuery.of(context).size.width.toInt(),
+                  maxHeight: MediaQuery.of(context).size.height.toInt(),
+                  quality: 25,
+                ).then((uint8list) {
+                  if (uint8list != null) {
+                    listDummy.add(_buildVideo(uint8list, url));
+                  }
+                }).catchError((onError) {
+                  // ignore: avoid_print
+                  print('Failed to fetch video thumbnail: $onError');
+                }),
+              );
             }
-          });
+          }
+          // Wait for all futures to complete
+          await Future.wait(futures);
         }
-        setState(() {
-          listOfListUrlPosts.addAll([listDummy]);
-        });
+        newListOfListUrlPosts.add(listDummy);
       }
+      setState(() {
+        _listOfListUrlPosts.addAll(newListOfListUrlPosts);
+      });
     }
   }
 
-  Future<void> initDarkMode() async {
+  Future<void> _initDarkMode() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      isDarkMode = prefs.getBool("isDarkMode")!;
+      _isLoadingDarkMode = prefs.getBool("isDarkMode")!;
     });
   }
 
-  Future<void> toggleChangeTheme(context) async {
+  Future<void> _toggleChangeTheme(context) async {
     Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      isDarkMode = prefs.getBool("isDarkMode")!;
+      _isLoadingDarkMode = prefs.getBool("isDarkMode")!;
     });
   }
 
@@ -144,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Theme.of(context).colorScheme.background,
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
+          return [
             SliverAppBar(
               title: const Text(
                 "Minthwhite",
@@ -156,8 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               actions: [
                 Switch(
-                  value: isDarkMode,
-                  onChanged: (value) => toggleChangeTheme(context),
+                  value: _isLoadingDarkMode,
+                  onChanged: (value) => _toggleChangeTheme(context),
                   inactiveThumbImage: const AssetImage('assets/images/sun.png'),
                   activeThumbImage: const AssetImage('assets/images/moon.png'),
                   inactiveThumbColor: AppColors.backgroundColor,
@@ -180,110 +191,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.notifications_none_outlined),
                 ),
               ],
-              floating: true,
-              snap: true,
             ),
           ];
         },
-        body: Column(
-          children: [
-            // SizedBox(
-            //   height: 115,
-            //   child: ListView.builder(
-            //     itemCount: 4,
-            //     scrollDirection: Axis.horizontal,
-            //     itemBuilder: (context, index) {
-            //       bool statusStory = false;
-            //       String userName = "Trần Ngọc Khánhsdsada";
-            //       List<String> nameParts = userName.split(' ');
-            //       String lastName =
-            //           nameParts.isNotEmpty ? nameParts.last : userName;
-            //       String lastNameOverflow = lastName.length > 8
-            //           ? '${lastName.substring(0, 6)}...'
-            //           : lastName;
-            //       String imageUser =
-            //           "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
-            //       return buildListItemStory(
-            //         context,
-            //         index,
-            //         imageUser,
-            //         lastNameOverflow,
-            //         statusStory,
-            //       ); // username, status story video (User and VideoStories)
-            //     },
-            //   ),
-            // ),
-            Expanded(
-              child: posts.isNotEmpty
-                  ? RefreshIndicator(
-                      onRefresh: loadPosts,
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        scrollDirection: Axis.vertical,
-                        controller: scrollController,
-                        itemCount: posts.length,
-                        itemBuilder: (context, index) {
-                          return PostComponent(
-                            username: '${posts[index].uid!}-(${index + 1})',
-                            createDatePost:
-                                posts[index].postCreatedDate.toString(),
-                            contentPost: posts[index].postText ?? '',
-                            imageUrlPosts: listOfListUrlPosts[index],
-                          );
-                        },
-                      ),
-                    )
-                  : const OverlayLoadingWidget(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildListItemStory(BuildContext context, int index, String imageUser,
-      String lastNameOverflow, bool statusStory) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => StoryComponent(userName: lastNameOverflow),
+        body: RefreshIndicator(
+          onRefresh: _loadPosts,
+          child: ListView.builder(
+            padding: EdgeInsets.zero,
+            scrollDirection: Axis.vertical,
+            controller: _scrollController,
+            itemCount: _posts.length,
+            itemBuilder: (context, index) {
+              if (index < _posts.length && index < _listOfListUrlPosts.length) {
+                return PostComponent(
+                  username: '${_posts[index].uid!}-(${index + 1})',
+                  createDatePost: _posts[index].postCreatedDate.toString(),
+                  contentPost: _posts[index].postText ?? '',
+                  imageUrlPosts: _listOfListUrlPosts[index],
+                );
+              } else {
+                return const ShimmerPostComponent();
+              }
+            },
           ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Container(
-              width: 75,
-              height: 75,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: statusStory == true ? Colors.grey : Colors.blue,
-                  width: 4.0,
-                ),
-                image: DecorationImage(
-                  image: NetworkImage(imageUser),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Text(
-              lastNameOverflow,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            )
-          ],
         ),
       ),
     );
   }
 
-  Widget buildImage(String url) => SizedBox(
+  Widget _buildImage(String url) => SizedBox(
         width: MediaQuery.of(context).size.width,
         child: CachedNetworkImage(
           imageUrl: url,
@@ -301,13 +237,28 @@ class _HomeScreenState extends State<HomeScreen> {
           errorWidget: (context, url, error) => const Icon(Icons.error),
         ),
       );
-  Widget buildVideo(VideoPlayerController videoController) => SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: videoController.value.isInitialized
-            ? AspectRatio(
-                aspectRatio: videoController.value.aspectRatio,
-                child: VideoPlayer(videoController),
-              )
-            : const SizedBox(),
-      );
+  Widget _buildVideo(Uint8List data, String url) {
+    return GestureDetector(
+      onTap: () {
+        showVideoDialog(context, url);
+      },
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.memory(
+              data,
+              fit: BoxFit.fill,
+            ),
+          ),
+          const Positioned.fill(
+            child: Icon(
+              Icons.play_circle_outline,
+              color: Colors.white,
+              size: 70.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

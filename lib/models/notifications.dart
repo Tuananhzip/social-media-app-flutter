@@ -2,21 +2,33 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:social_media_app/utils/field_names.dart';
 
 class Notifications {
-  String? uid;
-  String? notificationType;
-  String? notificationReferenceId;
-  String? notificationContent;
-  Timestamp? notificationCreatedDate;
-  bool? notificationStatus;
+  String? _uid;
+  String? _notificationType;
+  String? _notificationReferenceId;
+  String? _notificationContent;
+  Timestamp? _notificationCreatedDate;
+  bool? _notificationStatus;
 
   Notifications({
-    this.uid,
-    this.notificationType,
-    this.notificationReferenceId,
-    this.notificationContent,
-    this.notificationCreatedDate,
-    this.notificationStatus,
-  });
+    String? uid,
+    String? notificationType,
+    String? notificationReferenceId,
+    String? notificationContent,
+    Timestamp? notificationCreatedDate,
+    bool? notificationStatus,
+  })  : _uid = uid,
+        _notificationType = notificationType,
+        _notificationReferenceId = notificationReferenceId,
+        _notificationContent = notificationContent,
+        _notificationCreatedDate = notificationCreatedDate,
+        _notificationStatus = notificationStatus;
+
+  String? get uid => _uid;
+  String? get notificationType => _notificationType;
+  String? get notificationReferenceId => _notificationReferenceId;
+  String? get notificationContent => _notificationContent;
+  Timestamp? get notificationCreatedDate => _notificationCreatedDate;
+  bool? get notificationStatus => _notificationStatus;
 
   Notifications.formMap(Map map)
       : this(
@@ -31,11 +43,11 @@ class Notifications {
         );
 
   Map<String, dynamic> asMap() => {
-        DocumentFieldNames.uid: uid,
-        DocumentFieldNames.notificationType: notificationType,
-        DocumentFieldNames.notificationReferenceId: notificationReferenceId,
-        DocumentFieldNames.notificationContent: notificationContent,
-        DocumentFieldNames.notificationCreatedDate: notificationCreatedDate,
-        DocumentFieldNames.notificationStatus: notificationStatus,
+        DocumentFieldNames.uid: _uid,
+        DocumentFieldNames.notificationType: _notificationType,
+        DocumentFieldNames.notificationReferenceId: _notificationReferenceId,
+        DocumentFieldNames.notificationContent: _notificationContent,
+        DocumentFieldNames.notificationCreatedDate: _notificationCreatedDate,
+        DocumentFieldNames.notificationStatus: _notificationStatus,
       };
 }

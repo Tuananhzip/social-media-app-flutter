@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
@@ -9,7 +8,6 @@ import 'package:social_media_app/components/form/general_form.component.dart';
 import 'package:social_media_app/components/text/forgot_password.component.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
-import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
 
@@ -21,60 +19,51 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final AuthenticationServices authServices = AuthenticationServices();
-  final UserServices userServices = UserServices();
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final formKey = GlobalKey<FormState>();
-  String? emailErrorText, passwordErrorText;
-  bool obscurePassword = true;
-  bool isLoading = false;
-  bool isLoginSuccess = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthenticationServices _authServices = AuthenticationServices();
+  final _formKey = GlobalKey<FormState>();
+  String? _emailErrorText, _passwordErrorText;
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+  bool _isLoginSuccess = false;
 
-  void validateEmail(String value) {
+  void _validateEmail(String value) {
     setState(() {
       if (value.isEmpty) {
-        emailErrorText = 'Email is required';
-      } else if (!isValidEmail(value)) {
-        emailErrorText = 'Enter a valid email address (example@gmail.com)';
+        _emailErrorText = 'Email is required';
+      } else if (!_isValidEmail(value)) {
+        _emailErrorText = 'Enter a valid email address (example@gmail.com)';
       } else {
-        emailErrorText = null;
+        _emailErrorText = null;
       }
     });
   }
 
-  void validatePassword(String value) {
+  void _validatePassword(String value) {
     setState(() {
       if (value.isEmpty) {
-        passwordErrorText = 'Password is required';
+        _passwordErrorText = 'Password is required';
       } else {
-        passwordErrorText = null;
+        _passwordErrorText = null;
       }
     });
   }
 
-  bool isValidPassword(String value) {
-    String pattern =
-        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
-    RegExp regExp = RegExp(pattern);
-    return regExp.hasMatch(value);
-  }
-
-  bool isValidEmail(String email) {
+  bool _isValidEmail(String email) {
     return RegExp(
             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(email);
   }
 
-  void handleIcon(HandleIconField handle) {
+  void _handleIcon(HandleIconField handle) {
     setState(() {
       switch (handle) {
         case HandleIconField.clear:
-          emailController.text = '';
+          _emailController.text = '';
           return;
         case HandleIconField.visibilityPassword:
-          obscurePassword = !obscurePassword;
+          _obscurePassword = !_obscurePassword;
           return;
         case HandleIconField.visibilityConfirmPassword:
           return;
@@ -82,15 +71,16 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void navigationToRegisterScreen() {
+  void _navigationToRegisterScreen() {
     Navigator.pushNamed(context, "/register");
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<void> _signInWithGoogle() async {
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
-    final UserCredential userCredential = await authServices.signInWithGoogle();
+    final UserCredential userCredential =
+        await _authServices.signInWithGoogle();
     final User? currentUser = userCredential.user;
 
     if (currentUser != null) {
@@ -105,36 +95,37 @@ class _LoginScreenState extends State<LoginScreen> {
       print('Login failed !!!!!!');
     }
     setState(() {
-      isLoading = false;
+      _isLoading = false;
     });
   }
 
-  Future<void> onSubmit() async {
+  Future<void> _onSubmit() async {
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
-    final resultEmail = emailController.text.trim();
-    final resultPassword = passwordController.text.trim();
-    validateEmail(resultEmail);
-    validatePassword(resultPassword);
-    bool isValidation = formKey.currentState!.validate();
+    final resultEmail = _emailController.text.trim();
+    final resultPassword = _passwordController.text.trim();
+    _validateEmail(resultEmail);
+    _validatePassword(resultPassword);
+    bool isValidation = _formKey.currentState!.validate();
     if (isValidation) {
       try {
-        await authServices.signInWithEmailPassword(resultEmail, resultPassword);
-        isLoginSuccess = (FirebaseAuth.instance.currentUser != null &&
-                await authServices.isEmailVerified())
+        await _authServices.signInWithEmailPassword(
+            resultEmail, resultPassword);
+        _isLoginSuccess = (FirebaseAuth.instance.currentUser != null &&
+                await _authServices.isEmailVerified())
             ? true
             : false;
-        if (!isLoginSuccess) {
-          emailErrorText = '$resultEmail have not verified your email.';
+        if (!_isLoginSuccess) {
+          _emailErrorText = '$resultEmail have not verified your email.';
         }
       } on FirebaseAuthException catch (error) {
         // ignore: avoid_print
         print("Error for sign in ---> $error");
-        passwordErrorText = error.message;
+        _passwordErrorText = error.message;
       }
 
-      if (isLoginSuccess) {
+      if (_isLoginSuccess) {
         Navigator.pushAndRemoveUntil(
             // ignore: use_build_context_synchronously
             context,
@@ -145,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
     setState(() {
-      isLoading = false;
+      _isLoading = false;
     });
   }
 
@@ -155,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
       listWidget: [
         Expanded(
           child: Form(
-            key: formKey,
+            key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -173,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(
                   height: 40.0,
-                  child: isLoading
+                  child: _isLoading
                       ? const Center(
                           child: CircularProgressIndicator(
                           color: AppColors.backgroundColor,
@@ -185,37 +176,37 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 //Email Input
                 InputFieldDefaultComponent(
-                  controller: emailController,
+                  controller: _emailController,
                   text: 'Email',
                   obscure: false,
                   textInputType: TextInputType.emailAddress,
                   prefixIcon: const Icon(Icons.email_outlined),
                   suffixIcon: const Icon(Icons.close),
-                  isValidation: (value) => emailErrorText,
-                  onPressSuffixIcon: () => handleIcon(HandleIconField.clear),
+                  isValidation: (value) => _emailErrorText,
+                  onPressSuffixIcon: () => _handleIcon(HandleIconField.clear),
                 ),
                 const SizedBox(
                   height: 16.0,
                 ),
                 InputFieldDefaultComponent(
-                  controller: passwordController,
+                  controller: _passwordController,
                   text: 'Password',
-                  obscure: obscurePassword,
+                  obscure: _obscurePassword,
                   textInputType: TextInputType.text,
                   prefixIcon: const Icon(Icons.password),
-                  suffixIcon: obscurePassword
+                  suffixIcon: _obscurePassword
                       ? const Icon(Icons.visibility)
                       : const Icon(Icons.visibility_off),
-                  isValidation: (value) => passwordErrorText,
+                  isValidation: (value) => _passwordErrorText,
                   onPressSuffixIcon: () =>
-                      handleIcon(HandleIconField.visibilityPassword),
+                      _handleIcon(HandleIconField.visibilityPassword),
                 ),
                 const SizedBox(
                   height: 16,
                 ),
                 ButtonDefaultComponent(
                   text: "Login",
-                  onTap: onSubmit,
+                  onTap: _onSubmit,
                   colorBackground: AppColors.secondaryColor,
                   colorText: AppColors.backgroundColor,
                 ),
@@ -228,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SocialLoginButtonImageComponent(
                   onTapFacebook: () {},
-                  onTapGoogle: signInWithGoogle,
+                  onTapGoogle: _signInWithGoogle,
                 ),
                 const SizedBox(
                   height: 16.0,
@@ -238,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         OutlineButtonLoginComponent(
-            text: "Create new account", onTap: navigationToRegisterScreen),
+            text: "Create new account", onTap: _navigationToRegisterScreen),
       ],
     );
   }

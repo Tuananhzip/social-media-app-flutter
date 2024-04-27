@@ -11,28 +11,28 @@ class MediaDetailScreen extends StatefulWidget {
 }
 
 class _MediaDetailScreenState extends State<MediaDetailScreen> {
-  VideoPlayerController? videoPlayerController;
+  VideoPlayerController? _videoPlayerController;
 
   @override
   void initState() {
     super.initState();
-    showMediaDetail();
+    _showMediaDetail();
   }
 
   @override
   void dispose() {
     super.dispose();
-    videoPlayerController?.pause(); // Pause the video when leaving the screen
-    videoPlayerController?.dispose();
+    _videoPlayerController?.pause(); // Pause the video when leaving the screen
+    _videoPlayerController?.dispose();
   }
 
-  void showMediaDetail() {
+  void _showMediaDetail() {
     if (widget.file.path.toLowerCase().endsWith('.mp4')) {
-      videoPlayerController = VideoPlayerController.file(widget.file)
+      _videoPlayerController = VideoPlayerController.file(widget.file)
         ..setLooping(true)
         ..initialize().then((value) {
           setState(() {});
-          videoPlayerController?.play();
+          _videoPlayerController?.play();
         });
     }
   }
@@ -46,17 +46,17 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
       ),
       body: Column(
         children: [
-          if (videoPlayerController != null &&
-              videoPlayerController!.value.isInitialized)
-            buildVideo(videoPlayerController!)
+          if (_videoPlayerController != null &&
+              _videoPlayerController!.value.isInitialized)
+            _buildVideo(_videoPlayerController!)
           else if (!widget.file.path.toLowerCase().endsWith('.mp4'))
-            buildImage(widget.file)
+            _buildImage(widget.file)
         ],
       ),
     );
   }
 
-  Widget buildImage(File file) => Container(
+  Widget _buildImage(File file) => Container(
         width: 400.0,
         height: 600.0,
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -71,7 +71,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
           ),
         ),
       );
-  Widget buildVideo(VideoPlayerController videoController) => Container(
+  Widget _buildVideo(VideoPlayerController videoController) => Container(
         width: 400.0,
         height: 600.0,
         margin: const EdgeInsets.symmetric(horizontal: 12.0),

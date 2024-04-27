@@ -1,72 +1,65 @@
-import 'package:social_media_app/models/Users.dart';
-import 'package:social_media_app/models/pattern/builder.dart';
+import 'package:social_media_app/models/users.dart';
 
-class UsersBuilder implements Builder<Users> {
-  Users user;
+class UsersBuilder {
+  String? _email;
+  String? _username;
+  String? _imageProfile;
+  String? _address;
+  String? _phoneNumber;
+  bool? _gender;
+  DateTime? _dateOfBirth;
+  String? _description;
 
-  UsersBuilder({required String email})
-      : user = Users(
-          email: email,
-        );
+  UsersBuilder setEmail(String email) {
+    _email = email;
+    return this;
+  }
 
-  @override
+  UsersBuilder setUsername(String username) {
+    _username = username;
+    return this;
+  }
+
+  UsersBuilder setImageProfile(String imageProfile) {
+    _imageProfile = imageProfile;
+    return this;
+  }
+
+  UsersBuilder setAddress(String address) {
+    _address = address;
+    return this;
+  }
+
+  UsersBuilder setPhoneNumber(String phoneNumber) {
+    _phoneNumber = phoneNumber;
+    return this;
+  }
+
+  UsersBuilder setGender(bool gender) {
+    _gender = gender;
+    return this;
+  }
+
+  UsersBuilder setDateOfBirth(DateTime dateOfBirth) {
+    _dateOfBirth = dateOfBirth;
+    return this;
+  }
+
+  UsersBuilder setDescription(String description) {
+    _description = description;
+    return this;
+  }
+
   Users build() {
-    return user;
-  }
-
-  @override
-  Users reset() {
-    return user = Users(
-      username: '',
-      email: '',
-      address: '',
-      dateOfBirth: null,
-      description: '',
-      gender: null,
-      imageProfile: '',
-      phoneNumber: '',
+    return Users(
+      email: _email,
+      username: _username,
+      imageProfile: _imageProfile,
+      address: _address,
+      phoneNumber: _phoneNumber,
+      gender: _gender,
+      dateOfBirth: _dateOfBirth,
+      description: _description,
     );
-  }
-
-  @override
-  UsersBuilder setImageProfile(String? imageProfile) {
-    user.imageProfile = imageProfile;
-    return this;
-  }
-
-  @override
-  UsersBuilder setAddress(String? address) {
-    user.address = address;
-    return this;
-  }
-
-  @override
-  UsersBuilder setPhoneNumber(String? phoneNumber) {
-    user.phoneNumber = phoneNumber;
-    return this;
-  }
-
-  @override
-  UsersBuilder setGender(bool? gender) {
-    user.gender = gender;
-    return this;
-  }
-
-  @override
-  UsersBuilder setDateOfBirth(DateTime? dateOfBirth) {
-    user.dateOfBirth = dateOfBirth;
-    return this;
-  }
-
-  @override
-  UsersBuilder setDescription(String? description) {
-    user.description = description;
-    return this;
-  }
-
-  @override
-  setUsername(String username) {
-    user.username = username;
-    return this;
   }
 }

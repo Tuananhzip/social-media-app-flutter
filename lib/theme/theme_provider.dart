@@ -9,7 +9,7 @@ class ThemeProvider with ChangeNotifier {
 
   set themeData(ThemeData themeData) {
     _themeData = themeData;
-    saveThemeToPrefs();
+    _saveThemeToPrefs();
     notifyListeners();
   }
 
@@ -22,10 +22,10 @@ class ThemeProvider with ChangeNotifier {
   }
 
   ThemeProvider() {
-    loadThemeFromPrefs();
+    _loadThemeFromPrefs();
   }
 
-  saveThemeToPrefs() async {
+  _saveThemeToPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (_themeData == lightMode) {
       await prefs.setBool('isDarkMode', false);
@@ -34,7 +34,7 @@ class ThemeProvider with ChangeNotifier {
     }
   }
 
-  loadThemeFromPrefs() async {
+  _loadThemeFromPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isDarkMode = prefs.getBool('isDarkMode') ?? false;
     themeData = isDarkMode ? darkMode : lightMode;

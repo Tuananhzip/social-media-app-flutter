@@ -1,61 +1,74 @@
 import 'package:social_media_app/utils/field_names.dart';
 
 class Users {
-  String? email;
-  String? username;
-  String? imageProfile;
-  String? address;
-  String? phoneNumber;
-  bool? gender;
-  DateTime? dateOfBirth;
-  String? description;
+  final String? _email;
+  final String? _username;
+  final String? _imageProfile;
+  final String? _address;
+  final String? _phoneNumber;
+  final bool? _gender;
+  final DateTime? _dateOfBirth;
+  final String? _description;
 
   Users({
-    this.email,
-    this.username,
-    this.imageProfile,
-    this.address,
-    this.phoneNumber,
-    this.gender,
-    this.dateOfBirth,
-    this.description,
-  });
+    String? email,
+    String? username,
+    String? imageProfile,
+    String? address,
+    String? phoneNumber,
+    bool? gender,
+    DateTime? dateOfBirth,
+    String? description,
+  })  : _email = email,
+        _username = username,
+        _imageProfile = imageProfile,
+        _address = address,
+        _phoneNumber = phoneNumber,
+        _gender = gender,
+        _dateOfBirth = dateOfBirth,
+        _description = description;
+
+  String? get email => _email;
+  String? get username => _username;
+  String? get imageProfile => _imageProfile;
+  String? get address => _address;
+  String? get phoneNumber => _phoneNumber;
+  bool? get gender => _gender;
+  DateTime? get dateOfBirth => _dateOfBirth;
+  String? get description => _description;
+
   @override
   String toString() {
     return 'Users {\n'
-        '  ${DocumentFieldNames.email}: $email,\n'
-        '  ${DocumentFieldNames.username}: $username,\n'
-        '  ${DocumentFieldNames.imageProfile}: $imageProfile,\n'
-        '  ${DocumentFieldNames.address}: $address,\n'
-        '  ${DocumentFieldNames.phoneNumber}: $phoneNumber,\n'
-        '  ${DocumentFieldNames.gender}: $gender,\n'
-        '  ${DocumentFieldNames.dateOfBirth}: $dateOfBirth,\n'
-        '  ${DocumentFieldNames.description}: $description\n'
+        '  ${DocumentFieldNames.email}: $_email,\n'
+        '  ${DocumentFieldNames.username}: $_username,\n'
+        '  ${DocumentFieldNames.imageProfile}: $_imageProfile,\n'
+        '  ${DocumentFieldNames.address}: $_address,\n'
+        '  ${DocumentFieldNames.phoneNumber}: $_phoneNumber,\n'
+        '  ${DocumentFieldNames.gender}: $_gender,\n'
+        '  ${DocumentFieldNames.dateOfBirth}: $_dateOfBirth,\n'
+        '  ${DocumentFieldNames.description}: $_description\n'
         '}';
   }
 
   Users.formMap(Map map)
-      : this(
-          email: map[DocumentFieldNames.email],
-          username: map[DocumentFieldNames.username],
-          imageProfile: map[DocumentFieldNames.imageProfile],
-          address: map[DocumentFieldNames.address],
-          phoneNumber: map[DocumentFieldNames.phoneNumber],
-          gender: map[DocumentFieldNames.gender],
-          dateOfBirth: map[DocumentFieldNames.dateOfBirth] != null
-              ? map[DocumentFieldNames.dateOfBirth].toDate()
-              : map[DocumentFieldNames.dateOfBirth],
-          description: map[DocumentFieldNames.description],
-        );
+      : _email = map[DocumentFieldNames.email],
+        _username = map[DocumentFieldNames.username],
+        _imageProfile = map[DocumentFieldNames.imageProfile],
+        _address = map[DocumentFieldNames.address],
+        _phoneNumber = map[DocumentFieldNames.phoneNumber],
+        _gender = map[DocumentFieldNames.gender],
+        _dateOfBirth = map[DocumentFieldNames.dateOfBirth]?.toDate(),
+        _description = map[DocumentFieldNames.description];
 
   Map<String, dynamic> asMap() => {
-        DocumentFieldNames.email: email,
-        DocumentFieldNames.username: username,
-        DocumentFieldNames.imageProfile: imageProfile,
-        DocumentFieldNames.address: address,
-        DocumentFieldNames.phoneNumber: phoneNumber,
-        DocumentFieldNames.gender: gender,
-        DocumentFieldNames.dateOfBirth: dateOfBirth,
-        DocumentFieldNames.description: description,
+        DocumentFieldNames.email: _email,
+        DocumentFieldNames.username: _username,
+        DocumentFieldNames.imageProfile: _imageProfile,
+        DocumentFieldNames.address: _address,
+        DocumentFieldNames.phoneNumber: _phoneNumber,
+        DocumentFieldNames.gender: _gender,
+        DocumentFieldNames.dateOfBirth: _dateOfBirth,
+        DocumentFieldNames.description: _description,
       };
 }

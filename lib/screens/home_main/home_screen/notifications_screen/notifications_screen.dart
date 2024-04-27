@@ -17,10 +17,10 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final NotificationServices notificationServices = NotificationServices();
-  final UserServices userServices = UserServices();
+  final NotificationServices _notificationServices = NotificationServices();
+  final UserServices _userServices = UserServices();
 
-  void onNavigateToListFriendRequests() {
+  void _onNavigateToListFriendRequests() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -42,7 +42,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         children: [
           SizedBox(
             child: StreamBuilder<List<Notifications>>(
-              stream: notificationServices.getNotificationsForFriendRequest(),
+              stream: _notificationServices.getNotificationsForFriendRequest(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const OverlayLoadingWidget();
@@ -67,13 +67,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         countFriendRequest.length > 1) {
                       return FutureBuilder<List<Users?>>(
                         future: Future.wait([
-                          userServices.getUserDetailsByID(userFirst!),
-                          userServices.getUserDetailsByID(userLast!)
+                          _userServices.getUserDetailsByID(userFirst!),
+                          _userServices.getUserDetailsByID(userLast!)
                         ]),
                         builder: (context, usersSnapshot) {
                           final dataUsers = usersSnapshot.data;
                           return GestureDetector(
-                            onTap: onNavigateToListFriendRequests,
+                            onTap: _onNavigateToListFriendRequests,
                             child: ListTileFriendRequestComponent(
                               title: dataNotifications.first.notificationType,
                               subtitle:
@@ -91,12 +91,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       );
                     } else if (countFriendRequest.isNotEmpty) {
                       return FutureBuilder<Users?>(
-                        future: userServices
+                        future: _userServices
                             .getUserDetailsByID(userLast ?? userFirst!),
                         builder: (context, usersSnapshot) {
                           final dataUsers = usersSnapshot.data;
                           return GestureDetector(
-                            onTap: onNavigateToListFriendRequests,
+                            onTap: _onNavigateToListFriendRequests,
                             child: ListTileFriendRequestComponent(
                               title: dataNotifications.first.notificationType,
                               subtitle: dataUsers?.username,
@@ -124,7 +124,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           Flexible(
             child: StreamBuilder<List<Notifications>>(
-              stream: notificationServices
+              stream: _notificationServices
                   .getNotificationsForAcceptedFriendRequest(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -145,7 +145,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         String formattedDateTime = dateFormat.format(
                             notification.notificationCreatedDate!.toDate());
                         return FutureBuilder(
-                          future: userServices
+                          future: _userServices
                               .getUserDetailsByID(notification.uid!),
                           builder: (context, userSnapshot) {
                             final dataUser = userSnapshot.data;

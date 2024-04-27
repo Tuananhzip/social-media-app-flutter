@@ -8,8 +8,8 @@ import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';
 
 class PostService {
-  final currentUser = FirebaseAuth.instance.currentUser;
-  final CollectionReference postCollection =
+  final _currentUser = FirebaseAuth.instance.currentUser;
+  final CollectionReference _postCollection =
       FirebaseFirestore.instance.collection(FirestoreCollectionNames.posts);
 
   Future<List<String>> uploadMediaToStorage(List<File> files) async {
@@ -21,7 +21,7 @@ class PostService {
         Reference ref = FirebaseStorage.instance
             .ref()
             .child(DocumentFieldNames.mediaPostFile)
-            .child(currentUser!.email!)
+            .child(_currentUser!.email!)
             .child(fileName);
         UploadTask uploadTask = ref.putFile(file);
         TaskSnapshot downloadUrl = await uploadTask;
@@ -40,12 +40,12 @@ class PostService {
     try {
       List<String> fileUrls = await uploadMediaToStorage(files);
       final postData = Posts(
-        uid: currentUser!.uid,
+        uid: _currentUser!.uid,
         postText: postText,
         postCreatedDate: Timestamp.now(),
         mediaLink: fileUrls,
       ).asMap();
-      await postCollection.add(postData);
+      await _postCollection.add(postData);
     } catch (error) {
       //ignore:avoid_print
       print('addPostToFirestore ERROR ---> $error');
@@ -54,7 +54,7 @@ class PostService {
 
   Future<List<DocumentSnapshot>> loadPostsLazy(
       {limit = 10, DocumentSnapshot? lastVisible}) async {
-    Query query = postCollection
+    Query query = _postCollection
         .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
         .limit(limit);
 
@@ -67,7 +67,7 @@ class PostService {
   }
 
   Stream<List<Posts>> getPostsStream() {
-    return postCollection
+    return _postCollection
         .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs

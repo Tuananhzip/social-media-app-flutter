@@ -22,15 +22,15 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final currentUser = FirebaseAuth.instance.currentUser;
-  final UserServices userServices = UserServices();
-  Users user = Users(email: FirebaseAuth.instance.currentUser!.email!);
+  final _currentUser = FirebaseAuth.instance.currentUser;
+  final UserServices _userServices = UserServices();
+  Users _user = Users(email: FirebaseAuth.instance.currentUser!.email!);
 
-  bool isImageLoading = false;
+  bool _isImageLoading = false;
 
-  Future<void> singOutWithGoogle() async {
+  Future<void> _singOutWithGoogle() async {
     final AuthenticationServices auth = AuthenticationServices();
     try {
       await auth.singOutUser();
@@ -46,9 +46,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> updateImageProfile() async {
+  Future<void> _updateImageProfile() async {
     setState(() {
-      isImageLoading = true;
+      _isImageLoading = true;
     });
     final ImageServices imageService = ImageServices();
     try {
@@ -58,23 +58,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print("Update Image Profile User ERROR (updateImageProfile) ---> $error");
     } finally {
       setState(() {
-        isImageLoading = false;
+        _isImageLoading = false;
       });
     }
   }
 
-  void showSignOutSnackBar() {
+  void _showSignOutSnackBar() {
     final snackBar = SnackBar(
-      content: Text("Do you want to sign out? '${currentUser?.email}' "),
+      content: Text("Do you want to sign out? '${_currentUser?.email}' "),
       action: SnackBarAction(
         label: 'Sign out',
-        onPressed: singOutWithGoogle,
+        onPressed: _singOutWithGoogle,
       ),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void editProfile() {
+  void _editProfile() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -83,24 +83,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  String? getUsername() {
-    if (user.username != '' && user.username != null) {
-      return user.username;
-    } else if (currentUser!.displayName != '' &&
-        currentUser!.displayName != null) {
-      return currentUser!.displayName;
+  String? _getUsername() {
+    if (_user.username != '' && _user.username != null) {
+      return _user.username;
+    } else if (_currentUser!.displayName != '' &&
+        _currentUser.displayName != null) {
+      return _currentUser.displayName;
     } else {
       return "Hello name";
     }
   }
 
-  String getImageProfile() {
-    if (user.imageProfile != null &&
-        user.imageProfile != '' &&
-        !isImageLoading) {
-      return user.imageProfile!;
-    } else if (currentUser!.photoURL != null && !isImageLoading) {
-      return currentUser!.photoURL!;
+  String _getImageProfile() {
+    if (_user.imageProfile != null &&
+        _user.imageProfile != '' &&
+        !_isImageLoading) {
+      return _user.imageProfile!;
+    } else if (_currentUser!.photoURL != null && !_isImageLoading) {
+      return _currentUser.photoURL!;
     } else {
       return 'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png';
     }
@@ -109,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
-      stream: userServices.getUserStream(),
+      stream: _userServices.getUserStream(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error --->: ${snapshot.error}'));
@@ -122,26 +122,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (snapshot.data!.data() != null) {
           final Map<String, dynamic> userData =
               snapshot.data!.data() as Map<String, dynamic>;
-          user = Users.formMap(userData);
+          _user = Users.formMap(userData);
           // ignore: avoid_print
-          print("PROFILE ---> $user");
+          print("PROFILE ---> $_user");
         }
 
         return Scaffold(
-          key: scaffoldKey,
+          key: _scaffoldKey,
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
                 title: Text.rich(
                   TextSpan(children: [
                     TextSpan(
-                      text: getUsername(),
+                      text: _getUsername(),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 24.0),
                     ),
                     WidgetSpan(
                         child: GestureDetector(
-                      onTap: showSignOutSnackBar,
+                      onTap: _showSignOutSnackBar,
                       child: const Icon(Icons.keyboard_arrow_down_outlined),
                     ))
                   ]),
@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 140.0,
                               height: 140.0,
                               child: CachedNetworkImage(
-                                imageUrl: getImageProfile(),
+                                imageUrl: _getImageProfile(),
                                 placeholder: (context, url) =>
                                     const OverlayLoadingWidget(),
                                 imageBuilder: (context, imageProvider) {
@@ -183,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       child: Stack(
                                         children: [
                                           GestureDetector(
-                                            onTap: updateImageProfile,
+                                            onTap: _updateImageProfile,
                                             child: Align(
                                               alignment: Alignment.bottomRight,
                                               child: Container(
@@ -244,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             SizedBox(
                               child: Text(
-                                getUsername()!,
+                                _getUsername()!,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 24.0,
@@ -253,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             SizedBox(
                               child: Text(
-                                user.description ?? '',
+                                _user.description ?? '',
                                 style: const TextStyle(
                                   fontSize: 16.0,
                                 ),
@@ -270,7 +270,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 280.0,
                               child: ButtonDefaultComponent(
                                 text: 'Edit profile',
-                                onTap: editProfile,
+                                onTap: _editProfile,
                                 colorBackground:
                                     Theme.of(context).colorScheme.primary,
                               ),
@@ -305,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 : lastName;
                             String imageUser =
                                 "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
-                            return buildListItemStory(
+                            return _buildListItemStory(
                               context,
                               index,
                               imageUser,
@@ -336,7 +336,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget buildListItemStory(BuildContext context, int index, String imageUser,
+  Widget _buildListItemStory(BuildContext context, int index, String imageUser,
       String lastNameOverflow, bool statusStory) {
     return GestureDetector(
       onTap: () {

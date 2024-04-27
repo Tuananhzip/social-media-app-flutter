@@ -7,7 +7,6 @@ import 'package:social_media_app/components/field/field_default.component.dart';
 import 'package:social_media_app/components/form/general_form.component.dart';
 import 'package:social_media_app/screens/register/register_verify.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
-import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
 
@@ -19,70 +18,69 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final formKey = GlobalKey<FormState>();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final AuthenticationServices authServices = AuthenticationServices();
-  final UserServices userServices = UserServices();
-  String? emailErrorText, passwordErrorText, confirmPasswordErrorText;
-  bool isLoading = false;
-  bool obscurePassword = true;
-  bool obscureConfirmPassword = true;
-  bool isRegisterSuccess = false;
-  bool isVisibility = false;
+  final AuthenticationServices _authServices = AuthenticationServices();
+  String? _emailErrorText, _passwordErrorText, _confirmPasswordErrorText;
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _isRegisterSuccess = false;
+  bool _isVisibility = false;
 
-  void validateEmail(String value) {
+  void _validateEmail(String value) {
     setState(() {
       if (value.isEmpty) {
-        emailErrorText = 'Email is required';
-      } else if (!isValidEmail(value)) {
-        emailErrorText = 'Enter a valid email address (example@gmail.com)';
+        _emailErrorText = 'Email is required';
+      } else if (!_isValidEmail(value)) {
+        _emailErrorText = 'Enter a valid email address (example@gmail.com)';
       } else {
-        emailErrorText = null;
+        _emailErrorText = null;
       }
     });
   }
 
-  void validatePassword(String value) {
+  void _validatePassword(String value) {
     setState(() {
       if (value.isEmpty) {
-        passwordErrorText = 'Password is required';
-      } else if (!isValidPassword(value)) {
-        passwordErrorText = 'Enter a valid password (example: Vignesh123!)';
+        _passwordErrorText = 'Password is required';
+      } else if (!_isValidPassword(value)) {
+        _passwordErrorText = 'Enter a valid password (example: Vignesh123!)';
       } else {
-        passwordErrorText = null;
+        _passwordErrorText = null;
       }
     });
   }
 
-  void validatePasswordConfirm(String password, String confirmPassword) {
+  void _validatePasswordConfirm(String password, String confirmPassword) {
     setState(() {
       if (confirmPassword.isEmpty) {
-        confirmPasswordErrorText = 'Confirm password is required';
-      } else if (!comparePasswordConfirm(password, confirmPassword)) {
-        confirmPasswordErrorText = 'Confirmation passwords are not the same';
+        _confirmPasswordErrorText = 'Confirm password is required';
+      } else if (!_comparePasswordConfirm(password, confirmPassword)) {
+        _confirmPasswordErrorText = 'Confirmation passwords are not the same';
       } else {
-        confirmPasswordErrorText = null;
+        _confirmPasswordErrorText = null;
       }
     });
   }
 
-  bool isValidPassword(String value) {
+  bool _isValidPassword(String value) {
     String pattern =
         r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
     RegExp regExp = RegExp(pattern);
     return regExp.hasMatch(value);
   }
 
-  bool isValidEmail(String email) {
+  bool _isValidEmail(String email) {
     return RegExp(
             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(email);
   }
 
-  bool comparePasswordConfirm(String password, String confirmPassword) {
+  bool _comparePasswordConfirm(String password, String confirmPassword) {
     if (password != confirmPassword) {
       return false;
     } else {
@@ -90,52 +88,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  void navigationToLoginScreen() {
+  void _navigationToLoginScreen() {
     Navigator.pushNamed(context, '/login');
   }
 
-  void handleIcon(HandleIconField handle) {
+  void _handleIcon(HandleIconField handle) {
     setState(() {
       switch (handle) {
         case HandleIconField.clear:
-          emailController.text = '';
+          _emailController.text = '';
           return;
         case HandleIconField.visibilityPassword:
-          obscurePassword = !obscurePassword;
+          _obscurePassword = !_obscurePassword;
           return;
         case HandleIconField.visibilityConfirmPassword:
-          obscureConfirmPassword = !obscureConfirmPassword;
+          _obscureConfirmPassword = !_obscureConfirmPassword;
           return;
       }
     });
   }
 
-  Future<void> onSubmit() async {
+  Future<void> _onSubmit() async {
     late User? currentUser;
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
-    String resultEmail = emailController.text.trim();
-    String resultPassword = passwordController.text.trim();
-    String resultConfirmPassword = confirmPasswordController.text.trim();
-    validateEmail(resultEmail);
-    validatePassword(resultPassword);
-    validatePasswordConfirm(resultPassword, resultConfirmPassword);
-    final bool isValidation = formKey.currentState!.validate();
+    String resultEmail = _emailController.text.trim();
+    String resultPassword = _passwordController.text.trim();
+    String resultConfirmPassword = _confirmPasswordController.text.trim();
+    _validateEmail(resultEmail);
+    _validatePassword(resultPassword);
+    _validatePasswordConfirm(resultPassword, resultConfirmPassword);
+    final bool isValidation = _formKey.currentState!.validate();
     if (isValidation) {
       try {
-        await authServices.createNewAccount(resultEmail, resultPassword);
+        await _authServices.createNewAccount(resultEmail, resultPassword);
         currentUser = FirebaseAuth.instance.currentUser;
-        isRegisterSuccess = (currentUser != null) ? true : false;
+        _isRegisterSuccess = (currentUser != null) ? true : false;
       } on FirebaseAuthException catch (error) {
         // ignore: avoid_print
         print("ERROR send email verify !!! $error");
-        emailErrorText = error.message;
+        _emailErrorText = error.message;
       }
-      if (isRegisterSuccess) {
-        emailController.text = '';
-        passwordController.text = '';
-        confirmPasswordController.text = '';
+      if (_isRegisterSuccess) {
+        _emailController.text = '';
+        _passwordController.text = '';
+        _confirmPasswordController.text = '';
         // ignore: use_build_context_synchronously
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => const RegisterVerifyScreen(),
@@ -143,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     }
     setState(() {
-      isLoading = false;
+      _isLoading = false;
     });
   }
 
@@ -159,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             "If you stop now, you'll lose any progress you've made."),
         labelStatusStop: "Stop creating account",
         labelStatusContinue: "Continue creating account",
-        onPressedStop: navigationToLoginScreen,
+        onPressedStop: _navigationToLoginScreen,
         onPressedContinue: () => {Navigator.pop(context)},
         typeDialogButtonBack: true,
       ),
@@ -179,25 +177,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       Expanded(
         child: Form(
-          key: formKey,
+          key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               //Email Input
               InputFieldDefaultComponent(
-                controller: emailController,
+                controller: _emailController,
                 text: 'Email',
                 obscure: false,
                 textInputType: TextInputType.emailAddress,
                 prefixIcon: const Icon(Icons.email_outlined),
                 suffixIcon: const Icon(Icons.close),
-                isValidation: (value) => emailErrorText,
-                onPressSuffixIcon: () => handleIcon(
+                isValidation: (value) => _emailErrorText,
+                onPressSuffixIcon: () => _handleIcon(
                   HandleIconField.clear,
                 ),
                 onTap: () {
                   setState(() {
-                    isVisibility = false;
+                    _isVisibility = false;
                   });
                 },
               ),
@@ -206,21 +204,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               //Password Input
               InputFieldDefaultComponent(
-                controller: passwordController,
+                controller: _passwordController,
                 text: 'Password',
-                obscure: obscurePassword,
+                obscure: _obscurePassword,
                 textInputType: TextInputType.text,
                 prefixIcon: const Icon(Icons.password),
-                suffixIcon: obscurePassword
+                suffixIcon: _obscurePassword
                     ? const Icon(Icons.visibility)
                     : const Icon(Icons.visibility_off),
-                isValidation: (value) => passwordErrorText,
-                onPressSuffixIcon: () => handleIcon(
+                isValidation: (value) => _passwordErrorText,
+                onPressSuffixIcon: () => _handleIcon(
                   HandleIconField.visibilityPassword,
                 ),
                 onTap: () {
                   setState(() {
-                    isVisibility = true;
+                    _isVisibility = true;
                   });
                 },
               ),
@@ -228,7 +226,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 16.0,
               ),
               Visibility(
-                visible: isVisibility,
+                visible: _isVisibility,
                 child: FlutterPwValidator(
                   width: 300,
                   height: 150,
@@ -239,32 +237,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   lowercaseCharCount: 1,
                   specialCharCount: 1,
                   onSuccess: () {},
-                  controller: passwordController,
+                  controller: _passwordController,
                   defaultColor: Theme.of(context).colorScheme.background,
                 ),
               ),
               Visibility(
-                visible: isVisibility,
+                visible: _isVisibility,
                 child: const SizedBox(
                   height: 16.0,
                 ),
               ),
               InputFieldDefaultComponent(
-                controller: confirmPasswordController,
+                controller: _confirmPasswordController,
                 text: 'Confirm password',
-                obscure: obscureConfirmPassword,
+                obscure: _obscureConfirmPassword,
                 textInputType: TextInputType.text,
                 prefixIcon: const Icon(Icons.password),
-                suffixIcon: obscureConfirmPassword
+                suffixIcon: _obscureConfirmPassword
                     ? const Icon(Icons.visibility)
                     : const Icon(Icons.visibility_off),
-                isValidation: (value) => confirmPasswordErrorText,
-                onPressSuffixIcon: () => handleIcon(
+                isValidation: (value) => _confirmPasswordErrorText,
+                onPressSuffixIcon: () => _handleIcon(
                   HandleIconField.visibilityConfirmPassword,
                 ),
                 onTap: () {
                   setState(() {
-                    isVisibility = false;
+                    _isVisibility = false;
                   });
                 },
               ),
@@ -273,7 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               ButtonDefaultComponent(
                 text: "Next",
-                onTap: onSubmit,
+                onTap: _onSubmit,
                 colorBackground: AppColors.secondaryColor,
                 colorText: AppColors.backgroundColor,
               ),
@@ -281,7 +279,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 16.0,
               ),
               SizedBox(
-                child: isLoading
+                child: _isLoading
                     ? const Center(
                         child: CircularProgressIndicator(
                         color: AppColors.backgroundColor,
@@ -296,7 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: "Already have an account?",
         labelStatusStop: "Login",
         labelStatusContinue: "Continue creating account",
-        onPressedStop: navigationToLoginScreen,
+        onPressedStop: _navigationToLoginScreen,
         onPressedContinue: () => {Navigator.pop(context)},
         typeDialogButtonBack: false,
       ),

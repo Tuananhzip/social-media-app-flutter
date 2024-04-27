@@ -14,36 +14,15 @@ class HomeMain extends StatefulWidget {
 }
 
 class _HomeMainState extends State<HomeMain> {
-  Fragments currentFragment = Fragments.homeScreen;
+  Fragments _currentFragment = Fragments.homeScreen;
 
-  void onItemTapped(int index) {
+  void _onItemTapped(int index) {
     setState(() {
-      currentFragment = indexToFragment(index);
+      _currentFragment = Fragments.values[index];
     });
   }
 
-  Fragments indexToFragment(int index) {
-    switch (index) {
-      case 0:
-        return Fragments.homeScreen;
-      case 1:
-        return Fragments.searchScreen;
-      case 2:
-        return Fragments.createPostScreen;
-      case 3:
-        return Fragments.listVideoScreen;
-      case 4:
-        return Fragments.profileScreen;
-      default:
-        return Fragments.homeScreen;
-    }
-  }
-
-  int fragmentToIndex(Fragments fragment) {
-    return fragment.index;
-  }
-
-  final List<Widget> screens = [
+  final List<Widget> _screens = [
     const HomeScreen(),
     const SearchScreen(),
     const CreatePostScreen(),
@@ -55,12 +34,12 @@ class _HomeMainState extends State<HomeMain> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: fragmentToIndex(currentFragment),
-        children: screens,
+        index: _currentFragment.index,
+        children: _screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: fragmentToIndex(currentFragment),
-        onTap: onItemTapped,
+        currentIndex: _currentFragment.index,
+        onTap: _onItemTapped,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,

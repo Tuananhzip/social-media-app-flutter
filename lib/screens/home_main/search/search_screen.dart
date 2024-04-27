@@ -1,12 +1,10 @@
 import 'dart:async';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
-import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 
@@ -18,16 +16,13 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController searchQueryController = TextEditingController();
-  final UserServices userServices = UserServices();
-  String searchQuery = '';
-  Users? user = Users();
-  Timer? debounce;
-  final int debounceTime = 500;
+  final TextEditingController _searchQueryController = TextEditingController();
+  final UserServices _userServices = UserServices();
+  String _searchQuery = '';
 
   Future<void> getUserDetails(String docID) async {
     try {
-      final user = await userServices.getUserDetailsByID(docID);
+      final user = await _userServices.getUserDetailsByID(docID);
       Navigator.push(
         // ignore: use_build_context_synchronously
         context,
@@ -50,11 +45,11 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: CupertinoSearchTextField(
-            controller: searchQueryController,
+            controller: _searchQueryController,
             keyboardType: TextInputType.multiline,
             onChanged: (value) {
               setState(() {
-                searchQuery = value;
+                _searchQuery = value;
               });
             },
           ),
@@ -66,7 +61,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget buildSearchResult() {
     return StreamBuilder<QuerySnapshot>(
-      stream: userServices.getUsernameStream(searchQuery),
+      stream: _userServices.getUsernameStream(_searchQuery),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error --->: ${snapshot.error}'));

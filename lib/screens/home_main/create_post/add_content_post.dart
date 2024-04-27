@@ -20,8 +20,8 @@ class AddContentPost extends StatefulWidget {
 }
 
 class _AddContentPostState extends State<AddContentPost> {
-  final PostService postService = PostService();
-  final TextEditingController contentController = TextEditingController();
+  final PostService _postService = PostService();
+  final TextEditingController _contentController = TextEditingController();
 
   @override
   initState() {
@@ -30,8 +30,8 @@ class _AddContentPostState extends State<AddContentPost> {
     print(widget.fileList.map((e) => print(e.lengthSync())));
   }
 
-  Future<void> addPost() async {
-    final String postText = contentController.text;
+  Future<void> _addPost() async {
+    final String postText = _contentController.text;
     if (postText.isNotEmpty || widget.fileList.isNotEmpty) {
       // ignore: use_build_context_synchronously
       Navigator.of(context).pushAndRemoveUntil(
@@ -43,7 +43,7 @@ class _AddContentPostState extends State<AddContentPost> {
         'Post uploading',
         'New post processing upload.',
       );
-      await postService
+      await _postService
           .addPostToFirestore(postText, widget.fileList)
           .whenComplete(() => LocalNotificationServices().showLocalNotification(
               title: 'New post added',
@@ -103,7 +103,7 @@ class _AddContentPostState extends State<AddContentPost> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
-                    controller: contentController,
+                    controller: _contentController,
                     maxLines: 8, //or null
                     decoration: const InputDecoration.collapsed(
                         hintText: "What are you thinking?"),
@@ -117,7 +117,7 @@ class _AddContentPostState extends State<AddContentPost> {
                 height: 50,
                 width: 400,
                 child: ElevatedButton(
-                  onPressed: addPost,
+                  onPressed: _addPost,
                   child: const Text(
                     'Share',
                   ),

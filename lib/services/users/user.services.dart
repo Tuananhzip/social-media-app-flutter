@@ -6,26 +6,26 @@ import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';
 
 class UserServices {
-  final usersCollection =
+  final _usersCollection =
       FirebaseFirestore.instance.collection(FirestoreCollectionNames.users);
-  final currentUser = FirebaseAuth.instance.currentUser;
+  final _currentUser = FirebaseAuth.instance.currentUser;
 
   Stream<DocumentSnapshot> getUserStream() {
-    String uid = currentUser!.uid;
+    String uid = _currentUser!.uid;
     if (uid.isNotEmpty) {
-      createDocumentIfNotExists(uid);
+      _createDocumentIfNotExists(uid);
     }
-    return usersCollection.doc(currentUser!.uid).snapshots();
+    return _usersCollection.doc(_currentUser.uid).snapshots();
   }
 
   Future<DocumentSnapshot> getUserEdit() async {
-    String uid = currentUser!.uid;
-    return await usersCollection.doc(uid).get();
+    String uid = _currentUser!.uid;
+    return await _usersCollection.doc(uid).get();
   }
 
-  Future<void> createDocumentIfNotExists(String docId) async {
+  Future<void> _createDocumentIfNotExists(String docId) async {
     try {
-      DocumentReference docRef = usersCollection.doc(docId);
+      DocumentReference docRef = _usersCollection.doc(docId);
 
       DocumentSnapshot docSnapshot = await docRef.get();
 
@@ -40,8 +40,8 @@ class UserServices {
 
   Future<void> addAndEditProfileUser(Map<String, dynamic> userInfo) async {
     try {
-      String uid = currentUser!.uid;
-      await usersCollection.doc(uid).set(userInfo, SetOptions(merge: true));
+      String uid = _currentUser!.uid;
+      await _usersCollection.doc(uid).set(userInfo, SetOptions(merge: true));
     } catch (error) {
       // ignore: avoid_print
       print("addAndEditProfileUser Services ERROR ---> $error");
@@ -49,7 +49,7 @@ class UserServices {
   }
 
   Stream<QuerySnapshot> getUsernameStream(String searchQuery) {
-    return usersCollection
+    return _usersCollection
         .where(DocumentFieldNames.username, isGreaterThanOrEqualTo: searchQuery)
         .where(DocumentFieldNames.username,
             isLessThanOrEqualTo: '$searchQuery\uf7ff')

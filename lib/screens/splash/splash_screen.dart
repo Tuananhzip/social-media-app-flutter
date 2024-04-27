@@ -12,10 +12,10 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  bool isLoggedIn = false;
-  Stream<User?> userState = FirebaseAuth.instance.authStateChanges();
+  bool _isLoggedIn = false;
+  final Stream<User?> _userState = FirebaseAuth.instance.authStateChanges();
 
-  void navigateToHome() {
+  void _navigateToHome() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 1500),
@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  void navigateToLogin() {
+  void _navigateToLogin() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 1500),
@@ -49,10 +49,10 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 2000), () {
-      if (isLoggedIn && FirebaseAuth.instance.currentUser != null) {
-        navigateToHome();
+      if (_isLoggedIn && FirebaseAuth.instance.currentUser != null) {
+        _navigateToHome();
       } else {
-        navigateToLogin();
+        _navigateToLogin();
       }
     });
   }
@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
         body: StreamBuilder<User?>(
-      stream: userState,
+      stream: _userState,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text(snapshot.error.toString());
@@ -71,17 +71,17 @@ class _SplashScreenState extends State<SplashScreen>
           print("User Data for authentication --> ${snapshot.data}");
           final user = snapshot.data;
           if (user!.emailVerified) {
-            isLoggedIn = true;
+            _isLoggedIn = true;
           } else {
-            isLoggedIn = false;
+            _isLoggedIn = false;
           }
         }
-        return splashScreen(context);
+        return _splashScreen(context);
       },
     ));
   }
 
-  Widget splashScreen(BuildContext context) {
+  Widget _splashScreen(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
       children: [
