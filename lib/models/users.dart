@@ -51,15 +51,18 @@ class Users {
         '}';
   }
 
-  Users.formMap(Map map)
-      : _email = map[DocumentFieldNames.email],
-        _username = map[DocumentFieldNames.username],
-        _imageProfile = map[DocumentFieldNames.imageProfile],
-        _address = map[DocumentFieldNames.address],
-        _phoneNumber = map[DocumentFieldNames.phoneNumber],
-        _gender = map[DocumentFieldNames.gender],
-        _dateOfBirth = map[DocumentFieldNames.dateOfBirth]?.toDate(),
-        _description = map[DocumentFieldNames.description];
+  factory Users.fromMap(Map map) {
+    return Users(
+      email: map[DocumentFieldNames.email],
+      username: map[DocumentFieldNames.username],
+      imageProfile: map[DocumentFieldNames.imageProfile],
+      address: map[DocumentFieldNames.address],
+      phoneNumber: map[DocumentFieldNames.phoneNumber],
+      gender: map[DocumentFieldNames.gender],
+      dateOfBirth: map[DocumentFieldNames.dateOfBirth]?.toDate(),
+      description: map[DocumentFieldNames.description],
+    );
+  }
 
   Map<String, dynamic> asMap() => {
         DocumentFieldNames.email: _email,

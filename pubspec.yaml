@@ -55,6 +55,9 @@ dependencies:
   flutter_local_notifications: ^17.1.0
   video_thumbnail: ^0.5.3
   shimmer: ^3.0.0
+  visibility_detector: ^0.4.0+2
+  timeago: ^3.6.1
+  logger: ^2.2.0
 
 dev_dependencies:
   flutter_test:

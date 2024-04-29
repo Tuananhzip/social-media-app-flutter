@@ -30,17 +30,16 @@ class Notifications {
   Timestamp? get notificationCreatedDate => _notificationCreatedDate;
   bool? get notificationStatus => _notificationStatus;
 
-  Notifications.formMap(Map map)
-      : this(
-          uid: map[DocumentFieldNames.uid],
-          notificationType: map[DocumentFieldNames.notificationType],
-          notificationReferenceId:
-              map[DocumentFieldNames.notificationReferenceId],
-          notificationContent: map[DocumentFieldNames.notificationContent],
-          notificationCreatedDate:
-              map[DocumentFieldNames.notificationCreatedDate],
-          notificationStatus: map[DocumentFieldNames.notificationStatus],
-        );
+  factory Notifications.fromMap(Map map) {
+    return Notifications(
+      uid: map[DocumentFieldNames.uid],
+      notificationType: map[DocumentFieldNames.notificationType],
+      notificationReferenceId: map[DocumentFieldNames.notificationReferenceId],
+      notificationContent: map[DocumentFieldNames.notificationContent],
+      notificationCreatedDate: map[DocumentFieldNames.notificationCreatedDate],
+      notificationStatus: map[DocumentFieldNames.notificationStatus],
+    );
+  }
 
   Map<String, dynamic> asMap() => {
         DocumentFieldNames.uid: _uid,

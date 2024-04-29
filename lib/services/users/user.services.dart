@@ -65,7 +65,7 @@ class UserServices {
     if (docSnapshot.exists) {
       Map<String, dynamic> userData =
           docSnapshot.data() as Map<String, dynamic>;
-      return Users.formMap(userData);
+      return Users.fromMap(userData);
     }
     return null;
   }

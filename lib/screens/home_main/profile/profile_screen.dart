@@ -2,11 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
-import 'package:social_media_app/models/Users.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
 import 'package:social_media_app/components/list/list_post.component.dart';
 import 'package:social_media_app/components/story/story_screen.component.dart';
+import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/profile/update_profile_screen.dart';
 import 'package:social_media_app/screens/login/login.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
@@ -122,9 +123,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (snapshot.data!.data() != null) {
           final Map<String, dynamic> userData =
               snapshot.data!.data() as Map<String, dynamic>;
-          _user = Users.formMap(userData);
-          // ignore: avoid_print
-          print("PROFILE ---> $_user");
+          _user = Users.fromMap(userData);
+          final Logger logger = Logger();
+          logger.i(_user);
         }
 
         return Scaffold(

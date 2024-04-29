@@ -71,7 +71,7 @@ class PostService {
         .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Posts.formMap(doc.data() as Map<String, dynamic>))
+            .map((doc) => Posts.fromMap(doc.data() as Map<String, dynamic>))
             .toList());
   }
 }

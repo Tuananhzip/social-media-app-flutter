@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/screens/login/login.dart';
 
@@ -67,8 +68,8 @@ class _SplashScreenState extends State<SplashScreen>
           return Text(snapshot.error.toString());
         } else if (snapshot.connectionState == ConnectionState.active &&
             snapshot.hasData) {
-          //ignore:avoid_print
-          print("User Data for authentication --> ${snapshot.data}");
+          final Logger logger = Logger();
+          logger.i(snapshot.data);
           final user = snapshot.data;
           if (user!.emailVerified) {
             _isLoggedIn = true;

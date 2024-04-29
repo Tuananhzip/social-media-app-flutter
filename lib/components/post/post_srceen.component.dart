@@ -26,6 +26,7 @@ class PostComponent extends StatelessWidget {
       color: Theme.of(context).colorScheme.background,
       width: MediaQuery.of(context).size.width,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 16.0),
@@ -119,22 +120,26 @@ class PostComponent extends StatelessWidget {
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '111 likes',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Text(
-                'View all 36 comments',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              Text(
-                createDatePost,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  '111 likes',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  'View all 36 comments',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  createDatePost,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
           ),
           Divider(
             color: Theme.of(context).colorScheme.primary,

@@ -96,7 +96,7 @@ class NotificationServices {
             isEqualTo: NotificationTypeEnum.friendRequest.getString)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Notifications.formMap(doc.data()))
+            .map((doc) => Notifications.fromMap(doc.data()))
             .toList());
   }
 
@@ -108,7 +108,7 @@ class NotificationServices {
             isEqualTo: NotificationTypeEnum.acceptFriend.getString)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Notifications.formMap(doc.data()))
+            .map((doc) => Notifications.fromMap(doc.data()))
             .toList());
   }
 }

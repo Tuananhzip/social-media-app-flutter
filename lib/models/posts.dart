@@ -22,13 +22,16 @@ class Posts {
         _postCreatedDate = postCreatedDate,
         _mediaLink = mediaLink;
 
-  Posts.formMap(Map map)
-      : _uid = map[DocumentFieldNames.uid],
-        _postText = map[DocumentFieldNames.postText],
-        _postCreatedDate = map[DocumentFieldNames.postCreatedDate],
-        _mediaLink = (map[DocumentFieldNames.mediaLink] as List<dynamic>)
-            .map((item) => item.toString())
-            .toList();
+  factory Posts.fromMap(Map<String, dynamic> map) {
+    return Posts(
+      uid: map[DocumentFieldNames.uid],
+      postText: map[DocumentFieldNames.postText],
+      postCreatedDate: map[DocumentFieldNames.postCreatedDate],
+      mediaLink: (map[DocumentFieldNames.mediaLink] as List<dynamic>)
+          .map((item) => item.toString())
+          .toList(),
+    );
+  }
 
   Map<String, dynamic> asMap() => {
         DocumentFieldNames.uid: _uid,

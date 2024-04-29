@@ -161,7 +161,7 @@ class FriendRequestsServices {
         .where(DocumentFieldNames.statusFriendRequest, isEqualTo: false)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => FriendRequest.formMap(doc.data()))
+            .map((doc) => FriendRequest.fromMap(doc.data()))
             .toList());
   }
 }

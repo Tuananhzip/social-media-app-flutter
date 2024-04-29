@@ -17,12 +17,13 @@ class FriendRequest {
   String get receiverId => _receiverId;
   bool get statusRequest => _statusRequest;
 
-  FriendRequest.formMap(Map map)
-      : this(
-          senderId: map[DocumentFieldNames.senderId],
-          receiverId: map[DocumentFieldNames.receiverId],
-          statusRequest: map[DocumentFieldNames.statusFriendRequest],
-        );
+  factory FriendRequest.fromMap(Map map) {
+    return FriendRequest(
+      senderId: map[DocumentFieldNames.senderId],
+      receiverId: map[DocumentFieldNames.receiverId],
+      statusRequest: map[DocumentFieldNames.statusFriendRequest],
+    );
+  }
 
   Map<String, dynamic> asMap() => {
         DocumentFieldNames.senderId: _senderId,

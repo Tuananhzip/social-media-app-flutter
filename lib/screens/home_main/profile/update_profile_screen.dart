@@ -44,7 +44,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
     try {
       final data = await _userService.getUserEdit();
       Map<String, dynamic> userData = data.data() as Map<String, dynamic>;
-      _user = Users.formMap(userData);
+      _user = Users.fromMap(userData);
 
       _usernameController.text = _user.username ?? '';
       _addressController.text = _user.address ?? '';
