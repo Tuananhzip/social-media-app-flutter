@@ -194,12 +194,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             30.0),
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary),
+                                                    color: AppColors.blueColor),
                                                 child: const Icon(
                                                   Icons.add,
-                                                  color: AppColors.primaryColor,
+                                                  color:
+                                                      AppColors.backgroundColor,
                                                   size: 32.0,
                                                 ),
                                               ),

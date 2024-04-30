@@ -51,4 +51,30 @@ class PostLikeServices {
       return 0;
     }
   }
+
+  Future<bool> isUserLikedPost(String postId) async {
+    QuerySnapshot querySnapshot = await _postLikesCollection
+        .where(DocumentFieldNames.postId, isEqualTo: postId)
+        .where(DocumentFieldNames.uid, isEqualTo: currentUser!.uid)
+        .get();
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<List<String>> getUsersLikedPost(String postId) async {
+    try {
+      QuerySnapshot querySnapshot = await _postLikesCollection
+          .where(DocumentFieldNames.postId, isEqualTo: postId)
+          .get();
+      if (querySnapshot.docs.isEmpty) return [];
+      List<String> uids = [];
+      for (var doc in querySnapshot.docs) {
+        uids.add(doc[DocumentFieldNames.uid]);
+      }
+      return uids;
+    } catch (e) {
+      // ignore: avoid_print
+      print('getPostLikes ERROR ---> $e');
+      return [];
+    }
+  }
 }

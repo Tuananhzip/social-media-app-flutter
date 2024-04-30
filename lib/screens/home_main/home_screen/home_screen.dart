@@ -2,14 +2,18 @@ import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/components/post/post_srceen.component.dart';
-import 'package:social_media_app/components/post/shimmer_post.component.dart';
+import 'package:social_media_app/components/loading/shimmer_post.component.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/screens/home_main/create_post/create_post_screen.dart';
+import 'package:social_media_app/screens/home_main/home_screen/list_like_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
+import 'package:social_media_app/services/postLikes/post_like.service.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
@@ -27,11 +31,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final Logger logger = Logger();
   final ScrollController _scrollController = ScrollController();
   final PostService _postService = PostService();
   final UserServices _userServices = UserServices();
+  final PostLikeServices _postLikeServices = PostLikeServices();
   final List<Users?> _users = [];
   final List<Posts> _posts = [];
+  final List<String> _postIds = [];
+  final List<int> _postLikes = [];
+  final List<bool> _isLiked = [];
   bool _isLoadingDarkMode = false;
   bool _isLoadingData = false;
   late DocumentSnapshot? _lastVisible;
@@ -54,8 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _scrollListen() {
-    if (_scrollController.position.pixels >
-        _scrollController.position.maxScrollExtent * 0.9) {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
       if (!_isLoadingData) {
         _isLoadingData = true;
         _loadPosts(lastVisible: _lastVisible).then((_) {
@@ -70,23 +79,42 @@ class _HomeScreenState extends State<HomeScreen> {
         await _postService.loadPostsLazy(lastVisible: lastVisible);
     if (postData.isNotEmpty) {
       _lastVisible = postData[postData.length - 1];
+      postData.shuffle(); // Random shuffle list 10 posts orderBy created dated
       List<Posts> postDummy = postData
           .map((data) => Posts.fromMap(data.data() as Map<String, dynamic>))
           .toList();
-      postDummy.shuffle(); // Random shuffle list 10 posts orderBy created dated
-      List<Future<Users?>> futures = postDummy
+      List<String> postIds = postData.map((post) => post.id).toList();
+      List<Future<Users?>> userFutures = postDummy
           .map((post) => _userServices.getUserDetailsByID(post.uid!))
           .toList();
-      List<Users?> users = await Future.wait(futures);
+      List<Future<int>> postLikeFutures = postData
+          .map((post) => _postLikeServices.getQuantityPostLikes(post.id))
+          .toList();
+      List<Future<bool>> isLikedFutures = postData
+          .map((post) => _postLikeServices.isUserLikedPost(post.id))
+          .toList();
+      List<Users?> users = await Future.wait(userFutures);
+      List<int> postLikes = await Future.wait(postLikeFutures);
+      List<bool> isLiked = await Future.wait(isLikedFutures);
+
+      logger.i('postIds: $postIds ${postIds.length}');
+      logger.i('postLikes: $postLikes ${postLikes.length}');
+      logger.i('isLiked: $isLiked ${isLiked.length}');
 
       setState(() {
         if (lastVisible == null) {
-          _posts.clear();
           _listOfListUrlPosts.clear();
+          _posts.clear();
           _users.clear();
+          _postLikes.clear();
+          _isLiked.clear();
+          _postIds.clear();
         }
+        _postLikes.addAll(postLikes);
         _posts.addAll(postDummy);
         _users.addAll(users);
+        _isLiked.addAll(isLiked);
+        _postIds.addAll(postIds);
       });
       _checkMediaList(postDummy);
     }
@@ -137,6 +165,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void onLikeToggle(int index) async {
+    setState(() {
+      _isLiked[index] = !_isLiked[index];
+      if (_isLiked[index]) {
+        _postLikes[index]++;
+        _postLikeServices.likePost(_postIds[index]);
+      } else {
+        _postLikes[index]--;
+        _postLikeServices.unlikePost(_postIds[index]);
+      }
+    });
+  }
+
   Future<void> _initDarkMode() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -155,6 +196,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String dateFormatPost(Timestamp timestamp) {
     final DateTime dateTime = timestamp.toDate();
     return timeago.format(dateTime);
+  }
+
+  void navigateToLikesScreen(String postId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ListLikesScreen(postId: postId),
+      ),
+    );
   }
 
   @override
@@ -184,7 +234,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   inactiveTrackColor: AppColors.blueColor,
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const CreatePostScreen(), // replace with your actual CreatePostScreen
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.add_box_outlined),
                 ),
                 IconButton(
@@ -210,8 +268,10 @@ class _HomeScreenState extends State<HomeScreen> {
             controller: _scrollController,
             itemCount: _posts.length,
             itemBuilder: (context, index) {
-              if (index < _posts.length && index < _listOfListUrlPosts.length) {
-                final Users user = _users[index]!;
+              if (index < _posts.length &&
+                  index < _listOfListUrlPosts.length &&
+                  _users[index] != null) {
+                final Users user = _users[index] ?? Users();
                 return PostComponent(
                   imageUrlProfile: user.imageProfile,
                   username: '${user.username} + $index',
@@ -219,6 +279,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       dateFormatPost(_posts[index].postCreatedDate!),
                   contentPost: _posts[index].postText ?? '',
                   imageUrlPosts: _listOfListUrlPosts[index],
+                  postLikes: _postLikes[index],
+                  onLikeToggle: () => onLikeToggle(index),
+                  isLiked: _isLiked[index],
+                  onViewLikes: () => navigateToLikesScreen(_postIds[index]),
+                  onViewComments: () {},
                 );
               } else {
                 return const ShimmerPostComponent();
@@ -249,10 +314,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
   Widget _buildVideo(Uint8List data, String url) {
-    final VideoPlayerController controller =
+    final VideoPlayerController videoController =
         VideoPlayerController.networkUrl(Uri.parse(url));
     return FutureBuilder(
-      future: controller.initialize(),
+      future: videoController.initialize(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -264,19 +329,19 @@ class _HomeScreenState extends State<HomeScreen> {
             onVisibilityChanged: (visibilityInfo) {
               var visiblePercentage = visibilityInfo.visibleFraction * 100;
               if (visiblePercentage > 50) {
-                controller.setLooping(true);
-                controller.setVolume(0.0);
-                controller.play();
+                videoController.setLooping(true);
+                videoController.setVolume(0.0);
+                videoController.play();
                 // ignore: avoid_print
                 print(
-                    'Video is $visiblePercentage% visible ${controller.value.volume}');
+                    'Video is $visiblePercentage% visible ${videoController.value.volume}');
               } else {
-                controller.pause();
+                videoController.pause();
               }
             },
             child: Stack(
               children: [
-                VideoPlayer(controller),
+                VideoPlayer(videoController),
                 Positioned(
                   bottom: 20,
                   right: 20,
@@ -294,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPressed: () {
                             setState(() {
                               isVolume = !isVolume;
-                              controller.setVolume(isVolume ? 1.0 : 0.0);
+                              videoController.setVolume(isVolume ? 1.0 : 0.0);
                             });
                           },
                         ),

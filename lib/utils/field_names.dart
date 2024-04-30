@@ -27,4 +27,7 @@ class DocumentFieldNames {
   // MediaPosts
   static const String mediaLink = 'media_link';
   static const String mediaPostFile = 'media_post_file';
+  // PostComment
+  static const String commentText = 'comment_text';
+  static const String commentCreatedTime = 'comment_created_time';
 }

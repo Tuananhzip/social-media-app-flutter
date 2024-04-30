@@ -28,6 +28,14 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isLoginSuccess = false;
 
+  @override
+  void dispose() {
+    super.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _formKey.currentState?.dispose();
+  }
+
   void _validateEmail(String value) {
     setState(() {
       if (value.isEmpty) {

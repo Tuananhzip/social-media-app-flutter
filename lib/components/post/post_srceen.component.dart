@@ -13,12 +13,22 @@ class PostComponent extends StatelessWidget {
     required this.imageUrlPosts,
     required this.contentPost,
     required this.createDatePost,
+    required this.postLikes,
+    required this.isLiked,
+    required this.onLikeToggle,
+    required this.onViewLikes,
+    required this.onViewComments,
   });
   final String username;
   final String? imageUrlProfile;
   final List<Widget> imageUrlPosts;
   final String contentPost;
   final String createDatePost;
+  final int postLikes;
+  final bool isLiked;
+  final VoidCallback onLikeToggle;
+  final VoidCallback onViewLikes;
+  final VoidCallback onViewComments;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +48,7 @@ class PostComponent extends StatelessWidget {
                   children: [
                     CachedNetworkImage(
                       imageUrl: imageUrlProfile ??
-                          'https://images.unsplash.com/photo-1713392899774-5f1c261c4a77?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                          'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
                       imageBuilder: (context, imageProvider) {
                         return CircleAvatar(
                           radius: 20,
@@ -103,8 +113,13 @@ class PostComponent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.favorite_border_rounded),
+                  onPressed: onLikeToggle,
+                  icon: isLiked
+                      ? const Icon(
+                          Icons.favorite,
+                          color: Colors.red,
+                        )
+                      : const Icon(Icons.favorite_border),
                 ),
                 IconButton(
                   onPressed: () {},
@@ -126,13 +141,19 @@ class PostComponent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
-                  '111 likes',
-                  style: Theme.of(context).textTheme.titleMedium,
+                GestureDetector(
+                  onTap: onViewLikes,
+                  child: Text(
+                    postLikes > 1 ? '$postLikes likes' : '$postLikes like',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
-                Text(
-                  'View all 36 comments',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                GestureDetector(
+                  onTap: onViewComments,
+                  child: Text(
+                    'View all 36 comments',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
                 Text(
                   createDatePost,
