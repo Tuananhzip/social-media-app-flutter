@@ -3,16 +3,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/components/post/post_srceen.component.dart';
 import 'package:social_media_app/components/loading/shimmer_post.component.dart';
+import 'package:social_media_app/models/post_comments.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/create_post/create_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/list_like_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
+import 'package:social_media_app/services/postComments/post_comment.services.dart';
 import 'package:social_media_app/services/postLikes/post_like.service.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
@@ -36,6 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final PostService _postService = PostService();
   final UserServices _userServices = UserServices();
   final PostLikeServices _postLikeServices = PostLikeServices();
+  final PostCommentServices _postCommentServices = PostCommentServices();
+  final TextEditingController _commentController = TextEditingController();
   final List<Users?> _users = [];
   final List<Posts> _posts = [];
   final List<String> _postIds = [];
@@ -60,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
     _scrollController.removeListener(_scrollListen);
     _scrollController.dispose();
+    _commentController.dispose();
   }
 
   void _scrollListen() {
@@ -193,12 +199,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  String dateFormatPost(Timestamp timestamp) {
+  String _dateFormatPost(Timestamp timestamp) {
     final DateTime dateTime = timestamp.toDate();
     return timeago.format(dateTime);
   }
 
-  void navigateToLikesScreen(String postId) {
+  void _navigateToLikesScreen(String postId) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -207,9 +213,112 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showComments(String postId) {
+    Future<void> addComment(String postId) async {
+      final comment = _commentController.text;
+      await _postCommentServices.addPostComment(postId, comment).then((value) {
+        _commentController.clear();
+      });
+    }
+
+    showMaterialModalBottomSheet(
+      context: context,
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.8,
+        width: MediaQuery.of(context).size.width,
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: Column(
+            children: [
+              const Center(
+                child: SizedBox(
+                  width: 80.0,
+                  height: 24.0,
+                  child: Divider(
+                    color: AppColors.grayAccentColor,
+                    thickness: 5.0,
+                  ),
+                ),
+              ),
+              Center(
+                child: Text(
+                  'Comments',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 16.0),
+                child: Divider(
+                  color: AppColors.greyColor,
+                  height: 1.0,
+                ),
+              ),
+              Expanded(
+                child: StreamBuilder<List<PostComments>>(
+                  stream: _postCommentServices.getPostComments(postId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                            'Error loading comments ---> ${snapshot.error}'),
+                      );
+                    }
+                    final List<PostComments> comment = snapshot.data!;
+                    return ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: comment.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(comment[index].uid),
+                          subtitle: Text(comment[index].commentText),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                child: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  color: Theme.of(context).colorScheme.primary,
+                  child: TextField(
+                    controller: _commentController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.background,
+                      hintText: 'Add a comment...',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 10.0,
+                      ),
+                      suffixIcon: IconButton(
+                        onPressed: () => addComment(postId),
+                        icon: const Icon(Icons.send),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Theme.of(context).colorScheme.background,
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -276,14 +385,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   imageUrlProfile: user.imageProfile,
                   username: '${user.username} + $index',
                   createDatePost:
-                      dateFormatPost(_posts[index].postCreatedDate!),
+                      _dateFormatPost(_posts[index].postCreatedDate!),
                   contentPost: _posts[index].postText ?? '',
                   imageUrlPosts: _listOfListUrlPosts[index],
                   postLikes: _postLikes[index],
                   onLikeToggle: () => onLikeToggle(index),
                   isLiked: _isLiked[index],
-                  onViewLikes: () => navigateToLikesScreen(_postIds[index]),
-                  onViewComments: () {},
+                  onViewLikes: () => _navigateToLikesScreen(_postIds[index]),
+                  onViewComments: () => _showComments(_postIds[index]),
                 );
               } else {
                 return const ShimmerPostComponent();
