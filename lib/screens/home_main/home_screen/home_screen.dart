@@ -1,12 +1,17 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/components/loading/shimmer_comment.component.dart';
 import 'package:social_media_app/components/post/post_srceen.component.dart';
 import 'package:social_media_app/components/loading/shimmer_post.component.dart';
 import 'package:social_media_app/models/post_comments.dart';
@@ -15,12 +20,14 @@ import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/create_post/create_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/list_like_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
+import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/postComments/post_comment.services.dart';
 import 'package:social_media_app/services/postLikes/post_like.service.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -34,6 +41,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final currentUser = FirebaseAuth.instance.currentUser;
   final Logger logger = Logger();
   final ScrollController _scrollController = ScrollController();
   final PostService _postService = PostService();
@@ -45,12 +53,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Posts> _posts = [];
   final List<String> _postIds = [];
   final List<int> _postLikes = [];
+  final List<int> _postComments = [];
   final List<bool> _isLiked = [];
   bool _isLoadingDarkMode = false;
   bool _isLoadingData = false;
   late DocumentSnapshot? _lastVisible;
   final List<List<Widget>> _listOfListUrlPosts = [];
-  bool isVolume = false;
+  bool _isVolume = false;
 
   @override
   initState() {
@@ -69,8 +78,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _scrollListen() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels <
+        _scrollController.position.maxScrollExtent * 0.8) {
       if (!_isLoadingData) {
         _isLoadingData = true;
         _loadPosts(lastVisible: _lastVisible).then((_) {
@@ -81,6 +90,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPosts({DocumentSnapshot? lastVisible}) async {
+    if (lastVisible == null) {
+      logger.t(lastVisible);
+      setState(() {
+        _listOfListUrlPosts.clear();
+        _posts.clear();
+        _users.clear();
+        _postLikes.clear();
+        _postComments.clear();
+        _isLiked.clear();
+        _postIds.clear();
+      });
+    }
     List<DocumentSnapshot> postData =
         await _postService.loadPostsLazy(lastVisible: lastVisible);
     if (postData.isNotEmpty) {
@@ -96,27 +117,25 @@ class _HomeScreenState extends State<HomeScreen> {
       List<Future<int>> postLikeFutures = postData
           .map((post) => _postLikeServices.getQuantityPostLikes(post.id))
           .toList();
+      List<Future<int>> postCommentFutures = postData
+          .map((post) => _postCommentServices.getQuantityComments(post.id))
+          .toList();
       List<Future<bool>> isLikedFutures = postData
           .map((post) => _postLikeServices.isUserLikedPost(post.id))
           .toList();
       List<Users?> users = await Future.wait(userFutures);
       List<int> postLikes = await Future.wait(postLikeFutures);
+      List<int> postComments = await Future.wait(postCommentFutures);
       List<bool> isLiked = await Future.wait(isLikedFutures);
 
       logger.i('postIds: $postIds ${postIds.length}');
       logger.i('postLikes: $postLikes ${postLikes.length}');
+      logger.i('postComments: $postLikes ${postComments.length}');
       logger.i('isLiked: $isLiked ${isLiked.length}');
 
       setState(() {
-        if (lastVisible == null) {
-          _listOfListUrlPosts.clear();
-          _posts.clear();
-          _users.clear();
-          _postLikes.clear();
-          _isLiked.clear();
-          _postIds.clear();
-        }
         _postLikes.addAll(postLikes);
+        _postComments.addAll(postComments);
         _posts.addAll(postDummy);
         _users.addAll(users);
         _isLiked.addAll(isLiked);
@@ -136,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
           for (var url in post.mediaLink!) {
             final listPart = url.split('.');
             final lastPart = listPart.last.toLowerCase().split('?');
-            String extensions = lastPart.first;
+            final String extensions = lastPart.first;
             if (extensions == 'jpg' ||
                 extensions == 'png' ||
                 extensions == 'jpeg') {
@@ -155,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 }).catchError((onError) {
                   // ignore: avoid_print
-                  print('Failed to fetch video thumbnail: $onError');
+                  logger.e(onError);
                 }),
               );
             }
@@ -171,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void onLikeToggle(int index) async {
+  void _onLikeToggle(int index) async {
     setState(() {
       _isLiked[index] = !_isLiked[index];
       if (_isLiked[index]) {
@@ -182,6 +201,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _postLikeServices.unlikePost(_postIds[index]);
       }
     });
+  }
+
+  void _onShareToggle(List<String>? listMediaLinks, String? textPost) async {
+    String? mediaLinksString;
+    if (listMediaLinks != null) {
+      mediaLinksString = listMediaLinks.join('\n');
+    }
+    await Share.share('$textPost\n\n$mediaLinksString');
   }
 
   Future<void> _initDarkMode() async {
@@ -204,6 +231,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return timeago.format(dateTime);
   }
 
+  String _dateFormatComment(Timestamp timestamp) {
+    final DateFormat dateFormat = DateFormat('dd-MM-yyyy HH:mm');
+    final String dateTime = dateFormat.format(timestamp.toDate());
+    return dateTime;
+  }
+
   void _navigateToLikesScreen(String postId) {
     Navigator.push(
       context,
@@ -213,7 +246,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showComments(String postId) {
+  void _navigateToProfileScreen(String uid) async {
+    final user = await _userServices.getUserDetailsByID(uid);
+    Navigator.push(
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileUsersScreen(
+          user: user!,
+          uid: uid,
+        ),
+      ),
+    );
+  }
+
+  void _onSelectedPopupMenu(String valueSelected, String postId) {
+    if (valueSelected == MenuPostEnum.delete.getString) {
+      // ignore: avoid_print
+      print('Delete $postId');
+      _deletePost(postId);
+    } else if (valueSelected == MenuPostEnum.edit.getString) {
+      // ignore: avoid_print
+      print('Edit $postId');
+    }
+  }
+
+  void _deletePost(String postId) async {
+    await _postService
+        .deletePost(postId)
+        .then((_) => _loadPosts(lastVisible: null));
+  }
+
+  void _showComments(String postId, {bool autofocus = false}) {
     Future<void> addComment(String postId) async {
       final comment = _commentController.text;
       await _postCommentServices.addPostComment(postId, comment).then((value) {
@@ -256,25 +320,66 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: StreamBuilder<List<PostComments>>(
                   stream: _postCommentServices.getPostComments(postId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                  builder: (context, commentsSnapshot) {
+                    if (commentsSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(),
                       );
-                    } else if (snapshot.hasError) {
+                    } else if (commentsSnapshot.hasError) {
                       return Center(
                         child: Text(
-                            'Error loading comments ---> ${snapshot.error}'),
+                            'Error loading comments ---> ${commentsSnapshot.error}'),
                       );
                     }
-                    final List<PostComments> comment = snapshot.data!;
+                    final List<PostComments> comment = commentsSnapshot.data!;
                     return ListView.builder(
                       padding: EdgeInsets.zero,
                       itemCount: comment.length,
                       itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(comment[index].uid),
-                          subtitle: Text(comment[index].commentText),
+                        return FutureBuilder<Users?>(
+                          future: _userServices
+                              .getUserDetailsByID(comment[index].uid),
+                          builder: (context, userSnapshot) {
+                            if (userSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const ShimmerCommentComponent();
+                            } else if (userSnapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                    'Error loading comments ---> ${userSnapshot.error}'),
+                              );
+                            }
+                            final Users? user = userSnapshot.data;
+                            return ListTile(
+                              leading: CachedNetworkImage(
+                                imageUrl: user?.imageProfile ??
+                                    'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                                imageBuilder: (context, imageProvider) {
+                                  return CircleAvatar(
+                                    backgroundImage: imageProvider,
+                                  );
+                                },
+                              ),
+                              title: Text(user?.username ?? 'Unknown'),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    comment[index].commentText,
+                                    style:
+                                        Theme.of(context).textTheme.labelLarge,
+                                  ),
+                                  Text(
+                                    _dateFormatComment(
+                                        comment[index].commentCreatedTime),
+                                    style:
+                                        Theme.of(context).textTheme.labelSmall,
+                                  )
+                                ],
+                              ),
+                            );
+                          },
                         );
                       },
                     );
@@ -288,6 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(8.0),
                   color: Theme.of(context).colorScheme.primary,
                   child: TextField(
+                    autofocus: autofocus,
                     controller: _commentController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
@@ -328,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 "Minthwhite",
                 style: TextStyle(
                   fontFamily: "Italianno",
-                  fontSize: 42.0,
+                  fontSize: 36.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -370,36 +476,66 @@ class _HomeScreenState extends State<HomeScreen> {
           ];
         },
         body: RefreshIndicator(
-          onRefresh: _loadPosts,
-          child: ListView.builder(
-            padding: EdgeInsets.zero,
-            scrollDirection: Axis.vertical,
-            controller: _scrollController,
-            itemCount: _posts.length,
-            itemBuilder: (context, index) {
-              if (index < _posts.length &&
-                  index < _listOfListUrlPosts.length &&
-                  _users[index] != null) {
-                final Users user = _users[index] ?? Users();
-                return PostComponent(
-                  imageUrlProfile: user.imageProfile,
-                  username: '${user.username} + $index',
-                  createDatePost:
-                      _dateFormatPost(_posts[index].postCreatedDate!),
-                  contentPost: _posts[index].postText ?? '',
-                  imageUrlPosts: _listOfListUrlPosts[index],
-                  postLikes: _postLikes[index],
-                  onLikeToggle: () => onLikeToggle(index),
-                  isLiked: _isLiked[index],
-                  onViewLikes: () => _navigateToLikesScreen(_postIds[index]),
-                  onViewComments: () => _showComments(_postIds[index]),
-                );
-              } else {
-                return const ShimmerPostComponent();
-              }
-            },
-          ),
-        ),
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              scrollDirection: Axis.vertical,
+              controller: _scrollController,
+              itemCount: _posts.length,
+              itemBuilder: (context, index) {
+                if (index < _posts.length &&
+                    index < _listOfListUrlPosts.length) {
+                  final Users user = _users[index] ?? Users();
+                  return PostComponent(
+                      imageUrlProfile: user.imageProfile,
+                      username: "${user.username} [$index]",
+                      createDatePost:
+                          _dateFormatPost(_posts[index].postCreatedDate!),
+                      contentPost: _posts[index].postText ?? '',
+                      imageUrlPosts: _listOfListUrlPosts[index],
+                      postLikes: _postLikes[index],
+                      postComments: _postComments[index],
+                      onLikeToggle: () => _onLikeToggle(index),
+                      onCommentToggle: () =>
+                          _showComments(_postIds[index], autofocus: true),
+                      onShareToggle: () => _onShareToggle(
+                          _posts[index].mediaLink, _posts[index].postText),
+                      isLiked: _isLiked[index],
+                      onViewLikes: () =>
+                          _navigateToLikesScreen(_postIds[index]),
+                      onViewComments: () => _showComments(_postIds[index]),
+                      onViewProfile: () =>
+                          _navigateToProfileScreen(_posts[index].uid!),
+                      itemBuilderPopupMenu: (context) {
+                        if (_posts[index].uid == currentUser!.uid) {
+                          return [
+                            MenuPostEnum.delete.getString,
+                            MenuPostEnum.edit.getString
+                          ].map((String choice) {
+                            return PopupMenuItem<String>(
+                              value: choice,
+                              child: Text(choice),
+                            );
+                          }).toList();
+                        } else {
+                          return [
+                            MenuPostEnum.report.getString,
+                          ].map((String choice) {
+                            return PopupMenuItem<String>(
+                              value: choice,
+                              child: Text(choice),
+                            );
+                          }).toList();
+                        }
+                      },
+                      onSelectedPopupMenu: (value) {
+                        _onSelectedPopupMenu(value, _postIds[index]);
+                      });
+                } else {
+                  return const ShimmerPostComponent();
+                }
+              },
+            ),
+            onRefresh: () => _loadPosts(lastVisible: null)),
       ),
     );
   }
@@ -423,34 +559,34 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
   Widget _buildVideo(Uint8List data, String url) {
-    final VideoPlayerController videoController =
+    final VideoPlayerController videoPlayerController =
         VideoPlayerController.networkUrl(Uri.parse(url));
     return FutureBuilder(
-      future: videoController.initialize(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
+      future: videoPlayerController.initialize(),
+      builder: (context, videoSnapshot) {
+        if (videoSnapshot.hasError) {
           return Center(
-            child: Text("ERROR PLAY VIDEO ---> ${snapshot.error}"),
+            child: Text("ERROR PLAY VIDEO ---> ${videoSnapshot.error}"),
           );
-        } else if (snapshot.connectionState == ConnectionState.done) {
+        } else if (videoSnapshot.connectionState == ConnectionState.done) {
           return VisibilityDetector(
             key: Key(url),
             onVisibilityChanged: (visibilityInfo) {
               var visiblePercentage = visibilityInfo.visibleFraction * 100;
               if (visiblePercentage > 50) {
-                videoController.setLooping(true);
-                videoController.setVolume(0.0);
-                videoController.play();
+                videoPlayerController.setLooping(true);
+                videoPlayerController.setVolume(_isVolume ? 1.0 : 0.0);
+                videoPlayerController.play();
                 // ignore: avoid_print
                 print(
-                    'Video is $visiblePercentage% visible ${videoController.value.volume}');
+                    'Video is $visiblePercentage% visible ${videoPlayerController.value.volume}');
               } else {
-                videoController.pause();
+                videoPlayerController.pause();
               }
             },
             child: Stack(
               children: [
-                VideoPlayer(videoController),
+                VideoPlayer(videoPlayerController),
                 Positioned(
                   bottom: 20,
                   right: 20,
@@ -461,14 +597,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: IconButton(
                           icon: Icon(
                             color: AppColors.backgroundColor,
-                            isVolume
+                            _isVolume
                                 ? Icons.volume_up_outlined
                                 : Icons.volume_off_outlined,
                           ),
                           onPressed: () {
                             setState(() {
-                              isVolume = !isVolume;
-                              videoController.setVolume(isVolume ? 1.0 : 0.0);
+                              _isVolume = !_isVolume;
+                              videoPlayerController
+                                  .setVolume(_isVolume ? 1.0 : 0.0);
                             });
                           },
                         ),

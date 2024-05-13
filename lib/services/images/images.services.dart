@@ -4,9 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';
 import 'package:social_media_app/utils/my_enum.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class ImageServices {
   final _userCollection =
@@ -105,18 +107,23 @@ class ImageServices {
   Future<File?> pickWithCamera(MediaTypeEnum type) async {
     final picker = ImagePicker();
     XFile? pickedWithCamera;
-    if (type == MediaTypeEnum.image) {
-      pickedWithCamera = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 100,
-      );
-    } else if (type == MediaTypeEnum.video) {
-      pickedWithCamera = await picker.pickVideo(
-        source: ImageSource.camera,
-      );
-    }
-    if (pickedWithCamera != null) {
-      return File(pickedWithCamera.path);
+    try {
+      if (type == MediaTypeEnum.image) {
+        pickedWithCamera = await picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 100,
+        );
+      } else if (type == MediaTypeEnum.video) {
+        pickedWithCamera = await picker.pickVideo(
+          source: ImageSource.camera,
+        );
+      }
+      if (pickedWithCamera != null) {
+        return File(pickedWithCamera.path);
+      }
+    } catch (error) {
+      // ignore: avoid_print
+      print('pickWithCamera $type ERROR ---> $error');
     }
     return null;
   }
@@ -130,8 +137,8 @@ class ImageServices {
       file.path,
       targetPath,
       quality: 50,
-      minHeight: 1920,
-      minWidth: 1080,
+      minHeight: 1280,
+      minWidth: 880,
     );
     if (compressImage != null) {
       // ignore: avoid_print
@@ -141,5 +148,17 @@ class ImageServices {
       return File(compressImage.path);
     }
     return null;
+  }
+
+  Future<File> generateThumbnail(String videoPath) async {
+    final uint8list = await VideoThumbnail.thumbnailData(
+      video: videoPath,
+      imageFormat: ImageFormat.JPEG,
+    );
+    final directory = await getTemporaryDirectory();
+    final thumbnailPath = '${directory.path}/thumbnail.jpg';
+    final file = File(thumbnailPath);
+    await file.writeAsBytes(uint8list!);
+    return file;
   }
 }

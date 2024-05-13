@@ -6,7 +6,7 @@ import 'dart:math' as math;
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 
 class PostComponent extends StatelessWidget {
-  const PostComponent({
+  PostComponent({
     super.key,
     required this.username,
     this.imageUrlProfile,
@@ -14,10 +14,16 @@ class PostComponent extends StatelessWidget {
     required this.contentPost,
     required this.createDatePost,
     required this.postLikes,
+    required this.postComments,
     required this.isLiked,
     required this.onLikeToggle,
+    required this.onCommentToggle,
+    required this.onShareToggle,
     required this.onViewLikes,
     required this.onViewComments,
+    required this.onViewProfile,
+    required this.itemBuilderPopupMenu,
+    required this.onSelectedPopupMenu,
   });
   final String username;
   final String? imageUrlProfile;
@@ -25,10 +31,18 @@ class PostComponent extends StatelessWidget {
   final String contentPost;
   final String createDatePost;
   final int postLikes;
+  final int postComments;
   final bool isLiked;
   final VoidCallback onLikeToggle;
+  final VoidCallback onCommentToggle;
+  final VoidCallback onShareToggle;
   final VoidCallback onViewLikes;
   final VoidCallback onViewComments;
+  final VoidCallback onViewProfile;
+  final List<PopupMenuEntry<String>> Function(BuildContext)
+      itemBuilderPopupMenu;
+  final void Function(String)? onSelectedPopupMenu;
+  final ValueNotifier<int> _currentMedia = ValueNotifier<int>(0);
 
   @override
   Widget build(BuildContext context) {
@@ -43,52 +57,92 @@ class PostComponent extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    CachedNetworkImage(
-                      imageUrl: imageUrlProfile ??
-                          'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
-                      imageBuilder: (context, imageProvider) {
-                        return CircleAvatar(
-                          radius: 20,
-                          backgroundImage: imageProvider,
-                        );
-                      },
-                      placeholder: (context, url) =>
-                          const OverlayLoadingWidget(),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(
-                        username,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                GestureDetector(
+                  onTap: onViewProfile,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: imageUrlProfile ??
+                            'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                        imageBuilder: (context, imageProvider) {
+                          return CircleAvatar(
+                            radius: 20,
+                            backgroundImage: imageProvider,
+                          );
+                        },
+                        placeholder: (context, url) =>
+                            const OverlayLoadingWidget(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Text(
+                          username,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.more_horiz_rounded),
+                PopupMenuButton(
+                  itemBuilder: itemBuilderPopupMenu,
+                  onSelected: onSelectedPopupMenu,
                 )
               ],
             ),
           ),
           if (imageUrlPosts.isNotEmpty)
-            CarouselSlider(
-              items: imageUrlPosts,
-              options: CarouselOptions(
-                height: 400.0,
-                viewportFraction: 1,
-                enlargeCenterPage: true,
-                enlargeStrategy: CenterPageEnlargeStrategy.height,
-                enableInfiniteScroll: false,
-                scrollDirection: Axis.horizontal,
-              ),
+            Stack(
+              children: [
+                CarouselSlider(
+                  items: imageUrlPosts,
+                  options: CarouselOptions(
+                      height: 400.0,
+                      viewportFraction: 1,
+                      enlargeCenterPage: true,
+                      enlargeStrategy: CenterPageEnlargeStrategy.height,
+                      enableInfiniteScroll: false,
+                      scrollDirection: Axis.horizontal,
+                      onPageChanged: (index, reason) {
+                        _currentMedia.value = index;
+                      }),
+                ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: _currentMedia,
+                      builder: (context, value, child) {
+                        if (imageUrlPosts.length > 1) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                '${value + 1}/${imageUrlPosts.length}',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           if (contentPost.isNotEmpty || contentPost != '')
             Padding(
@@ -122,13 +176,13 @@ class PostComponent extends StatelessWidget {
                       : const Icon(Icons.favorite_border),
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: onCommentToggle,
                   icon: const Icon(Icons.mode_comment_outlined),
                 ),
                 Transform.rotate(
                   angle: -45 * math.pi / 180,
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: onShareToggle,
                     icon: const Icon(Icons.send_outlined),
                   ),
                 ),
@@ -151,7 +205,9 @@ class PostComponent extends StatelessWidget {
                 GestureDetector(
                   onTap: onViewComments,
                   child: Text(
-                    'View all 36 comments',
+                    postComments > 1
+                        ? 'View all $postComments comments'
+                        : 'View $postComments comment',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),

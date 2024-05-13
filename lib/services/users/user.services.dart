@@ -32,6 +32,14 @@ class UserServices {
       if (!docSnapshot.exists) {
         await docRef.set(<String, dynamic>{});
       }
+      bool haveImagePhotoURL = _currentUser!.photoURL != null;
+      bool notHaveImageProfile =
+          docSnapshot[DocumentFieldNames.imageProfile] == null;
+      if (haveImagePhotoURL && notHaveImageProfile) {
+        await docRef.update({
+          DocumentFieldNames.imageProfile: _currentUser.photoURL,
+        });
+      }
     } catch (error) {
       // ignore: avoid_print
       print("createDocumentIfNotExists ERROR ---> $error");

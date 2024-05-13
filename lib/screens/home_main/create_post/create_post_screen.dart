@@ -93,6 +93,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       });
 
       final pickedMedia = await _imageServices.pickWithCamera(type);
+
       if (pickedMedia == null) return;
 
       setState(() {

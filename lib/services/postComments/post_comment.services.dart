@@ -37,4 +37,33 @@ class PostCommentServices {
       }).toList();
     });
   }
+
+  Future<int> getQuantityComments(String postId) async {
+    try {
+      QuerySnapshot querySnapshot = await _postCommentsCollection
+          .where(DocumentFieldNames.postId, isEqualTo: postId)
+          .get();
+      return querySnapshot.docs.length;
+    } catch (e) {
+      // ignore: avoid_print
+      print("getQuantityComments ERROR ---> $e");
+      return 0;
+    }
+  }
+
+  Future<void> deletePostComment(String postId) async {
+    try {
+      await _postCommentsCollection
+          .where(DocumentFieldNames.postId, isEqualTo: postId)
+          .get()
+          .then((value) {
+        for (var element in value.docs) {
+          element.reference.delete();
+        }
+      });
+    } catch (e) {
+      // ignore: avoid_print
+      print("deletePostComment ERROR ---> $e");
+    }
+  }
 }

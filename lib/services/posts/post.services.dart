@@ -4,10 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:social_media_app/models/posts.dart';
+import 'package:social_media_app/services/postComments/post_comment.services.dart';
+import 'package:social_media_app/services/postLikes/post_like.service.dart';
 import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';
 
 class PostService {
+  final PostCommentServices _postCommentServices = PostCommentServices();
+  final PostLikeServices _postLikeServices = PostLikeServices();
   final _currentUser = FirebaseAuth.instance.currentUser;
   final CollectionReference _postCollection =
       FirebaseFirestore.instance.collection(FirestoreCollectionNames.posts);
@@ -53,10 +57,10 @@ class PostService {
   }
 
   Future<List<DocumentSnapshot>> loadPostsLazy(
-      {limit = 10, DocumentSnapshot? lastVisible}) async {
+      {DocumentSnapshot? lastVisible}) async {
     Query query = _postCollection
         .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
-        .limit(limit);
+        .limit(10);
 
     if (lastVisible != null) {
       query = query.startAfterDocument(lastVisible);
@@ -73,5 +77,41 @@ class PostService {
         .map((snapshot) => snapshot.docs
             .map((doc) => Posts.fromMap(doc.data() as Map<String, dynamic>))
             .toList());
+  }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      DocumentSnapshot postSnapshot = await _postCollection.doc(postId).get();
+
+      List<String> mediaLinks =
+          List<String>.from(postSnapshot.get(DocumentFieldNames.mediaLink));
+      FirebaseStorage storage = FirebaseStorage.instance;
+      for (String mediaLink in mediaLinks) {
+        Reference ref = storage.refFromURL(mediaLink);
+        await ref.delete();
+      }
+      await _postLikeServices.deletePostLikes(postId);
+      await _postCommentServices.deletePostComment(postId);
+      await _postCollection.doc(postId).delete();
+    } catch (error) {
+      //ignore:avoid_print
+      print('deletePost ERROR ---> $error');
+    }
+  }
+
+  Future<List<Posts>> getListPostForCurrentUser() async {
+    try {
+      QuerySnapshot querySnapshot = await _postCollection
+          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
+          .get();
+      return querySnapshot.docs
+          .map((doc) => Posts.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (error) {
+      //ignore:avoid_print
+      print('getListPostsForCurrentUser ERROR ---> $error');
+    }
+    return [];
   }
 }

@@ -30,3 +30,20 @@ extension NotificationTypeExtension on NotificationTypeEnum {
 }
 
 enum MediaTypeEnum { image, video, other }
+
+enum MenuPostEnum { edit, delete, report }
+
+extension MenuPostExtension on MenuPostEnum {
+  String get getString {
+    switch (this) {
+      case MenuPostEnum.edit:
+        return 'Edit';
+      case MenuPostEnum.delete:
+        return 'Delete';
+      case MenuPostEnum.report:
+        return 'Report';
+      default:
+        return '';
+    }
+  }
+}

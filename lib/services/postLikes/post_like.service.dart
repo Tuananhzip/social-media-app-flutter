@@ -77,4 +77,20 @@ class PostLikeServices {
       return [];
     }
   }
+
+  Future<void> deletePostLikes(String postId) async {
+    try {
+      await _postLikesCollection
+          .where(DocumentFieldNames.postId, isEqualTo: postId)
+          .get()
+          .then((value) {
+        for (var element in value.docs) {
+          element.reference.delete();
+        }
+      });
+    } catch (e) {
+      // ignore: avoid_print
+      print('deletePostLikes ERROR ---> $e');
+    }
+  }
 }

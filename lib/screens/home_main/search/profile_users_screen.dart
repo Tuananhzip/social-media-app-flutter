@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
@@ -41,7 +42,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(widget.user.username ?? 'Hello name'),
+        title: Text(widget.user.username ?? 'Unknown user'),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -58,10 +59,14 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                     SizedBox(
                       width: 140.0,
                       height: 140.0,
-                      child: CircleAvatar(
-                        backgroundImage: NetworkImage(widget
-                                .user.imageProfile ??
-                            'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png'),
+                      child: CachedNetworkImage(
+                        imageUrl: widget.user.imageProfile ??
+                            'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                        imageBuilder: (context, imageProvider) {
+                          return CircleAvatar(
+                            backgroundImage: imageProvider,
+                          );
+                        },
                       ),
                     ),
                     const Expanded(
