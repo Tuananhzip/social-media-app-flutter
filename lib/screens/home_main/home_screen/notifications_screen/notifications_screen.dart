@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:social_media_app/components/list/list_friend_request.component.dart';
@@ -8,6 +9,7 @@ import 'package:social_media_app/screens/home_main/home_screen/notifications_scr
 import 'package:social_media_app/services/notifications/notifications.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/my_enum.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -20,13 +22,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   final NotificationServices _notificationServices = NotificationServices();
   final UserServices _userServices = UserServices();
 
-  void _onNavigateToListFriendRequests() {
+  Future<void> _onNavigateToListFriendRequests() async {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const ListFriendRequestScreen(),
       ),
     );
+    await _notificationServices.updateStatusNotificationTypeFriendRequests();
   }
 
   @override
@@ -123,53 +126,61 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ),
           Flexible(
-            child: StreamBuilder<List<Notifications>>(
-              stream: _notificationServices
-                  .getNotificationsForAcceptedFriendRequest(),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _notificationServices.getNotifications(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(
                     child: Text('ERROR : ---> ${snapshot.error}'),
                   );
                 } else if (snapshot.hasData) {
-                  final List<Notifications> dataNotifications =
-                      snapshot.data ?? [];
+                  final List<Notifications> dataNotifications = snapshot
+                      .data!.docs
+                      .map((doc) => Notifications.fromMap(
+                          doc.data() as Map<String, dynamic>))
+                      .toList();
                   return ListView.builder(
                     itemCount: dataNotifications.length,
                     itemBuilder: (context, index) {
+                      final notificationId = snapshot.data!.docs[index].id;
                       final notification = dataNotifications[index];
-                      if (notification.notificationType ==
-                          NotificationTypeEnum.acceptFriend.getString) {
-                        DateFormat dateFormat =
-                            DateFormat('dd/MM/yyyy HH:mm:ss');
-                        String formattedDateTime = dateFormat.format(
-                            notification.notificationCreatedDate!.toDate());
-                        return FutureBuilder(
-                          future: _userServices
-                              .getUserDetailsByID(notification.uid!),
+                      DateFormat dateFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
+                      String formattedDateTime = dateFormat.format(
+                          notification.notificationCreatedDate!.toDate());
+                      return VisibilityDetector(
+                        key: Key(notificationId),
+                        onVisibilityChanged: (visibilityInfo) {
+                          var visiblePercentage =
+                              visibilityInfo.visibleFraction * 100;
+                          if (visiblePercentage == 100) {
+                            _notificationServices
+                                .markAsSeenNotifications(notificationId);
+                          }
+                        },
+                        child: FutureBuilder(
+                          future: _userServices.getUserDetailsByID(
+                              notification.notificationReferenceId!),
                           builder: (context, userSnapshot) {
                             final dataUser = userSnapshot.data;
                             return ListTileFriendRequestComponent(
                               title: notification.notificationType,
                               subtitle:
-                                  '${notification.notificationContent?.substring(5)} by ${dataUser?.username?.toUpperCase()} $formattedDateTime',
+                                  '${notification.notificationContent} $formattedDateTime',
                               listImages: [
                                 dataUser?.imageProfile,
                               ],
                             );
                           },
-                        );
-                      } else {
-                        return Container();
-                      }
+                        ),
+                      );
                     },
                   );
                 } else {
-                  return Container();
+                  return const SizedBox.shrink();
                 }
               },
             ),
-          )
+          ),
         ],
       ),
     );

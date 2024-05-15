@@ -157,7 +157,8 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                 Expanded(
                                   child: ButtonDefaultComponent(
                                     text: 'Unfriend',
-                                    onTap: () => {},
+                                    onTap: () => _friendRequestsServices
+                                        .unfriend(widget.uid),
                                     colorBackground:
                                         Theme.of(context).colorScheme.primary,
                                   ),

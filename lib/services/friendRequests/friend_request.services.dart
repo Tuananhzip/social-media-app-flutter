@@ -78,15 +78,41 @@ class FriendRequestsServices {
       for (var doc in querySnapshot.docs) {
         String docId = doc.id;
         if (docId.isNotEmpty) {
-          await _friendRequestsCollections
-              .doc(docId)
-              .update({DocumentFieldNames.statusFriendRequest: true});
+          await _friendRequestsCollections.doc(docId).update({
+            DocumentFieldNames.statusFriendRequest: true,
+          });
         }
       }
       await _notificationServices.acceptNotificationFriendRequest(senderId);
     } catch (error) {
       //ignore:avoid_print
       print("acceptRequestAddFriend ERROR ---> $error");
+    }
+  }
+
+  Future<void> unfriend(String senderIdOrReceiverId) async {
+    try {
+      await _friendRequestsCollections
+          .where(DocumentFieldNames.senderId, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.receiverId, isEqualTo: senderIdOrReceiverId)
+          .get()
+          .then((snapshot) {
+        for (var doc in snapshot.docs) {
+          doc.reference.delete();
+        }
+      });
+      await _friendRequestsCollections
+          .where(DocumentFieldNames.receiverId, isEqualTo: _currentUser.uid)
+          .where(DocumentFieldNames.senderId, isEqualTo: senderIdOrReceiverId)
+          .get()
+          .then((snapshot) {
+        for (var doc in snapshot.docs) {
+          doc.reference.delete();
+        }
+      });
+    } catch (error) {
+      //ignore: avoid_print
+      print('ERROR cancelRequestAddFriend ---> $error');
     }
   }
 
