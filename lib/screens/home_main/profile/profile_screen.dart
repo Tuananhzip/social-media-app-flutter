@@ -100,6 +100,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  String? _getEmail() {
+    if (_currentUser != null) {
+      return _currentUser.email?.split('@').first;
+    } else {
+      return 'Email not found';
+    }
+  }
+
   String _getImageProfile() {
     if (_user.imageProfile != null && _user.imageProfile != '') {
       return _user.imageProfile!;
@@ -136,22 +144,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                title: Text.rich(
-                  TextSpan(children: [
-                    TextSpan(
-                      text: _getUsername(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20.0,
-                        overflow: TextOverflow.ellipsis,
+                title: GestureDetector(
+                  onTap: _showSignOutSnackBar,
+                  child: Text.rich(
+                    TextSpan(children: [
+                      TextSpan(
+                        text: _getEmail(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20.0,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    WidgetSpan(
-                        child: GestureDetector(
-                      onTap: _showSignOutSnackBar,
-                      child: const Icon(Icons.keyboard_arrow_down_outlined),
-                    ))
-                  ]),
+                      const WidgetSpan(
+                        child: Icon(Icons.keyboard_arrow_down_outlined),
+                      )
+                    ]),
+                  ),
                 ),
                 actions: [
                   IconButton(

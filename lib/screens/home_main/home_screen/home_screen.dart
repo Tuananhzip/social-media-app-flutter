@@ -21,6 +21,7 @@ import 'package:social_media_app/screens/home_main/create_post/create_post_scree
 import 'package:social_media_app/screens/home_main/home_screen/list_like_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
+import 'package:social_media_app/services/notifications/notifications.services.dart';
 import 'package:social_media_app/services/postComments/post_comment.services.dart';
 import 'package:social_media_app/services/postLikes/post_like.service.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
@@ -41,13 +42,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final currentUser = FirebaseAuth.instance.currentUser;
-  final Logger logger = Logger();
+  final _currentUser = FirebaseAuth.instance.currentUser;
+  final Logger _logger = Logger();
   final ScrollController _scrollController = ScrollController();
   final PostService _postService = PostService();
   final UserServices _userServices = UserServices();
   final PostLikeServices _postLikeServices = PostLikeServices();
   final PostCommentServices _postCommentServices = PostCommentServices();
+  final NotificationServices _notificationServices = NotificationServices();
   final TextEditingController _commentController = TextEditingController();
   final List<Users?> _users = [];
   final List<Posts> _posts = [];
@@ -91,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadPosts({DocumentSnapshot? lastVisible}) async {
     if (lastVisible == null) {
-      logger.t(lastVisible);
+      _logger.t(lastVisible);
       setState(() {
         _listOfListUrlPosts.clear();
         _posts.clear();
@@ -128,10 +130,10 @@ class _HomeScreenState extends State<HomeScreen> {
       List<int> postComments = await Future.wait(postCommentFutures);
       List<bool> isLiked = await Future.wait(isLikedFutures);
 
-      logger.i('postIds: $postIds ${postIds.length}');
-      logger.i('postLikes: $postLikes ${postLikes.length}');
-      logger.i('postComments: $postLikes ${postComments.length}');
-      logger.i('isLiked: $isLiked ${isLiked.length}');
+      _logger.i('postIds: $postIds ${postIds.length}');
+      _logger.i('postLikes: $postLikes ${postLikes.length}');
+      _logger.i('postComments: $postLikes ${postComments.length}');
+      _logger.i('isLiked: $isLiked ${isLiked.length}');
 
       setState(() {
         _postLikes.addAll(postLikes);
@@ -174,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 }).catchError((onError) {
                   // ignore: avoid_print
-                  logger.e(onError);
+                  _logger.e(onError);
                 }),
               );
             }
@@ -277,12 +279,26 @@ class _HomeScreenState extends State<HomeScreen> {
         .then((_) => _loadPosts(lastVisible: null));
   }
 
-  void _showComments(String postId, {bool autofocus = false}) {
-    Future<void> addComment(String postId) async {
+  void _showComments(String postId, String uidOfPost, int indexOfCountComment,
+      {bool autofocus = false}) {
+    Future<void> addComment() async {
       final comment = _commentController.text;
       await _postCommentServices.addPostComment(postId, comment).then((value) {
         _commentController.clear();
+        setState(() {
+          _postComments[indexOfCountComment]++;
+        });
+        FocusManager.instance.primaryFocus?.unfocus();
       });
+      if (_currentUser!.uid != uidOfPost) {
+        final usernameCommented = await _userServices
+            .getUserDetailsByID(_currentUser.uid)
+            .then((value) => value?.username);
+        await _notificationServices.sendNotificationTypeComment(
+          usernameCommented!,
+          uidOfPost,
+        );
+      }
     }
 
     showMaterialModalBottomSheet(
@@ -318,8 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder<List<PostComments>>(
-                  stream: _postCommentServices.getPostComments(postId),
+                child: FutureBuilder<List<PostComments>>(
+                  future: _postCommentServices.getPostComments(postId),
                   builder: (context, commentsSnapshot) {
                     if (commentsSnapshot.connectionState ==
                         ConnectionState.waiting) {
@@ -386,7 +402,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-              Padding(
+              AnimatedPadding(
+                duration: const Duration(milliseconds: 300),
                 padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom),
                 child: Container(
@@ -407,7 +424,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 10.0,
                       ),
                       suffixIcon: IconButton(
-                        onPressed: () => addComment(postId),
+                        onPressed: () => addComment(),
                         icon: const Icon(Icons.send),
                       ),
                     ),
@@ -439,37 +456,75 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               actions: [
-                Switch(
-                  value: _isLoadingDarkMode,
-                  onChanged: (value) => _toggleChangeTheme(context),
-                  inactiveThumbImage: const AssetImage('assets/images/sun.png'),
-                  activeThumbImage: const AssetImage('assets/images/moon.png'),
-                  inactiveThumbColor: AppColors.backgroundColor,
-                  activeColor: AppColors.grayAccentColor,
-                  inactiveTrackColor: AppColors.blueColor,
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Switch(
+                    value: _isLoadingDarkMode,
+                    onChanged: (value) => _toggleChangeTheme(context),
+                    inactiveThumbImage:
+                        const AssetImage('assets/images/sun.png'),
+                    activeThumbImage:
+                        const AssetImage('assets/images/moon.png'),
+                    inactiveThumbColor: AppColors.backgroundColor,
+                    activeColor: AppColors.grayAccentColor,
+                    inactiveTrackColor: AppColors.blueColor,
+                  ),
                 ),
                 IconButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const CreatePostScreen(), // replace with your actual CreatePostScreen
+                        builder: (context) => const CreatePostScreen(),
                       ),
                     );
                   },
                   icon: const Icon(Icons.add_box_outlined),
                 ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const NotificationsScreen(),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_none_outlined),
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.notifications_none_outlined),
+                      StreamBuilder<bool>(
+                        stream: _notificationServices.checkNotifications(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                  'Error loading notifications ---> ${snapshot.error}'),
+                            );
+                          }
+                          if (snapshot.data == true) {
+                            return Positioned(
+                              right: 15,
+                              top: 12,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.dangerColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -495,18 +550,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       postLikes: _postLikes[index],
                       postComments: _postComments[index],
                       onLikeToggle: () => _onLikeToggle(index),
-                      onCommentToggle: () =>
-                          _showComments(_postIds[index], autofocus: true),
+                      onCommentToggle: () => _showComments(
+                            _postIds[index],
+                            _posts[index].uid!,
+                            index,
+                            autofocus: true,
+                          ),
                       onShareToggle: () => _onShareToggle(
                           _posts[index].mediaLink, _posts[index].postText),
                       isLiked: _isLiked[index],
                       onViewLikes: () =>
                           _navigateToLikesScreen(_postIds[index]),
-                      onViewComments: () => _showComments(_postIds[index]),
+                      onViewComments: () => _showComments(
+                            _postIds[index],
+                            _posts[index].uid!,
+                            index,
+                          ),
                       onViewProfile: () =>
                           _navigateToProfileScreen(_posts[index].uid!),
                       itemBuilderPopupMenu: (context) {
-                        if (_posts[index].uid == currentUser!.uid) {
+                        if (_posts[index].uid == _currentUser!.uid) {
                           return [
                             MenuPostEnum.delete.getString,
                             MenuPostEnum.edit.getString

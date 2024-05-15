@@ -20,7 +20,7 @@ extension NotificationTypeExtension on NotificationTypeEnum {
       case NotificationTypeEnum.friendRequest:
         return 'Friend request';
       case NotificationTypeEnum.comment:
-        return 'Comment';
+        return 'Comment post';
       case NotificationTypeEnum.acceptFriend:
         return 'Accepted friend';
       default:
