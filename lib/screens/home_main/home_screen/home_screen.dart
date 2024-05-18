@@ -1,19 +1,20 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/shimmer_comment.component.dart';
-import 'package:social_media_app/components/post/post_srceen.component.dart';
 import 'package:social_media_app/components/loading/shimmer_post.component.dart';
+import 'package:social_media_app/components/post/post_srceen.component.dart';
 import 'package:social_media_app/models/post_comments.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
@@ -30,7 +31,6 @@ import 'package:social_media_app/theme/theme_provider.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 import 'package:video_player/video_player.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -59,9 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<bool> _isLiked = [];
   bool _isLoadingDarkMode = false;
   bool _isLoadingData = false;
+  bool _isDataLoaded = false;
   late DocumentSnapshot? _lastVisible;
   final List<List<Widget>> _listOfListUrlPosts = [];
   bool _isVolume = false;
+  bool _isPlaying = true;
 
   @override
   initState() {
@@ -80,13 +82,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _scrollListen() {
-    if (_scrollController.position.pixels <
-        _scrollController.position.maxScrollExtent * 0.8) {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      Logger().d("Reached bottom");
       if (!_isLoadingData) {
         _isLoadingData = true;
-        _loadPosts(lastVisible: _lastVisible).then((_) {
-          _isLoadingData = false;
-        });
+        _loadPosts(lastVisible: _lastVisible)
+            .then((value) => _isLoadingData = false);
       }
     }
   }
@@ -94,56 +96,62 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadPosts({DocumentSnapshot? lastVisible}) async {
     if (lastVisible == null) {
       _logger.t(lastVisible);
-      setState(() {
-        _listOfListUrlPosts.clear();
-        _posts.clear();
-        _users.clear();
-        _postLikes.clear();
-        _postComments.clear();
-        _isLiked.clear();
-        _postIds.clear();
-      });
+      _clearPost();
     }
     List<DocumentSnapshot> postData =
         await _postService.loadPostsLazy(lastVisible: lastVisible);
     if (postData.isNotEmpty) {
-      _lastVisible = postData[postData.length - 1];
+      setState(() {
+        _isDataLoaded = false;
+      });
+      _lastVisible = postData.last;
+
       postData.shuffle(); // Random shuffle list 10 posts orderBy created dated
+
       List<Posts> postDummy = postData
           .map((data) => Posts.fromMap(data.data() as Map<String, dynamic>))
           .toList();
+
       List<String> postIds = postData.map((post) => post.id).toList();
-      List<Future<Users?>> userFutures = postDummy
-          .map((post) => _userServices.getUserDetailsByID(post.uid!))
-          .toList();
-      List<Future<int>> postLikeFutures = postData
-          .map((post) => _postLikeServices.getQuantityPostLikes(post.id))
-          .toList();
-      List<Future<int>> postCommentFutures = postData
-          .map((post) => _postCommentServices.getQuantityComments(post.id))
-          .toList();
-      List<Future<bool>> isLikedFutures = postData
-          .map((post) => _postLikeServices.isUserLikedPost(post.id))
-          .toList();
-      List<Users?> users = await Future.wait(userFutures);
-      List<int> postLikes = await Future.wait(postLikeFutures);
-      List<int> postComments = await Future.wait(postCommentFutures);
-      List<bool> isLiked = await Future.wait(isLikedFutures);
+
+      List<Future> futures = [
+        Future.wait(postDummy
+            .map((post) => _userServices.getUserDetailsByID(post.uid!))
+            .toList()),
+        Future.wait(postData
+            .map((post) => _postLikeServices.getQuantityPostLikes(post.id))
+            .toList()),
+        Future.wait(postData
+            .map((post) => _postCommentServices.getQuantityComments(post.id))
+            .toList()),
+        Future.wait(postData
+            .map((post) => _postLikeServices.isUserLikedPost(post.id))
+            .toList()),
+      ];
+
+      List results = await Future.wait(futures);
+
+      List<Users?> users = results[0];
+      List<int> postLikes = results[1];
+      List<int> postComments = results[2];
+      List<bool> isLiked = results[3];
 
       _logger.i('postIds: $postIds ${postIds.length}');
       _logger.i('postLikes: $postLikes ${postLikes.length}');
-      _logger.i('postComments: $postLikes ${postComments.length}');
+      _logger.i('postComments: $postComments ${postComments.length}');
       _logger.i('isLiked: $isLiked ${isLiked.length}');
 
-      setState(() {
-        _postLikes.addAll(postLikes);
-        _postComments.addAll(postComments);
-        _posts.addAll(postDummy);
-        _users.addAll(users);
-        _isLiked.addAll(isLiked);
-        _postIds.addAll(postIds);
-      });
+      _posts.addAll(postDummy);
+      _postIds.addAll(postIds);
+      _postLikes.addAll(postLikes);
+      _postComments.addAll(postComments);
+      _users.addAll(users);
+      _isLiked.addAll(isLiked);
+
       _checkMediaList(postDummy);
+      setState(() {
+        _isDataLoaded = true;
+      });
     }
   }
 
@@ -157,28 +165,13 @@ class _HomeScreenState extends State<HomeScreen> {
           for (var url in post.mediaLink!) {
             final listPart = url.split('.');
             final lastPart = listPart.last.toLowerCase().split('?');
-            final String extensions = lastPart.first;
-            if (extensions == 'jpg' ||
-                extensions == 'png' ||
-                extensions == 'jpeg') {
+            final String extendsions = lastPart.first;
+            if (extendsions == 'jpg' ||
+                extendsions == 'png' ||
+                extendsions == 'jpeg') {
               listDummy.add(_buildImage(url));
-            } else if (extensions == 'mp4') {
-              futures.add(
-                VideoThumbnail.thumbnailData(
-                  video: url,
-                  imageFormat: ImageFormat.JPEG,
-                  maxWidth: MediaQuery.of(context).size.width.toInt(),
-                  maxHeight: MediaQuery.of(context).size.height.toInt(),
-                  quality: 25,
-                ).then((uint8list) {
-                  if (uint8list != null) {
-                    listDummy.add(_buildVideo(uint8list, url));
-                  }
-                }).catchError((onError) {
-                  // ignore: avoid_print
-                  _logger.e(onError);
-                }),
-              );
+            } else if (extendsions == 'mp4') {
+              listDummy.add(_buildVideo(url));
             }
           }
           // Wait for all futures to complete
@@ -186,10 +179,18 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         newListOfListUrlPosts.add(listDummy);
       }
-      setState(() {
-        _listOfListUrlPosts.addAll(newListOfListUrlPosts);
-      });
+      _listOfListUrlPosts.addAll(newListOfListUrlPosts);
     }
+  }
+
+  void _clearPost() {
+    _listOfListUrlPosts.clear();
+    _posts.clear();
+    _users.clear();
+    _postLikes.clear();
+    _isLiked.clear();
+    _postIds.clear();
+    _postComments.clear();
   }
 
   void _onLikeToggle(int index) async {
@@ -531,74 +532,95 @@ class _HomeScreenState extends State<HomeScreen> {
           ];
         },
         body: RefreshIndicator(
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              scrollDirection: Axis.vertical,
-              controller: _scrollController,
-              itemCount: _posts.length,
-              itemBuilder: (context, index) {
-                if (index < _posts.length &&
-                    index < _listOfListUrlPosts.length) {
-                  final Users user = _users[index] ?? Users();
-                  return PostComponent(
-                      imageUrlProfile: user.imageProfile,
-                      username: "${user.username} [$index]",
-                      createDatePost:
-                          _dateFormatPost(_posts[index].postCreatedDate!),
-                      contentPost: _posts[index].postText ?? '',
-                      imageUrlPosts: _listOfListUrlPosts[index],
-                      postLikes: _postLikes[index],
-                      postComments: _postComments[index],
-                      onLikeToggle: () => _onLikeToggle(index),
-                      onCommentToggle: () => _showComments(
+          child: Stack(
+            children: [
+              _posts.isNotEmpty
+                  ? ListView.builder(
+                      padding: EdgeInsets.zero,
+                      scrollDirection: Axis.vertical,
+                      controller: _scrollController,
+                      itemCount: _posts.length,
+                      itemBuilder: (context, index) {
+                        final Users user = _users[index] ?? Users();
+                        return PostComponent(
+                          imageUrlProfile: user.imageProfile,
+                          username: "${user.username} [$index]",
+                          createDatePost:
+                              _dateFormatPost(_posts[index].postCreatedDate!),
+                          contentPost: _posts[index].postText ?? '',
+                          imageUrlPosts: _listOfListUrlPosts[index],
+                          postLikes: _postLikes[index],
+                          postComments: _postComments[index],
+                          onLikeToggle: () => _onLikeToggle(index),
+                          onCommentToggle: () => _showComments(
                             _postIds[index],
                             _posts[index].uid!,
                             index,
                             autofocus: true,
                           ),
-                      onShareToggle: () => _onShareToggle(
-                          _posts[index].mediaLink, _posts[index].postText),
-                      isLiked: _isLiked[index],
-                      onViewLikes: () =>
-                          _navigateToLikesScreen(_postIds[index]),
-                      onViewComments: () => _showComments(
+                          onShareToggle: () => _onShareToggle(
+                              _posts[index].mediaLink, _posts[index].postText),
+                          isLiked: _isLiked[index],
+                          onViewLikes: () =>
+                              _navigateToLikesScreen(_postIds[index]),
+                          onViewComments: () => _showComments(
                             _postIds[index],
                             _posts[index].uid!,
                             index,
                           ),
-                      onViewProfile: () =>
-                          _navigateToProfileScreen(_posts[index].uid!),
-                      itemBuilderPopupMenu: (context) {
-                        if (_posts[index].uid == _currentUser!.uid) {
-                          return [
-                            MenuPostEnum.delete.getString,
-                            MenuPostEnum.edit.getString
-                          ].map((String choice) {
-                            return PopupMenuItem<String>(
-                              value: choice,
-                              child: Text(choice),
-                            );
-                          }).toList();
-                        } else {
-                          return [
-                            MenuPostEnum.report.getString,
-                          ].map((String choice) {
-                            return PopupMenuItem<String>(
-                              value: choice,
-                              child: Text(choice),
-                            );
-                          }).toList();
-                        }
+                          onViewProfile: () =>
+                              _navigateToProfileScreen(_posts[index].uid!),
+                          itemBuilderPopupMenu: (context) {
+                            if (_posts[index].uid == _currentUser!.uid) {
+                              return [
+                                MenuPostEnum.delete.getString,
+                                MenuPostEnum.edit.getString
+                              ].map((String choice) {
+                                return PopupMenuItem<String>(
+                                  value: choice,
+                                  child: Text(choice),
+                                );
+                              }).toList();
+                            } else {
+                              return [
+                                MenuPostEnum.report.getString,
+                              ].map((String choice) {
+                                return PopupMenuItem<String>(
+                                  value: choice,
+                                  child: Text(choice),
+                                );
+                              }).toList();
+                            }
+                          },
+                          onSelectedPopupMenu: (value) {
+                            _onSelectedPopupMenu(value, _postIds[index]);
+                          },
+                        );
                       },
-                      onSelectedPopupMenu: (value) {
-                        _onSelectedPopupMenu(value, _postIds[index]);
-                      });
-                } else {
-                  return const ShimmerPostComponent();
-                }
-              },
-            ),
-            onRefresh: () => _loadPosts(lastVisible: null)),
+                    )
+                  : const ShimmerPostComponent(),
+              !_isDataLoaded
+                  ? Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          ),
+          onRefresh: () => _loadPosts(lastVisible: null),
+        ),
       ),
     );
   }
@@ -617,83 +639,119 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           },
-          placeholder: (context, url) => const OverlayLoadingWidget(),
+          placeholder: (context, url) => Shimmer.fromColors(
+            baseColor: Theme.of(context).colorScheme.primary,
+            highlightColor: Theme.of(context).colorScheme.secondary,
+            child: Container(
+              color: Theme.of(context).colorScheme.background,
+            ),
+          ),
           errorWidget: (context, url, error) => const Icon(Icons.error),
         ),
       );
-  Widget _buildVideo(Uint8List data, String url) {
+  Widget _buildVideo(String url) {
     final VideoPlayerController videoPlayerController =
         VideoPlayerController.networkUrl(Uri.parse(url));
     return FutureBuilder(
       future: videoPlayerController.initialize(),
-      builder: (context, videoSnapshot) {
-        if (videoSnapshot.hasError) {
-          return Center(
-            child: Text("ERROR PLAY VIDEO ---> ${videoSnapshot.error}"),
-          );
-        } else if (videoSnapshot.connectionState == ConnectionState.done) {
-          return VisibilityDetector(
-            key: Key(url),
-            onVisibilityChanged: (visibilityInfo) {
-              var visiblePercentage = visibilityInfo.visibleFraction * 100;
-              if (visiblePercentage > 50) {
-                videoPlayerController.setLooping(true);
-                videoPlayerController.setVolume(_isVolume ? 1.0 : 0.0);
-                videoPlayerController.play();
-                // ignore: avoid_print
-                print(
-                    'Video is $visiblePercentage% visible ${videoPlayerController.value.volume}');
-              } else {
-                videoPlayerController.pause();
-              }
-            },
-            child: Stack(
-              children: [
-                VideoPlayer(videoPlayerController),
-                Positioned(
-                  bottom: 20,
-                  right: 20,
-                  child: StatefulBuilder(
-                    builder: (context, setState) {
-                      return CircleAvatar(
-                        backgroundColor: AppColors.blackColor.withOpacity(0.4),
-                        child: IconButton(
-                          icon: Icon(
-                            color: AppColors.backgroundColor,
-                            _isVolume
-                                ? Icons.volume_up_outlined
-                                : Icons.volume_off_outlined,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isPlaying = !_isPlaying;
+                    _isPlaying
+                        ? videoPlayerController.play()
+                        : videoPlayerController.pause();
+                  });
+                },
+                child: VisibilityDetector(
+                  key: Key(url),
+                  onVisibilityChanged: (visibilityInfo) {
+                    var visiblePercentage =
+                        visibilityInfo.visibleFraction * 100;
+                    if (visiblePercentage > 50) {
+                      videoPlayerController.setLooping(true);
+                      videoPlayerController.setVolume(_isVolume ? 1.0 : 0.0);
+                      _isPlaying
+                          ? videoPlayerController.play()
+                          : videoPlayerController.pause();
+                      // ignore: avoid_print
+                      print(
+                          'Video is $visiblePercentage% visible ${videoPlayerController.value.volume}');
+                    } else {
+                      videoPlayerController.pause();
+                    }
+                  },
+                  child: Stack(
+                    children: [
+                      VideoPlayer(videoPlayerController),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: VideoProgressIndicator(
+                          videoPlayerController,
+                          allowScrubbing: true,
+                          colors: VideoProgressColors(
+                            backgroundColor: Colors.grey.withOpacity(0.5),
+                            playedColor: Colors.red,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _isVolume = !_isVolume;
-                              videoPlayerController
-                                  .setVolume(_isVolume ? 1.0 : 0.0);
-                            });
-                          },
                         ),
-                      );
-                    },
+                      ),
+                      AnimatedOpacity(
+                        opacity: _isPlaying ? 0.0 : 1.0,
+                        duration: const Duration(milliseconds: 800),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: CircleAvatar(
+                            backgroundColor:
+                                AppColors.blackColor.withOpacity(0.4),
+                            child: Icon(
+                              _isPlaying
+                                  ? Icons.play_circle_outline_outlined
+                                  : Icons.pause_circle_outline_outlined,
+                              color: AppColors.backgroundColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 20,
+                        right: 20,
+                        child: CircleAvatar(
+                          backgroundColor:
+                              AppColors.blackColor.withOpacity(0.4),
+                          child: IconButton(
+                            icon: Icon(
+                              color: AppColors.backgroundColor,
+                              _isVolume
+                                  ? Icons.volume_up_outlined
+                                  : Icons.volume_off_outlined,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isVolume = !_isVolume;
+                                videoPlayerController
+                                    .setVolume(_isVolume ? 1.0 : 0.0);
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           );
         } else {
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: Image.memory(
-                  data,
-                  fit: BoxFit.fill,
-                ),
-              ),
-              const Positioned.fill(
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-            ],
+          return Shimmer.fromColors(
+            baseColor: Theme.of(context).colorScheme.primary,
+            highlightColor: Theme.of(context).colorScheme.secondary,
+            child: Container(
+              color: Theme.of(context).colorScheme.background,
+            ),
           );
         }
       },

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:social_media_app/components/list/list_friend_request.component.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/components/loading/shimmer_comment.component.dart';
 import 'package:social_media_app/models/notifications.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/list_friend_request_screen.dart';
@@ -48,7 +48,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               stream: _notificationServices.getNotificationsForFriendRequest(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const OverlayLoadingWidget();
+                  return const ShimmerCommentComponent();
                 } else if (snapshot.hasError) {
                   return Center(
                     child: Text('ERROR : ---> ${snapshot.error}'),
@@ -75,21 +75,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ]),
                         builder: (context, usersSnapshot) {
                           final dataUsers = usersSnapshot.data;
-                          return GestureDetector(
-                            onTap: _onNavigateToListFriendRequests,
-                            child: ListTileFriendRequestComponent(
-                              title: dataNotifications.first.notificationType,
-                              subtitle:
-                                  '${dataUsers?.first?.username} + ${countFriendRequest.length - 1} others',
-                              listImages: [
-                                dataUsers?.first?.imageProfile,
-                                dataUsers?.last?.imageProfile,
-                              ],
-                              listTrailing: const [
-                                Icon(Icons.keyboard_arrow_right_rounded)
-                              ],
-                            ),
-                          );
+                          if (dataUsers != null) {
+                            return GestureDetector(
+                              onTap: _onNavigateToListFriendRequests,
+                              child: ListTileFriendRequestComponent(
+                                title: dataNotifications.first.notificationType,
+                                subtitle:
+                                    '${dataUsers.first?.username} + ${countFriendRequest.length > 2 ? '${countFriendRequest.length - 1} others' : '${countFriendRequest.length - 1} other'}',
+                                listImages: [
+                                  dataUsers.first?.imageProfile,
+                                  dataUsers.last?.imageProfile,
+                                ],
+                                listTrailing: const [
+                                  Icon(Icons.keyboard_arrow_right_rounded)
+                                ],
+                              ),
+                            );
+                          } else {
+                            return const ShimmerCommentComponent();
+                          }
                         },
                       );
                     } else if (countFriendRequest.isNotEmpty) {
@@ -98,19 +102,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             .getUserDetailsByID(userLast ?? userFirst!),
                         builder: (context, usersSnapshot) {
                           final dataUsers = usersSnapshot.data;
-                          return GestureDetector(
-                            onTap: _onNavigateToListFriendRequests,
-                            child: ListTileFriendRequestComponent(
-                              title: dataNotifications.first.notificationType,
-                              subtitle: dataUsers?.username,
-                              listImages: [
-                                dataUsers?.imageProfile,
-                              ],
-                              listTrailing: const [
-                                Icon(Icons.keyboard_arrow_right_rounded)
-                              ],
-                            ),
-                          );
+                          if (dataUsers != null) {
+                            return GestureDetector(
+                              onTap: _onNavigateToListFriendRequests,
+                              child: ListTileFriendRequestComponent(
+                                title: dataNotifications.first.notificationType,
+                                subtitle: dataUsers.username,
+                                listImages: [
+                                  dataUsers.imageProfile,
+                                ],
+                                listTrailing: const [
+                                  Icon(Icons.keyboard_arrow_right_rounded)
+                                ],
+                              ),
+                            );
+                          } else {
+                            return const ShimmerCommentComponent();
+                          }
                         },
                       );
                     } else {
@@ -162,6 +170,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               notification.notificationReferenceId!),
                           builder: (context, userSnapshot) {
                             final dataUser = userSnapshot.data;
+                            if (userSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const ShimmerCommentComponent();
+                            }
                             return ListTileFriendRequestComponent(
                               title: notification.notificationType,
                               subtitle:

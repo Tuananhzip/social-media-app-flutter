@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/screens/home_main/create_post/add_content_post.dart';
+import 'package:social_media_app/screens/home_main/create_post/create_story_screen.dart';
 import 'package:social_media_app/screens/home_main/create_post/media_details_screen.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/utils/my_enum.dart';
@@ -69,18 +70,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     final controller = VideoPlayerController.file(pickedMedia);
     await controller.initialize();
     setState(() {
-      _fileList.add(pickedMedia); // add list file store firebase
-      _widgetList.add(_buildVideo(controller)); // add widget video
-      _videoControllers
-          .add(controller); // add controller of video maintain value option
+      _fileList.add(pickedMedia);
+      _widgetList.add(_buildVideo(controller));
+      _videoControllers.add(controller);
     });
   }
 
   Future<void> _compressImage(File pickedMedia) async {
     final compressImage = await _imageServices.compressImage(pickedMedia);
     setState(() {
-      _fileList.add(compressImage!); // add list file store firebase
-      _widgetList.add(_buildImage(compressImage)); // add widget image
+      _fileList.add(compressImage!);
+      _widgetList.add(_buildImage(compressImage));
     });
   }
 
@@ -256,6 +256,51 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         _getImageOrVideoWithCamera(MediaTypeEnum.video),
                     icon: const Icon(Icons.video_call_outlined),
                   ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: null,
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.blue.withOpacity(0.7),
+                    ),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        side: BorderSide(
+                            width: 1.0,
+                            color: Theme.of(context).colorScheme.secondary),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20.0),
+                          bottomLeft: Radius.circular(20.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Post'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const CreateStoryScreen())),
+                  style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        side: BorderSide(
+                            width: 1.0,
+                            color: Theme.of(context).colorScheme.secondary),
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(20.0),
+                          bottomRight: Radius.circular(20.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Story'),
                 ),
               ],
             ),

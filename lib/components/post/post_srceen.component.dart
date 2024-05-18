@@ -22,8 +22,8 @@ class PostComponent extends StatelessWidget {
     required this.onViewLikes,
     required this.onViewComments,
     required this.onViewProfile,
-    required this.itemBuilderPopupMenu,
-    required this.onSelectedPopupMenu,
+    this.itemBuilderPopupMenu,
+    this.onSelectedPopupMenu,
   });
   final String username;
   final String? imageUrlProfile;
@@ -39,7 +39,7 @@ class PostComponent extends StatelessWidget {
   final VoidCallback onViewLikes;
   final VoidCallback onViewComments;
   final VoidCallback onViewProfile;
-  final List<PopupMenuEntry<String>> Function(BuildContext)
+  final List<PopupMenuEntry<String>> Function(BuildContext)?
       itemBuilderPopupMenu;
   final void Function(String)? onSelectedPopupMenu;
   final ValueNotifier<int> _currentMedia = ValueNotifier<int>(0);
@@ -62,19 +62,22 @@ class PostComponent extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CachedNetworkImage(
-                        imageUrl: imageUrlProfile ??
-                            'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
-                        imageBuilder: (context, imageProvider) {
-                          return CircleAvatar(
-                            radius: 20,
-                            backgroundImage: imageProvider,
-                          );
-                        },
-                        placeholder: (context, url) =>
-                            const OverlayLoadingWidget(),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrlProfile ??
+                              'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                          imageBuilder: (context, imageProvider) {
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: imageProvider,
+                            );
+                          },
+                          placeholder: (context, url) =>
+                              const OverlayLoadingWidget(),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 8.0),
@@ -88,10 +91,11 @@ class PostComponent extends StatelessWidget {
                     ],
                   ),
                 ),
-                PopupMenuButton(
-                  itemBuilder: itemBuilderPopupMenu,
-                  onSelected: onSelectedPopupMenu,
-                )
+                if (itemBuilderPopupMenu != null)
+                  PopupMenuButton(
+                    itemBuilder: itemBuilderPopupMenu!,
+                    onSelected: onSelectedPopupMenu,
+                  )
               ],
             ),
           ),

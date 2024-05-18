@@ -11,6 +11,7 @@ import 'package:social_media_app/components/button/button_default.component.dart
 import 'package:social_media_app/components/story/story_screen.component.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/screens/home_main/home_screen/post_details_screen.dart';
 import 'package:social_media_app/screens/home_main/profile/update_profile_screen.dart';
 import 'package:social_media_app/screens/login/login.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
@@ -33,8 +34,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final PostService _postService = PostService();
   final ImageServices _imageServices = ImageServices();
   Users _user = Users(email: FirebaseAuth.instance.currentUser!.email!);
-
+  late Future<List<DocumentSnapshot>> _futurePosts;
   bool _isImageLoading = false;
+
+  @override
+  initState() {
+    super.initState();
+    _futurePosts = _loadPosts();
+  }
+
+  Future<List<DocumentSnapshot>> _loadPosts() async {
+    final List<DocumentSnapshot> posts =
+        await _postService.getListPostForCurrentUser();
+    return posts;
+  }
+
+  Future<void> _refreshPosts() async {
+    setState(() {
+      _futurePosts = _loadPosts();
+    });
+  }
 
   Future<void> _singOutWithGoogle() async {
     final AuthenticationServices auth = AuthenticationServices();
@@ -141,217 +160,220 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         return Scaffold(
           key: _scaffoldKey,
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                title: GestureDetector(
-                  onTap: _showSignOutSnackBar,
-                  child: Text.rich(
-                    TextSpan(children: [
-                      TextSpan(
-                        text: _getEmail(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20.0,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const WidgetSpan(
-                        child: Icon(Icons.keyboard_arrow_down_outlined),
-                      )
-                    ]),
-                  ),
-                ),
-                actions: [
-                  IconButton(
-                      onPressed: () => {},
-                      icon: const Icon(Icons.add_box_outlined)),
-                  IconButton(
-                      onPressed: () => {},
-                      icon: const Icon(Icons.notifications_none_outlined))
-                ],
-              ),
-              SliverToBoxAdapter(
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  color: Theme.of(context).colorScheme.background,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 140.0,
-                              height: 140.0,
-                              child: CachedNetworkImage(
-                                imageUrl: _getImageProfile(),
-                                placeholder: (context, url) =>
-                                    const OverlayLoadingWidget(),
-                                imageBuilder: (context, imageProvider) {
-                                  return SizedBox(
-                                    height: 140.0,
-                                    width: 140.0,
-                                    child: _isImageLoading
-                                        ? const OverlayLoadingWidget()
-                                        : GestureDetector(
-                                            onTap: _updateImageProfile,
-                                            child: CircleAvatar(
-                                              backgroundImage: imageProvider,
-                                              child: Stack(
-                                                children: [
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.bottomRight,
-                                                    child: Container(
-                                                      width: 40.0,
-                                                      height: 40.0,
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      30.0),
-                                                          color: AppColors
-                                                              .blueColor),
-                                                      child: const Icon(
-                                                        Icons.add,
-                                                        color: AppColors
-                                                            .backgroundColor,
-                                                        size: 32.0,
-                                                      ),
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const Expanded(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Post",
-                                    style: TextStyle(fontSize: 22.0),
-                                  ),
-                                  Text("202"),
-                                ],
-                              ),
-                            ),
-                            const Expanded(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Friends",
-                                    style: TextStyle(fontSize: 22.0),
-                                  ),
-                                  Text("12"),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 0, horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              child: Text(
-                                _getUsername()!,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24.0,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              child: Text(
-                                _user.description ?? '',
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 280.0,
-                              child: ButtonDefaultComponent(
-                                text: 'Edit profile',
-                                onTap: _editProfile,
-                                colorBackground:
-                                    Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 16.0,
-                            ),
-                            Expanded(
-                                child: ButtonDefaultComponent(
-                              onTap: () {},
-                              icon: Icons.person_add_alt_rounded,
-                              colorBackground:
-                                  Theme.of(context).colorScheme.primary,
-                            ))
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 97,
-                        child: ListView.builder(
-                          itemCount: 15,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            bool statusStory = false;
-                            String userName = "Trần Ngọc Khánhsdsada";
-                            List<String> nameParts = userName.split(' ');
-                            String lastName = nameParts.isNotEmpty
-                                ? nameParts.last
-                                : userName;
-                            String lastNameOverflow = lastName.length > 8
-                                ? '${lastName.substring(0, 6)}...'
-                                : lastName;
-                            String imageUser =
-                                "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
-                            return _buildListItemStory(
-                              context,
-                              index,
-                              imageUser,
-                              lastNameOverflow,
-                              statusStory,
-                            ); // username, status story video (User and VideoStories)
-                          },
-                        ),
-                      ),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(6.0),
-                          child: IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.grid_4x4_outlined),
+          body: RefreshIndicator(
+            onRefresh: _refreshPosts,
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  title: GestureDetector(
+                    onTap: _showSignOutSnackBar,
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(
+                          text: _getEmail(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20.0,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 350,
-                        child: _buildListPost(),
-                      ),
-                    ],
+                        const WidgetSpan(
+                          child: Icon(Icons.keyboard_arrow_down_outlined),
+                        )
+                      ]),
+                    ),
+                  ),
+                  actions: [
+                    IconButton(
+                        onPressed: () => {},
+                        icon: const Icon(Icons.add_box_outlined)),
+                    IconButton(
+                        onPressed: () => {},
+                        icon: const Icon(Icons.notifications_none_outlined))
+                  ],
+                ),
+                SliverToBoxAdapter(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Theme.of(context).colorScheme.background,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 140.0,
+                                height: 140.0,
+                                child: CachedNetworkImage(
+                                  imageUrl: _getImageProfile(),
+                                  placeholder: (context, url) =>
+                                      const OverlayLoadingWidget(),
+                                  imageBuilder: (context, imageProvider) {
+                                    return SizedBox(
+                                      height: 140.0,
+                                      width: 140.0,
+                                      child: _isImageLoading
+                                          ? const OverlayLoadingWidget()
+                                          : GestureDetector(
+                                              onTap: _updateImageProfile,
+                                              child: CircleAvatar(
+                                                backgroundImage: imageProvider,
+                                                child: Stack(
+                                                  children: [
+                                                    Align(
+                                                      alignment:
+                                                          Alignment.bottomRight,
+                                                      child: Container(
+                                                        width: 40.0,
+                                                        height: 40.0,
+                                                        decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        30.0),
+                                                            color: AppColors
+                                                                .blueColor),
+                                                        child: const Icon(
+                                                          Icons.add,
+                                                          color: AppColors
+                                                              .backgroundColor,
+                                                          size: 32.0,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Post",
+                                      style: TextStyle(fontSize: 22.0),
+                                    ),
+                                    Text("202"),
+                                  ],
+                                ),
+                              ),
+                              const Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Friends",
+                                      style: TextStyle(fontSize: 22.0),
+                                    ),
+                                    Text("12"),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 0, horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                child: Text(
+                                  _getUsername()!,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24.0,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                child: Text(
+                                  _user.description ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 280.0,
+                                child: ButtonDefaultComponent(
+                                  text: 'Edit profile',
+                                  onTap: _editProfile,
+                                  colorBackground:
+                                      Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 16.0,
+                              ),
+                              Expanded(
+                                  child: ButtonDefaultComponent(
+                                onTap: () {},
+                                icon: Icons.person_add_alt_rounded,
+                                colorBackground:
+                                    Theme.of(context).colorScheme.primary,
+                              ))
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 97,
+                          child: ListView.builder(
+                            itemCount: 15,
+                            scrollDirection: Axis.horizontal,
+                            itemBuilder: (context, index) {
+                              bool statusStory = false;
+                              String userName = "Trần Ngọc Khánhsdsada";
+                              List<String> nameParts = userName.split(' ');
+                              String lastName = nameParts.isNotEmpty
+                                  ? nameParts.last
+                                  : userName;
+                              String lastNameOverflow = lastName.length > 8
+                                  ? '${lastName.substring(0, 6)}...'
+                                  : lastName;
+                              String imageUser =
+                                  "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
+                              return _buildListItemStory(
+                                context,
+                                index,
+                                imageUser,
+                                lastNameOverflow,
+                                statusStory,
+                              ); // username, status story video (User and VideoStories)
+                            },
+                          ),
+                        ),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(6.0),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(Icons.grid_4x4_outlined),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 350,
+                          child: _buildListPost(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -359,24 +381,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildListPost() {
-    return FutureBuilder(
-      future: _postService.getListPostForCurrentUser(),
+    return FutureBuilder<List<DocumentSnapshot>>(
+      future: _futurePosts,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error --->: ${snapshot.error}'));
-        } else {
-          final List<Posts> listPosts = snapshot.data as List<Posts>;
+        } else if (snapshot.hasData) {
+          final listPostId = snapshot.data!.map((post) => post.id).toList();
+          final listPosts = snapshot.data!
+              .map((post) => Posts.fromMap(post.data() as Map<String, dynamic>))
+              .toList();
+
           return GridView.builder(
             padding: EdgeInsets.zero,
             itemCount: listPosts.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3),
             itemBuilder: (context, index) {
-              return _buildGridItem(listPosts[index]);
+              return GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => PostDetailScreen(
+                    listPostId: listPostId,
+                    indexPost: index,
+                  ),
+                )),
+                child: _buildGridItem(listPosts[index]),
+              );
             },
           );
+        } else {
+          return Container();
         }
       },
     );

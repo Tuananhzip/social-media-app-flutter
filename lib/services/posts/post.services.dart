@@ -99,19 +99,35 @@ class PostService {
     }
   }
 
-  Future<List<Posts>> getListPostForCurrentUser() async {
+  Future<List<DocumentSnapshot>> getListPostForCurrentUser() async {
     try {
       QuerySnapshot querySnapshot = await _postCollection
           .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
           .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
           .get();
-      return querySnapshot.docs
-          .map((doc) => Posts.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
+      return querySnapshot.docs;
     } catch (error) {
       //ignore:avoid_print
       print('getListPostsForCurrentUser ERROR ---> $error');
     }
     return [];
+  }
+
+  Future<List<DocumentSnapshot>> getListPostByListId(
+      List<String> listId) async {
+    List<DocumentSnapshot> listPosts = [];
+    try {
+      for (String id in listId) {
+        final docSnapshot = await _postCollection.doc(id).get();
+        if (docSnapshot.exists) {
+          listPosts.add(docSnapshot);
+        }
+      }
+      return listPosts;
+    } catch (e) {
+      //ignore:avoid_print
+      print(e);
+      return [];
+    }
   }
 }
