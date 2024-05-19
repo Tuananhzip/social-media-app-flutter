@@ -51,7 +51,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (pickedMedia == null) continue;
 
         if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
-          futures.add(_initializeVideo(pickedMedia));
+          futures.add(_compressVideo(pickedMedia));
         } else {
           futures.add(_compressImage(pickedMedia));
         }
@@ -84,6 +84,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
   }
 
+  Future<void> _compressVideo(File pickedMedia) async {
+    final compressVideo =
+        await _imageServices.compressVideoFile(pickedMedia.path);
+    _initializeVideo(compressVideo);
+  }
+
   Future<void> _getImageOrVideoWithCamera(MediaTypeEnum type) async {
     try {
       setState(() {
@@ -101,9 +107,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       });
 
       if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
-        await _initializeVideo(pickedMedia);
+        _compressVideo(pickedMedia);
       } else {
-        await _compressImage(pickedMedia);
+        _compressImage(pickedMedia);
       }
     } catch (error) {
       //ignore:avoid_print

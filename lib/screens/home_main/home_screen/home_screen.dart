@@ -2,19 +2,18 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/shimmer_comment.component.dart';
 import 'package:social_media_app/components/loading/shimmer_post.component.dart';
+import 'package:social_media_app/components/post/image_screen.dart';
 import 'package:social_media_app/components/post/post_srceen.component.dart';
+import 'package:social_media_app/components/post/video_player_screen.dart';
 import 'package:social_media_app/models/post_comments.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
@@ -30,8 +29,6 @@ import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/my_enum.dart';
-import 'package:video_player/video_player.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class HomeScreen extends StatefulWidget {
@@ -62,8 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isDataLoaded = false;
   late DocumentSnapshot? _lastVisible;
   final List<List<Widget>> _listOfListUrlPosts = [];
-  bool _isVolume = false;
-  bool _isPlaying = true;
 
   @override
   initState() {
@@ -79,205 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollController.removeListener(_scrollListen);
     _scrollController.dispose();
     _commentController.dispose();
-  }
-
-  void _scrollListen() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      Logger().d("Reached bottom");
-      if (!_isLoadingData) {
-        _isLoadingData = true;
-        _loadPosts(lastVisible: _lastVisible)
-            .then((value) => _isLoadingData = false);
-      }
-    }
-  }
-
-  Future<void> _loadPosts({DocumentSnapshot? lastVisible}) async {
-    if (lastVisible == null) {
-      _logger.t(lastVisible);
-      _clearPost();
-    }
-    List<DocumentSnapshot> postData =
-        await _postService.loadPostsLazy(lastVisible: lastVisible);
-    if (postData.isNotEmpty) {
-      setState(() {
-        _isDataLoaded = false;
-      });
-      _lastVisible = postData.last;
-
-      postData.shuffle(); // Random shuffle list 10 posts orderBy created dated
-
-      List<Posts> postDummy = postData
-          .map((data) => Posts.fromMap(data.data() as Map<String, dynamic>))
-          .toList();
-
-      List<String> postIds = postData.map((post) => post.id).toList();
-
-      List<Future> futures = [
-        Future.wait(postDummy
-            .map((post) => _userServices.getUserDetailsByID(post.uid!))
-            .toList()),
-        Future.wait(postData
-            .map((post) => _postLikeServices.getQuantityPostLikes(post.id))
-            .toList()),
-        Future.wait(postData
-            .map((post) => _postCommentServices.getQuantityComments(post.id))
-            .toList()),
-        Future.wait(postData
-            .map((post) => _postLikeServices.isUserLikedPost(post.id))
-            .toList()),
-      ];
-
-      List results = await Future.wait(futures);
-
-      List<Users?> users = results[0];
-      List<int> postLikes = results[1];
-      List<int> postComments = results[2];
-      List<bool> isLiked = results[3];
-
-      _logger.i('postIds: $postIds ${postIds.length}');
-      _logger.i('postLikes: $postLikes ${postLikes.length}');
-      _logger.i('postComments: $postComments ${postComments.length}');
-      _logger.i('isLiked: $isLiked ${isLiked.length}');
-
-      _posts.addAll(postDummy);
-      _postIds.addAll(postIds);
-      _postLikes.addAll(postLikes);
-      _postComments.addAll(postComments);
-      _users.addAll(users);
-      _isLiked.addAll(isLiked);
-
-      _checkMediaList(postDummy);
-      setState(() {
-        _isDataLoaded = true;
-      });
-    }
-  }
-
-  void _checkMediaList(List<Posts> postsDummy) async {
-    if (postsDummy.isNotEmpty) {
-      List<List<Widget>> newListOfListUrlPosts = [];
-      for (var post in postsDummy) {
-        List<Widget> listDummy = [];
-        if (post.mediaLink != null || post.mediaLink!.isNotEmpty) {
-          List<Future> futures = [];
-          for (var url in post.mediaLink!) {
-            final listPart = url.split('.');
-            final lastPart = listPart.last.toLowerCase().split('?');
-            final String extendsions = lastPart.first;
-            if (extendsions == 'jpg' ||
-                extendsions == 'png' ||
-                extendsions == 'jpeg') {
-              listDummy.add(_buildImage(url));
-            } else if (extendsions == 'mp4') {
-              listDummy.add(_buildVideo(url));
-            }
-          }
-          // Wait for all futures to complete
-          await Future.wait(futures);
-        }
-        newListOfListUrlPosts.add(listDummy);
-      }
-      _listOfListUrlPosts.addAll(newListOfListUrlPosts);
-    }
-  }
-
-  void _clearPost() {
-    _listOfListUrlPosts.clear();
-    _posts.clear();
-    _users.clear();
-    _postLikes.clear();
-    _isLiked.clear();
-    _postIds.clear();
-    _postComments.clear();
-  }
-
-  void _onLikeToggle(int index) async {
-    setState(() {
-      _isLiked[index] = !_isLiked[index];
-      if (_isLiked[index]) {
-        _postLikes[index]++;
-        _postLikeServices.likePost(_postIds[index]);
-      } else {
-        _postLikes[index]--;
-        _postLikeServices.unlikePost(_postIds[index]);
-      }
-    });
-  }
-
-  void _onShareToggle(List<String>? listMediaLinks, String? textPost) async {
-    String? mediaLinksString;
-    if (listMediaLinks != null) {
-      mediaLinksString = listMediaLinks.join('\n');
-    }
-    await Share.share('$textPost\n\n$mediaLinksString');
-  }
-
-  Future<void> _initDarkMode() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isLoadingDarkMode = prefs.getBool("isDarkMode")!;
-    });
-  }
-
-  Future<void> _toggleChangeTheme(context) async {
-    Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isLoadingDarkMode = prefs.getBool("isDarkMode")!;
-    });
-  }
-
-  String _dateFormatPost(Timestamp timestamp) {
-    final DateTime dateTime = timestamp.toDate();
-    return timeago.format(dateTime);
-  }
-
-  String _dateFormatComment(Timestamp timestamp) {
-    final DateFormat dateFormat = DateFormat('dd-MM-yyyy HH:mm');
-    final String dateTime = dateFormat.format(timestamp.toDate());
-    return dateTime;
-  }
-
-  void _navigateToLikesScreen(String postId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ListLikesScreen(postId: postId),
-      ),
-    );
-  }
-
-  void _navigateToProfileScreen(String uid) async {
-    final user = await _userServices.getUserDetailsByID(uid);
-    Navigator.push(
-      // ignore: use_build_context_synchronously
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfileUsersScreen(
-          user: user!,
-          uid: uid,
-        ),
-      ),
-    );
-  }
-
-  void _onSelectedPopupMenu(String valueSelected, String postId) {
-    if (valueSelected == MenuPostEnum.delete.getString) {
-      // ignore: avoid_print
-      print('Delete $postId');
-      _deletePost(postId);
-    } else if (valueSelected == MenuPostEnum.edit.getString) {
-      // ignore: avoid_print
-      print('Edit $postId');
-    }
-  }
-
-  void _deletePost(String postId) async {
-    await _postService
-        .deletePost(postId)
-        .then((_) => _loadPosts(lastVisible: null));
   }
 
   void _showComments(String postId, String uidOfPost, int indexOfCountComment,
@@ -335,8 +131,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Expanded(
-                child: FutureBuilder<List<PostComments>>(
-                  future: _postCommentServices.getPostComments(postId),
+                child: StreamBuilder<List<PostComments>>(
+                  stream: _postCommentServices.getPostComments(postId),
                   builder: (context, commentsSnapshot) {
                     if (commentsSnapshot.connectionState ==
                         ConnectionState.waiting) {
@@ -388,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Theme.of(context).textTheme.labelLarge,
                                   ),
                                   Text(
-                                    _dateFormatComment(
+                                    _dateFormat(
                                         comment[index].commentCreatedTime),
                                     style:
                                         Theme.of(context).textTheme.labelSmall,
@@ -424,9 +220,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         horizontal: 20.0,
                         vertical: 10.0,
                       ),
-                      suffixIcon: IconButton(
-                        onPressed: () => addComment(),
-                        icon: const Icon(Icons.send),
+                      suffixIcon: ValueListenableBuilder(
+                        valueListenable: _commentController,
+                        builder: (context, value, child) {
+                          return value.text.trim().isNotEmpty
+                              ? IconButton(
+                                  onPressed: addComment,
+                                  icon: const Icon(Icons.send),
+                                )
+                              : const SizedBox.shrink();
+                        },
                       ),
                     ),
                   ),
@@ -545,8 +348,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         return PostComponent(
                           imageUrlProfile: user.imageProfile,
                           username: "${user.username} [$index]",
-                          createDatePost:
-                              _dateFormatPost(_posts[index].postCreatedDate!),
+                          createDatePost: _dateFormat(
+                            _posts[index].postCreatedDate!,
+                            useTimeAgo: true,
+                          ),
                           contentPost: _posts[index].postText ?? '',
                           imageUrlPosts: _listOfListUrlPosts[index],
                           postLikes: _postLikes[index],
@@ -625,136 +430,211 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildImage(String url) => SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: CachedNetworkImage(
-          imageUrl: url,
-          imageBuilder: (context, imageProvider) {
-            return Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: imageProvider,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            );
-          },
-          placeholder: (context, url) => Shimmer.fromColors(
-            baseColor: Theme.of(context).colorScheme.primary,
-            highlightColor: Theme.of(context).colorScheme.secondary,
-            child: Container(
-              color: Theme.of(context).colorScheme.background,
-            ),
-          ),
-          errorWidget: (context, url, error) => const Icon(Icons.error),
-        ),
-      );
-  Widget _buildVideo(String url) {
-    final VideoPlayerController videoPlayerController =
-        VideoPlayerController.networkUrl(Uri.parse(url));
-    return FutureBuilder(
-      future: videoPlayerController.initialize(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return StatefulBuilder(
-            builder: (context, setState) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isPlaying = !_isPlaying;
-                    _isPlaying
-                        ? videoPlayerController.play()
-                        : videoPlayerController.pause();
-                  });
-                },
-                child: VisibilityDetector(
-                  key: Key(url),
-                  onVisibilityChanged: (visibilityInfo) {
-                    var visiblePercentage =
-                        visibilityInfo.visibleFraction * 100;
-                    if (visiblePercentage > 50) {
-                      videoPlayerController.setLooping(true);
-                      videoPlayerController.setVolume(_isVolume ? 1.0 : 0.0);
-                      _isPlaying
-                          ? videoPlayerController.play()
-                          : videoPlayerController.pause();
-                      // ignore: avoid_print
-                      print(
-                          'Video is $visiblePercentage% visible ${videoPlayerController.value.volume}');
-                    } else {
-                      videoPlayerController.pause();
-                    }
-                  },
-                  child: Stack(
-                    children: [
-                      VideoPlayer(videoPlayerController),
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: VideoProgressIndicator(
-                          videoPlayerController,
-                          allowScrubbing: true,
-                          colors: VideoProgressColors(
-                            backgroundColor: Colors.grey.withOpacity(0.5),
-                            playedColor: Colors.red,
-                          ),
-                        ),
-                      ),
-                      AnimatedOpacity(
-                        opacity: _isPlaying ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 800),
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: CircleAvatar(
-                            backgroundColor:
-                                AppColors.blackColor.withOpacity(0.4),
-                            child: Icon(
-                              _isPlaying
-                                  ? Icons.play_circle_outline_outlined
-                                  : Icons.pause_circle_outline_outlined,
-                              color: AppColors.backgroundColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 20,
-                        right: 20,
-                        child: CircleAvatar(
-                          backgroundColor:
-                              AppColors.blackColor.withOpacity(0.4),
-                          child: IconButton(
-                            icon: Icon(
-                              color: AppColors.backgroundColor,
-                              _isVolume
-                                  ? Icons.volume_up_outlined
-                                  : Icons.volume_off_outlined,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isVolume = !_isVolume;
-                                videoPlayerController
-                                    .setVolume(_isVolume ? 1.0 : 0.0);
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        } else {
-          return Shimmer.fromColors(
-            baseColor: Theme.of(context).colorScheme.primary,
-            highlightColor: Theme.of(context).colorScheme.secondary,
-            child: Container(
-              color: Theme.of(context).colorScheme.background,
-            ),
-          );
+  void _scrollListen() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      Logger().d("Reached bottom");
+      if (!_isLoadingData) {
+        _isLoadingData = true;
+        _loadPosts(lastVisible: _lastVisible)
+            .then((value) => _isLoadingData = false);
+      }
+    }
+  }
+
+  Future<void> _loadPosts({DocumentSnapshot? lastVisible}) async {
+    if (lastVisible == null) {
+      _logger.t(lastVisible);
+      _clearPost();
+    }
+    List<DocumentSnapshot> postData =
+        await _postService.loadPostsLazy(lastVisible: lastVisible);
+    if (postData.isNotEmpty) {
+      setState(() {
+        _isDataLoaded = false;
+      });
+      _lastVisible = postData.last;
+
+      postData.shuffle(); // Random shuffle list 10 posts orderBy created dated
+
+      List<Posts> postDummy = postData
+          .map((data) => Posts.fromMap(data.data() as Map<String, dynamic>))
+          .toList();
+
+      List<String> postIds = postData.map((post) => post.id).toList();
+
+      List<Future> futures = [
+        Future.wait(postDummy
+            .map((post) => _userServices.getUserDetailsByID(post.uid!))
+            .toList()),
+        Future.wait(postData
+            .map((post) => _postLikeServices.getQuantityPostLikes(post.id))
+            .toList()),
+        Future.wait(postData
+            .map((post) => _postCommentServices.getQuantityComments(post.id))
+            .toList()),
+        Future.wait(postData
+            .map((post) => _postLikeServices.isUserLikedPost(post.id))
+            .toList()),
+      ];
+
+      List results = await Future.wait(futures);
+
+      List<Users?> users = results[0];
+      List<int> postLikes = results[1];
+      List<int> postComments = results[2];
+      List<bool> isLiked = results[3];
+
+      _logger.i('postIds: $postIds ${postIds.length}');
+      _logger.i('postLikes: $postLikes ${postLikes.length}');
+      _logger.i('postComments: $postComments ${postComments.length}');
+      _logger.i('isLiked: $isLiked ${isLiked.length}');
+
+      _posts.addAll(postDummy);
+      _postIds.addAll(postIds);
+      _postLikes.addAll(postLikes);
+      _postComments.addAll(postComments);
+      _users.addAll(users);
+      _isLiked.addAll(isLiked);
+
+      _checkMediaList(postDummy);
+      setState(() {
+        _isDataLoaded = true;
+      });
+    }
+  }
+
+  void _checkMediaList(List<Posts> postsDummy) async {
+    if (postsDummy.isNotEmpty) {
+      List<List<Widget>> newListOfListUrlPosts = [];
+      for (var post in postsDummy) {
+        List<Widget> listDummy = [];
+        if (post.mediaLink != null || post.mediaLink!.isNotEmpty) {
+          List<Future> futures = [];
+          for (var url in post.mediaLink!) {
+            final listPart = url.split('.');
+            final lastPart = listPart.last.toLowerCase().split('?');
+            final String extendsions = lastPart.first;
+            if (extendsions == 'jpg' ||
+                extendsions == 'png' ||
+                extendsions == 'jpeg') {
+              listDummy.add(ImageScreenComponent(
+                url: url,
+              ));
+            } else if (extendsions == 'mp4') {
+              listDummy.add(VideoPlayerScreenComponent(
+                url: url,
+              ));
+            }
+          }
+          // Wait for all futures to complete
+          await Future.wait(futures);
         }
-      },
+        newListOfListUrlPosts.add(listDummy);
+      }
+      _listOfListUrlPosts.addAll(newListOfListUrlPosts);
+    }
+  }
+
+  void _clearPost() {
+    _listOfListUrlPosts.clear();
+    _posts.clear();
+    _users.clear();
+    _postLikes.clear();
+    _isLiked.clear();
+    _postIds.clear();
+    _postComments.clear();
+  }
+
+  void _onLikeToggle(int index) async {
+    setState(() {
+      _isLiked[index] = !_isLiked[index];
+      if (_isLiked[index]) {
+        _postLikes[index]++;
+        _postLikeServices.likePost(_postIds[index]);
+      } else {
+        _postLikes[index]--;
+        _postLikeServices.unlikePost(_postIds[index]);
+      }
+    });
+  }
+
+  void _onShareToggle(List<String>? listMediaLinks, String? textPost) async {
+    String? mediaLinksString;
+    if (listMediaLinks != null) {
+      mediaLinksString = listMediaLinks.join('\n');
+    }
+    await Share.share('$textPost\n\n$mediaLinksString');
+  }
+
+  Future<void> _initDarkMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isLoadingDarkMode = prefs.getBool("isDarkMode")!;
+    });
+  }
+
+  Future<void> _toggleChangeTheme(context) async {
+    Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isLoadingDarkMode = prefs.getBool("isDarkMode")!;
+    });
+  }
+
+  String _dateFormat(Timestamp timestamp, {bool useTimeAgo = false}) {
+    final DateTime dateTime = timestamp.toDate();
+    final DateTime now = DateTime.now();
+    final Duration difference = now.difference(dateTime);
+
+    if (useTimeAgo && difference.inDays <= 7) {
+      return timeago.format(dateTime);
+    } else {
+      if (dateTime.year == now.year) {
+        return DateFormat('MMMM dd,').add_jm().format(dateTime);
+      } else {
+        return DateFormat.yMMMMEEEEd().format(dateTime);
+      }
+    }
+  }
+
+  void _navigateToLikesScreen(String postId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ListLikesScreen(postId: postId),
+      ),
     );
+  }
+
+  void _navigateToProfileScreen(String uid) async {
+    final user = await _userServices.getUserDetailsByID(uid);
+    Navigator.push(
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileUsersScreen(
+          user: user!,
+          uid: uid,
+        ),
+      ),
+    );
+  }
+
+  void _onSelectedPopupMenu(String valueSelected, String postId) {
+    if (valueSelected == MenuPostEnum.delete.getString) {
+      // ignore: avoid_print
+      print('Delete $postId');
+      _deletePost(postId);
+    } else if (valueSelected == MenuPostEnum.edit.getString) {
+      // ignore: avoid_print
+      print('Edit $postId');
+    }
+  }
+
+  void _deletePost(String postId) async {
+    await _postService
+        .deletePost(postId)
+        .then((_) => _loadPosts(lastVisible: null));
   }
 }

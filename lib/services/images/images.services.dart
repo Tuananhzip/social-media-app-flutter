@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';
 import 'package:social_media_app/utils/my_enum.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class ImageServices {
@@ -148,6 +149,12 @@ class ImageServices {
       return File(compressImage.path);
     }
     return null;
+  }
+
+  Future<File> compressVideoFile(String videoFilePath) async {
+    final compressVideo = await VideoCompress.compressVideo(videoFilePath,
+        quality: VideoQuality.LowQuality);
+    return compressVideo!.file!;
   }
 
   Future<File> generateThumbnail(String videoPath) async {

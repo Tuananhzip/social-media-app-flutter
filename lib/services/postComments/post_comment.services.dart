@@ -26,21 +26,23 @@ class PostCommentServices {
     }
   }
 
-  Future<List<PostComments>> getPostComments(String postId) async {
-    try {
-      QuerySnapshot snapshot = await _postCommentsCollection
-          .where(DocumentFieldNames.postId, isEqualTo: postId)
-          .orderBy(DocumentFieldNames.commentCreatedTime, descending: true)
-          .get();
+  Stream<List<PostComments>> getPostComments(String postId) {
+    // QuerySnapshot snapshot = await _postCommentsCollection
+    //     .where(DocumentFieldNames.postId, isEqualTo: postId)
+    //     .orderBy(DocumentFieldNames.commentCreatedTime, descending: true)
+    //     .get();
 
-      return snapshot.docs.map((doc) {
-        return PostComments.fromMap(doc.data() as Map<String, dynamic>);
-      }).toList();
-    } catch (e) {
-      // ignore: avoid_print
-      print(e.toString());
-      return [];
-    }
+    // return snapshot.docs.map((doc) {
+    //   return PostComments.fromMap(doc.data() as Map<String, dynamic>);
+    // }).toList();
+    return _postCommentsCollection
+        .where(DocumentFieldNames.postId, isEqualTo: postId)
+        .orderBy(DocumentFieldNames.commentCreatedTime, descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) =>
+                PostComments.fromMap(doc.data() as Map<String, dynamic>))
+            .toList());
   }
 
   Future<int> getQuantityComments(String postId) async {

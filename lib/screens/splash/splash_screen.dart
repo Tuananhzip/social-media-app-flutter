@@ -49,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (_isLoggedIn && FirebaseAuth.instance.currentUser != null) {
         _navigateToHome();
       } else {
@@ -68,8 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
           return Text(snapshot.error.toString());
         } else if (snapshot.connectionState == ConnectionState.active &&
             snapshot.hasData) {
-          final Logger logger = Logger();
-          logger.i(snapshot.data);
+          Logger().i(snapshot.data);
           final user = snapshot.data;
           if (user!.emailVerified) {
             _isLoggedIn = true;

@@ -1,7 +1,11 @@
 import 'package:camera/camera.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:logger/logger.dart';
 import 'package:social_media_app/screens/home_main/create_post/display_image.dart';
 import 'package:social_media_app/screens/home_main/create_post/display_video.dart';
+import 'package:social_media_app/utils/app_colors.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});
@@ -49,6 +53,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
   Future<void> _takeImage() async {
     try {
+      Logger().i('take image $_isRecording');
       if (!_isRecording) {
         await _initializeControllerFuture;
         final image = await _controller.takePicture();
@@ -104,30 +109,79 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('New story'),
-      ),
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return CameraPreview(_controller);
+            return Stack(
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: CameraPreview(_controller),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 40.0, left: 20.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.backgroundColor.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: AppColors.backgroundColor,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 30.0),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: GestureDetector(
+                      onTap: () => _takeImage(),
+                      onLongPressStart: (_) => _startRecording(),
+                      onLongPressEnd: (_) => _endRecording(),
+                      child: Container(
+                        height: 70,
+                        width: 70,
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundColor.withOpacity(0.7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _isRecording ? Icons.stop : Icons.camera_alt_outlined,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 40.0, right: 20.0),
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      height: 50,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        color: AppColors.backgroundColor.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        onPressed: () => _switchCamera(),
+                        icon: const Icon(Icons.switch_camera_outlined),
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            );
           } else {
             return const Center(child: CircularProgressIndicator());
           }
         },
-      ),
-      floatingActionButton: GestureDetector(
-        onTap: () => _takeImage(),
-        onLongPressStart: (_) => _startRecording(),
-        onLongPressEnd: (_) => _endRecording(),
-        child: FloatingActionButton(
-          child: Icon(_isRecording
-              ? Icons.stop_circle_outlined
-              : Icons.play_circle_outlined),
-          onPressed: () {},
-        ),
       ),
     );
   }

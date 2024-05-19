@@ -105,15 +105,16 @@ class PostComponent extends StatelessWidget {
                 CarouselSlider(
                   items: imageUrlPosts,
                   options: CarouselOptions(
-                      height: 400.0,
-                      viewportFraction: 1,
-                      enlargeCenterPage: true,
-                      enlargeStrategy: CenterPageEnlargeStrategy.height,
-                      enableInfiniteScroll: false,
-                      scrollDirection: Axis.horizontal,
-                      onPageChanged: (index, reason) {
-                        _currentMedia.value = index;
-                      }),
+                    height: 400.0,
+                    viewportFraction: 1,
+                    enlargeCenterPage: true,
+                    enlargeStrategy: CenterPageEnlargeStrategy.height,
+                    enableInfiniteScroll: false,
+                    scrollDirection: Axis.horizontal,
+                    onPageChanged: (index, reason) {
+                      _currentMedia.value = index;
+                    },
+                  ),
                 ),
                 Align(
                   alignment: Alignment.topRight,

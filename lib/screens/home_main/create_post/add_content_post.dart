@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/notifications/local_notifications_plugin.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
@@ -26,8 +27,7 @@ class _AddContentPostState extends State<AddContentPost> {
   @override
   initState() {
     super.initState();
-    // ignore: avoid_print
-    print(widget.fileList.map((e) => print(e.lengthSync())));
+    Logger().i(widget.fileList.map((e) => e.lengthSync()));
   }
 
   Future<void> _addPost() async {
