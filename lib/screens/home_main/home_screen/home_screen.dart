@@ -41,7 +41,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _currentUser = FirebaseAuth.instance.currentUser;
   final Logger _logger = Logger();
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _listScrollController = ScrollController();
   final PostService _postService = PostService();
   final UserServices _userServices = UserServices();
   final PostLikeServices _postLikeServices = PostLikeServices();
@@ -65,14 +65,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _initDarkMode();
     _loadPosts();
-    _scrollController.addListener(_scrollListen);
+    _listScrollController.addListener(_scrollListen);
   }
 
   @override
   void dispose() {
     super.dispose();
-    _scrollController.removeListener(_scrollListen);
-    _scrollController.dispose();
+    _listScrollController.removeListener(_scrollListen);
+    _listScrollController.dispose();
     _commentController.dispose();
   }
 
@@ -245,194 +245,191 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              title: const Text(
-                "Minthwhite",
-                style: TextStyle(
-                  fontFamily: "Italianno",
-                  fontSize: 36.0,
-                  fontWeight: FontWeight.bold,
+      appBar: AppBar(
+        title: const Text(
+          "Minthwhite",
+          style: TextStyle(
+            fontFamily: "Italianno",
+            fontSize: 36.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Switch(
+              value: _isLoadingDarkMode,
+              onChanged: (value) => _toggleChangeTheme(context),
+              inactiveThumbImage: const AssetImage('assets/images/sun.png'),
+              activeThumbImage: const AssetImage('assets/images/moon.png'),
+              inactiveThumbColor: AppColors.backgroundColor,
+              activeColor: AppColors.grayAccentColor,
+              inactiveTrackColor: AppColors.blueColor,
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreatePostScreen(),
                 ),
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Switch(
-                    value: _isLoadingDarkMode,
-                    onChanged: (value) => _toggleChangeTheme(context),
-                    inactiveThumbImage:
-                        const AssetImage('assets/images/sun.png'),
-                    activeThumbImage:
-                        const AssetImage('assets/images/moon.png'),
-                    inactiveThumbColor: AppColors.backgroundColor,
-                    activeColor: AppColors.grayAccentColor,
-                    inactiveTrackColor: AppColors.blueColor,
-                  ),
-                ),
+              );
+            },
+            icon: const Icon(Icons.add_box_outlined),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
                 IconButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CreatePostScreen(),
+                        builder: (context) => const NotificationsScreen(),
                       ),
                     );
                   },
-                  icon: const Icon(Icons.add_box_outlined),
+                  icon: const Icon(Icons.notifications_none_outlined),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationsScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.notifications_none_outlined),
-                      ),
-                      StreamBuilder<bool>(
-                        stream: _notificationServices.checkNotifications(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasError) {
-                            return Center(
-                              child: Text(
-                                  'Error loading notifications ---> ${snapshot.error}'),
-                            );
-                          }
-                          if (snapshot.data == true) {
-                            return Positioned(
-                              right: 15,
-                              top: 12,
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.dangerColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ],
-                  ),
+                StreamBuilder<bool>(
+                  stream: _notificationServices.checkNotifications(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                            'Error loading notifications ---> ${snapshot.error}'),
+                      );
+                    }
+                    if (snapshot.data == true) {
+                      return Positioned(
+                        right: 15,
+                        top: 12,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: AppColors.dangerColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
                 ),
               ],
             ),
-          ];
-        },
-        body: RefreshIndicator(
-          child: Stack(
-            children: [
-              _posts.isNotEmpty
-                  ? ListView.builder(
-                      padding: EdgeInsets.zero,
-                      scrollDirection: Axis.vertical,
-                      controller: _scrollController,
-                      itemCount: _posts.length,
-                      itemBuilder: (context, index) {
-                        final Users user = _users[index] ?? Users();
-                        return PostComponent(
-                          imageUrlProfile: user.imageProfile,
-                          username: "${user.username} [$index]",
-                          createDatePost: _dateFormat(
-                            _posts[index].postCreatedDate!,
-                            useTimeAgo: true,
-                          ),
-                          contentPost: _posts[index].postText ?? '',
-                          imageUrlPosts: _listOfListUrlPosts[index],
-                          postLikes: _postLikes[index],
-                          postComments: _postComments[index],
-                          onLikeToggle: () => _onLikeToggle(index),
-                          onCommentToggle: () => _showComments(
-                            _postIds[index],
-                            _posts[index].uid!,
-                            index,
-                            autofocus: true,
-                          ),
-                          onShareToggle: () => _onShareToggle(
-                              _posts[index].mediaLink, _posts[index].postText),
-                          isLiked: _isLiked[index],
-                          onViewLikes: () =>
-                              _navigateToLikesScreen(_postIds[index]),
-                          onViewComments: () => _showComments(
-                            _postIds[index],
-                            _posts[index].uid!,
-                            index,
-                          ),
-                          onViewProfile: () =>
-                              _navigateToProfileScreen(_posts[index].uid!),
-                          itemBuilderPopupMenu: (context) {
-                            if (_posts[index].uid == _currentUser!.uid) {
-                              return [
-                                MenuPostEnum.delete.getString,
-                                MenuPostEnum.edit.getString
-                              ].map((String choice) {
-                                return PopupMenuItem<String>(
-                                  value: choice,
-                                  child: Text(choice),
-                                );
-                              }).toList();
-                            } else {
-                              return [
-                                MenuPostEnum.report.getString,
-                              ].map((String choice) {
-                                return PopupMenuItem<String>(
-                                  value: choice,
-                                  child: Text(choice),
-                                );
-                              }).toList();
-                            }
-                          },
-                          onSelectedPopupMenu: (value) {
-                            _onSelectedPopupMenu(value, _postIds[index]);
-                          },
-                        );
-                      },
-                    )
-                  : const ShimmerPostComponent(),
-              !_isDataLoaded
-                  ? Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
+          ),
+        ],
+      ),
+      resizeToAvoidBottomInset: true,
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: RefreshIndicator(
+        onRefresh: _loadPosts,
+        child: Stack(
+          children: [
+            _posts.isNotEmpty
+                ? ListView.builder(
+                    padding: EdgeInsets.zero,
+                    controller: _listScrollController,
+                    itemCount: _posts.length,
+                    itemBuilder: (context, index) {
+                      final Users user = _users[index] ?? Users();
+                      return PostComponent(
+                        imageUrlProfile: user.imageProfile,
+                        username: "${user.username} [$index]",
+                        createDatePost: _dateFormat(
+                          _posts[index].postCreatedDate!,
+                          useTimeAgo: true,
+                        ),
+                        contentPost: _posts[index].postText ?? '',
+                        imageUrlPosts: _listOfListUrlPosts[index],
+                        postLikes: _postLikes[index],
+                        postComments: _postComments[index],
+                        onLikeToggle: () => _onLikeToggle(index),
+                        onCommentToggle: () => _showComments(
+                          _postIds[index],
+                          _posts[index].uid!,
+                          index,
+                          autofocus: true,
+                        ),
+                        onShareToggle: () => _onShareToggle(
+                            _posts[index].mediaLink, _posts[index].postText),
+                        isLiked: _isLiked[index],
+                        onViewLikes: () =>
+                            _navigateToLikesScreen(_postIds[index]),
+                        onViewComments: () => _showComments(
+                          _postIds[index],
+                          _posts[index].uid!,
+                          index,
+                        ),
+                        onViewProfile: () =>
+                            _navigateToProfileScreen(_posts[index].uid!),
+                        itemBuilderPopupMenu: (context) {
+                          if (_posts[index].uid == _currentUser!.uid) {
+                            return [
+                              MenuPostEnum.delete.getString,
+                              MenuPostEnum.edit.getString
+                            ].map((String choice) {
+                              return PopupMenuItem<String>(
+                                value: choice,
+                                child: Text(choice),
+                              );
+                            }).toList();
+                          } else {
+                            return [
+                              MenuPostEnum.report.getString,
+                            ].map((String choice) {
+                              return PopupMenuItem<String>(
+                                value: choice,
+                                child: Text(choice),
+                              );
+                            }).toList();
+                          }
+                        },
+                        onSelectedPopupMenu: (value) {
+                          _onSelectedPopupMenu(value, _postIds[index]);
+                        },
+                      );
+                    },
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      return const ShimmerPostComponent();
+                    },
+                  ),
+            !_isDataLoaded && _posts.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
                         ),
                       ),
-                    )
-                  : const SizedBox.shrink(),
-            ],
-          ),
-          onRefresh: () => _loadPosts(lastVisible: null),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
         ),
       ),
     );
   }
 
   void _scrollListen() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
+    if (_listScrollController.position.pixels ==
+        _listScrollController.position.maxScrollExtent) {
       Logger().d("Reached bottom");
       if (!_isLoadingData) {
         _isLoadingData = true;

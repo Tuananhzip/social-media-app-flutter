@@ -1,9 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'dart:math' as math;
-
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 
 class PostComponent extends StatelessWidget {
   PostComponent({
@@ -73,8 +72,16 @@ class PostComponent extends StatelessWidget {
                               backgroundImage: imageProvider,
                             );
                           },
-                          placeholder: (context, url) =>
-                              const OverlayLoadingWidget(),
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Theme.of(context).colorScheme.primary,
+                            highlightColor:
+                                Theme.of(context).colorScheme.secondary,
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.background,
+                            ),
+                          ),
                           errorWidget: (context, url, error) =>
                               const Icon(Icons.error),
                         ),

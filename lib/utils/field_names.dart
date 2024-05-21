@@ -24,10 +24,18 @@ class DocumentFieldNames {
   static const String postId = 'post_id';
   static const String postText = 'post_text';
   static const String postCreatedDate = 'post_created_date';
-  // MediaPosts
   static const String mediaLink = 'media_link';
   static const String mediaPostFile = 'media_post_file';
   // PostComment
   static const String commentText = 'comment_text';
   static const String commentCreatedTime = 'comment_created_time';
+  // Stories
+  static const String mediaURL = 'media_url';
+  static const String storyCreatedTime = 'story_created_time';
+  static const String mediaStoryFile = 'media_story_file';
+  static const String storyId = 'story_id';
+  // Audios
+  static const String audioName = 'audio_name';
+  static const String audioLink = 'audio_link';
+  static const String position = 'position';
 }

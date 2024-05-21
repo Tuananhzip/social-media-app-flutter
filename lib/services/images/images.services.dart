@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -167,5 +168,10 @@ class ImageServices {
     final file = File(thumbnailPath);
     await file.writeAsBytes(uint8list!);
     return file;
+  }
+
+  Future<Uint8List> fileToUint8List(File file) async {
+    final bytes = await file.readAsBytes();
+    return Uint8List.fromList(bytes);
   }
 }
