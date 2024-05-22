@@ -8,4 +8,5 @@ class FirestoreCollectionNames {
   static const String postShares = 'post_shares';
   static const String postLikes = 'post_likes';
   static const String mediaPosts = 'media_posts';
+  static const String audioStories = 'audio_stories';
 }

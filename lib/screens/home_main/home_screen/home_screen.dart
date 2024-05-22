@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
         height: MediaQuery.of(context).size.height * 0.8,
         width: MediaQuery.of(context).size.width,
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
+          resizeToAvoidBottomInset: true,
           body: Column(
             children: [
               const Center(
@@ -199,38 +199,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-              AnimatedPadding(
-                duration: const Duration(milliseconds: 300),
-                padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom),
-                child: Container(
-                  padding: const EdgeInsets.all(8.0),
-                  color: Theme.of(context).colorScheme.primary,
-                  child: TextField(
-                    autofocus: autofocus,
-                    controller: _commentController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.background,
-                      hintText: 'Add a comment...',
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20.0,
-                        vertical: 10.0,
-                      ),
-                      suffixIcon: ValueListenableBuilder(
-                        valueListenable: _commentController,
-                        builder: (context, value, child) {
-                          return value.text.trim().isNotEmpty
-                              ? IconButton(
-                                  onPressed: addComment,
-                                  icon: const Icon(Icons.send),
-                                )
-                              : const SizedBox.shrink();
-                        },
-                      ),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                color: Theme.of(context).colorScheme.primary,
+                child: TextField(
+                  autofocus: autofocus,
+                  controller: _commentController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.background,
+                    hintText: 'Add a comment...',
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 10.0,
+                    ),
+                    suffixIcon: ValueListenableBuilder(
+                      valueListenable: _commentController,
+                      builder: (context, value, child) {
+                        return value.text.trim().isNotEmpty
+                            ? IconButton(
+                                onPressed: addComment,
+                                icon: const Icon(Icons.send),
+                              )
+                            : const SizedBox.shrink();
+                      },
                     ),
                   ),
                 ),
@@ -245,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text(
           "Minthwhite",
@@ -325,7 +321,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      resizeToAvoidBottomInset: true,
       backgroundColor: Theme.of(context).colorScheme.background,
       body: RefreshIndicator(
         onRefresh: _loadPosts,

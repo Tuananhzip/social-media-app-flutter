@@ -488,13 +488,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildListItemStory(BuildContext context, int index, String imageUser,
       String lastNameOverflow, bool statusStory) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    StoryComponent(userName: lastNameOverflow)));
-      },
+      onTap: () {},
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
         child: Column(

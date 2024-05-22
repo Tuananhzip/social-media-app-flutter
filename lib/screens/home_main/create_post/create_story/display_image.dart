@@ -31,6 +31,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     'musics/WaitingForYou.mp3',
   ];
   String? _audioUrl;
+  String? _audioName;
   @override
   initState() {
     super.initState();
@@ -112,17 +113,19 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
               scrollDirection: Axis.horizontal,
               itemCount: _audioList.length,
               itemBuilder: (context, index) {
+                final musicName =
+                    _audioList[index].split('/').last.split('.').first;
                 return ListTile(
                   tileColor: Theme.of(context).colorScheme.secondary,
                   trailing: index == _audioList.length - 1
                       ? null
                       : const Icon(Icons.arrow_right_rounded),
-                  title:
-                      Text(_audioList[index].split('/').last.split('.').first),
+                  title: Text(musicName),
                   leading: const Icon(Icons.music_note_outlined),
                   onTap: () async {
                     setState(() {
                       _audioUrl = _audioList[index];
+                      _audioName = musicName;
                       _position = Duration.zero;
                     });
                     await _audioPlayer.play(AssetSource(_audioUrl!));
@@ -153,10 +156,29 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                         },
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                          'Playing: ${_audioUrl!.split('/').last.split('.').first}'),
+                    Flexible(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Text(
+                            'Playing: ${_audioUrl!.split('/').last.split('.').first}',
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              icon: const Icon(Icons.cancel_outlined),
+                              onPressed: () {
+                                _audioPlayer.stop();
+                                setState(() {
+                                  _audioUrl = null;
+                                  _audioName = null;
+                                  _position = Duration.zero;
+                                });
+                              },
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                     Slider(
                       min: 0.0,
@@ -204,10 +226,21 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   }
 
   void _navigaToAddStory() async {
-    if (_duration - _position > const Duration(seconds: 15)) {
+    if (_audioUrl == null && _audioName == null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return AddStoryScreen(
+              image: widget.image,
+            );
+          },
+        ),
+      );
+    } else if (_duration - _position > const Duration(seconds: 15)) {
       await _audioPlayer.pause();
       if (mounted) {
-        await Navigator.push(
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) {
@@ -215,6 +248,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                 image: widget.image,
                 audioUrl: _audioUrl,
                 position: _position.inSeconds,
+                audioName: _audioName,
               );
             },
           ),
