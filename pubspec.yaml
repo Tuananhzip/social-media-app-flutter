@@ -66,6 +66,8 @@ dependencies:
   video_compress: ^3.1.2
   image_editor_plus: ^1.0.5
   audioplayers: ^6.0.0
+  story_view: ^0.16.5
+  marquee: ^2.2.3
 
 dev_dependencies:
   flutter_test:

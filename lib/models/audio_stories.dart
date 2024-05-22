@@ -23,7 +23,7 @@ class AudioStories {
 
   factory AudioStories.fromMap(Map map) {
     return AudioStories(
-      storyId: map[DocumentFieldNames.senderId],
+      storyId: map[DocumentFieldNames.storyId],
       audioName: map[DocumentFieldNames.audioName],
       audioLink: map[DocumentFieldNames.audioLink],
       position: map[DocumentFieldNames.position],
