@@ -14,36 +14,6 @@ enum NotificationTypeEnum {
   comment,
 }
 
-extension NotificationTypeExtension on NotificationTypeEnum {
-  String get getString {
-    switch (this) {
-      case NotificationTypeEnum.friendRequest:
-        return 'Friend request';
-      case NotificationTypeEnum.comment:
-        return 'Comment post';
-      case NotificationTypeEnum.acceptFriend:
-        return 'Accepted friend';
-      default:
-        return '';
-    }
-  }
-}
-
 enum MediaTypeEnum { image, video, other }
 
 enum MenuPostEnum { edit, delete, report }
-
-extension MenuPostExtension on MenuPostEnum {
-  String get getString {
-    switch (this) {
-      case MenuPostEnum.edit:
-        return 'Edit';
-      case MenuPostEnum.delete:
-        return 'Delete';
-      case MenuPostEnum.report:
-        return 'Report';
-      default:
-        return '';
-    }
-  }
-}

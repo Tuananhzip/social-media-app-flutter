@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/components/story/story_image_screen.component.dart';
 import 'package:social_media_app/models/stories.dart';
-import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 
 class ListStoryScreen extends StatefulWidget {
   const ListStoryScreen({super.key});
@@ -14,7 +14,6 @@ class ListStoryScreen extends StatefulWidget {
 
 class _ListStoryScreenState extends State<ListStoryScreen> {
   final StoryServices _storyServices = StoryServices();
-  final AudioStoriesServices _audioStoriesServices = AudioStoriesServices();
 
   @override
   void initState() {
@@ -43,17 +42,11 @@ class _ListStoryScreenState extends State<ListStoryScreen> {
               return PageView.builder(
                 itemCount: listStory?.length,
                 itemBuilder: (context, index) {
-                  final parts = listStory?[index]
-                      .mediaURL
-                      .split('.')
-                      .last
-                      .split('?')
-                      .first;
-                  if (parts == 'jpg' || parts == 'jpeg' || parts == 'png') {
+                  if (listStory?[index].mediaType == MediaTypeEnum.image.name) {
                     return StoryImageComponentScreen(
                       storyId: listId![index],
                     );
-                  } else if (parts == 'mp4') {
+                  } else {
                     return Container(
                       color: Colors.black,
                       child: Center(
@@ -61,13 +54,6 @@ class _ListStoryScreenState extends State<ListStoryScreen> {
                           'Video',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
-                      ),
-                    );
-                  } else {
-                    return Container(
-                      color: Colors.redAccent,
-                      child: const Center(
-                        child: Text('Error'),
                       ),
                     );
                   }

@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:social_media_app/models/stories.dart';
 import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 
 class StoryServices {
   final _storyCollection =
@@ -36,6 +37,7 @@ class StoryServices {
       final Stories story = Stories(
         uid: _currentUser!.uid,
         mediaURL: mediaURL,
+        mediaType: MediaTypeEnum.image.name,
         storyCreatedTime: Timestamp.now(),
       );
       final DocumentReference docRef =

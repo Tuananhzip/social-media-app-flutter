@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/models/stories.dart';
-import 'package:story_view/controller/story_controller.dart';
 import 'package:story_view/story_view.dart';
 
 class StoryComponentScreen extends StatelessWidget {

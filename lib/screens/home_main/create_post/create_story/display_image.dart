@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/screens/home_main/create_post/create_story/add_story_screen.dart';
+import 'package:social_media_app/screens/home_main/create_post/create_story/add_story_image_screen.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/audio_list.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 
 class DisplayPictureScreen extends StatefulWidget {
@@ -18,44 +20,45 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   Duration _duration = const Duration();
   Duration _position = const Duration();
   bool _isPlaying = false;
-  final List<String> _audioList = [
-    'musics/better-day.mp3',
-    'musics/separation.mp3',
-    'musics/titanium.mp3',
-    'musics/AnhSaoVaBauTroi.mp3',
-    'musics/ChungTaCuaHienTai.mp3',
-    'musics/EmDongY.mp3',
-    'musics/HayTraoChoAnh.mp3',
-    'musics/NgayDauTien.mp3',
-    'musics/SeeTinh.mp3',
-    'musics/WaitingForYou.mp3',
-  ];
   String? _audioUrl;
   String? _audioName;
+  StreamSubscription<Duration>? _durationSubscription;
+  StreamSubscription<Duration>? _positionSubscription;
+  StreamSubscription<PlayerState>? _playerStateSubscription;
+
   @override
   initState() {
     super.initState();
-    _audioPlayer.onDurationChanged.listen((duration) {
-      setState(() {
-        _duration = duration;
-      });
+    _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
+      if (mounted) {
+        setState(() {
+          _duration = duration;
+        });
+      }
     });
-    _audioPlayer.onPlayerStateChanged.listen((state) {
-      setState(() {
-        _isPlaying = state == PlayerState.playing;
-      });
+    _positionSubscription = _audioPlayer.onPositionChanged.listen((position) {
+      if (mounted) {
+        setState(() {
+          _position = position;
+        });
+      }
     });
-    _audioPlayer.onPositionChanged.listen((position) {
-      setState(() {
-        _position = position;
-      });
+    _playerStateSubscription =
+        _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
     });
   }
 
   @override
   void dispose() {
     super.dispose();
-    _audioPlayer.stop();
+    _durationSubscription?.cancel();
+    _playerStateSubscription?.cancel();
+    _positionSubscription?.cancel();
     _audioPlayer.dispose();
   }
 
@@ -64,7 +67,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Add music to story',
+          'Add music',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         centerTitle: true,
@@ -111,20 +114,20 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             height: 60,
             child: PageView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: _audioList.length,
+              itemCount: AudioList.list.length,
               itemBuilder: (context, index) {
                 final musicName =
-                    _audioList[index].split('/').last.split('.').first;
+                    AudioList.list[index].split('/').last.split('.').first;
                 return ListTile(
                   tileColor: Theme.of(context).colorScheme.secondary,
-                  trailing: index == _audioList.length - 1
+                  trailing: index == AudioList.list.length - 1
                       ? null
                       : const Icon(Icons.arrow_right_rounded),
                   title: Text(musicName),
                   leading: const Icon(Icons.music_note_outlined),
                   onTap: () async {
                     setState(() {
-                      _audioUrl = _audioList[index];
+                      _audioUrl = AudioList.list[index];
                       _audioName = musicName;
                       _position = Duration.zero;
                     });
@@ -195,18 +198,24 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                         Text(
                           formatTime(_position),
                         ),
-                        Text(
-                          '${formatTime(_position)} - ${formatTime(_position + const Duration(seconds: 15))}',
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.primaryColor,
+                              width: 2,
+                            ),
+                          ),
+                          child: Text(
+                            '${formatTime(_position)} - ${formatTime(_position + const Duration(seconds: 15))}',
+                          ),
                         ),
                         Text(
                           formatTime(_duration - _position),
                         ),
                       ],
                     ),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [Text('Your music time selected')],
-                    )
+                    const Text('Your music time selected'),
+                    const Text('Defaut story image time is 15s'),
                   ]
                 ],
               ),
@@ -231,7 +240,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
         context,
         MaterialPageRoute(
           builder: (context) {
-            return AddStoryScreen(
+            return AddStoryImageScreen(
               image: widget.image,
             );
           },
@@ -244,7 +253,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           context,
           MaterialPageRoute(
             builder: (context) {
-              return AddStoryScreen(
+              return AddStoryImageScreen(
                 image: widget.image,
                 audioUrl: _audioUrl,
                 position: _position.inSeconds,

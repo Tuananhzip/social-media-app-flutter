@@ -14,7 +14,7 @@ class NotificationServices {
   Future<void> sendNotificationFriendRequest(String receiverId) async {
     Notifications notification = Notifications(
       uid: receiverId,
-      notificationType: NotificationTypeEnum.friendRequest.getString,
+      notificationType: NotificationTypeEnum.friendRequest.name,
       notificationReferenceId: _currentUser!.uid,
       notificationContent: 'You have received a friend request.',
       notificationCreatedDate: Timestamp.now(),
@@ -40,7 +40,7 @@ class NotificationServices {
       QuerySnapshot querySnapshot = await _getNotificationQuery(
         uid: receiverId,
         referenceId: _currentUser!.uid,
-        type: NotificationTypeEnum.friendRequest.getString,
+        type: NotificationTypeEnum.friendRequest.name,
       ).get();
       for (var doc in querySnapshot.docs) {
         await doc.reference.delete();
@@ -56,7 +56,7 @@ class NotificationServices {
       QuerySnapshot querySnapshot = await _getNotificationQuery(
         uid: _currentUser!.uid,
         referenceId: senderId,
-        type: NotificationTypeEnum.friendRequest.getString,
+        type: NotificationTypeEnum.friendRequest.name,
       ).get();
       for (var doc in querySnapshot.docs) {
         await doc.reference.delete();
@@ -72,7 +72,7 @@ class NotificationServices {
       QuerySnapshot querySnapshot = await _getNotificationQuery(
         uid: _currentUser!.uid,
         referenceId: senderId,
-        type: NotificationTypeEnum.friendRequest.getString,
+        type: NotificationTypeEnum.friendRequest.name,
       ).get();
       for (var doc in querySnapshot.docs) {
         String docId = doc.id;
@@ -92,7 +92,7 @@ class NotificationServices {
       notificationReferenceId: _currentUser!.uid,
       notificationContent: '$username has accepted your friend request',
       notificationCreatedDate: Timestamp.now(),
-      notificationType: NotificationTypeEnum.acceptFriend.getString,
+      notificationType: NotificationTypeEnum.acceptFriend.name,
       notificationStatus: false,
     );
     await _notificationsCollection.doc(docId).update(notification.asMap());
@@ -102,7 +102,7 @@ class NotificationServices {
     return _notificationsCollection
         .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
         .where(DocumentFieldNames.notificationType,
-            isEqualTo: NotificationTypeEnum.friendRequest.getString)
+            isEqualTo: NotificationTypeEnum.friendRequest.name)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Notifications.fromMap(doc.data()))
@@ -113,7 +113,7 @@ class NotificationServices {
     return _notificationsCollection
         .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
         .where(DocumentFieldNames.notificationType,
-            isNotEqualTo: NotificationTypeEnum.friendRequest.getString)
+            isNotEqualTo: NotificationTypeEnum.friendRequest.name)
         .orderBy(DocumentFieldNames.notificationCreatedDate, descending: true)
         .snapshots();
   }
@@ -131,7 +131,7 @@ class NotificationServices {
       QuerySnapshot querySnapshot = await _notificationsCollection
           .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
           .where(DocumentFieldNames.notificationType,
-              isEqualTo: NotificationTypeEnum.friendRequest.getString)
+              isEqualTo: NotificationTypeEnum.friendRequest.name)
           .where(DocumentFieldNames.notificationStatus, isEqualTo: false)
           .get();
       for (var doc in querySnapshot.docs) {
@@ -149,7 +149,7 @@ class NotificationServices {
       String username, String uidOfPost) async {
     final Notifications notification = Notifications(
       uid: uidOfPost,
-      notificationType: NotificationTypeEnum.comment.getString,
+      notificationType: NotificationTypeEnum.comment.name,
       notificationReferenceId: _currentUser!.uid,
       notificationContent: '$username commented on your post.',
       notificationCreatedDate: Timestamp.now(),

@@ -10,8 +10,8 @@ import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 
-class AddStoryScreen extends StatefulWidget {
-  const AddStoryScreen(
+class AddStoryImageScreen extends StatefulWidget {
+  const AddStoryImageScreen(
       {super.key,
       required this.image,
       this.audioUrl,
@@ -23,10 +23,10 @@ class AddStoryScreen extends StatefulWidget {
   final String? audioName;
 
   @override
-  State<AddStoryScreen> createState() => _AddStoryScreenState();
+  State<AddStoryImageScreen> createState() => _AddStoryScreenState();
 }
 
-class _AddStoryScreenState extends State<AddStoryScreen> {
+class _AddStoryScreenState extends State<AddStoryImageScreen> {
   final StoryServices _storyServices = StoryServices();
   final AudioStoriesServices _audioStoriesServices = AudioStoriesServices();
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -117,6 +117,8 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading:
+            !_isUploaded, // Hide back button if _isUploaded is true
         title: const Text('Story'),
         centerTitle: true,
         actions: [

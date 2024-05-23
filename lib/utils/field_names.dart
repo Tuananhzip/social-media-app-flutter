@@ -32,6 +32,8 @@ class DocumentFieldNames {
   // Stories
   static const String mediaURL = 'media_url';
   static const String storyCreatedTime = 'story_created_time';
+  static const String mediaType = 'media_type';
+  static const String volume = 'volume';
   static const String mediaStoryFile = 'media_story_file';
   static const String storyId = 'story_id';
   // Audios

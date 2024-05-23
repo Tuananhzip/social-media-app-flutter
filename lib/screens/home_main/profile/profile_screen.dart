@@ -8,7 +8,6 @@ import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
-import 'package:social_media_app/components/story/story_screen.component.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/home_screen/post_details_screen.dart';

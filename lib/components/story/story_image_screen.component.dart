@@ -3,10 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:logger/logger.dart';
 import 'package:marquee/marquee.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/models/audio_stories.dart';
 import 'package:social_media_app/models/stories.dart';
@@ -85,6 +82,9 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
   }
 
   void _displayProgress() {
+    setState(() {
+      _isPlaying = true;
+    });
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       if (timer.tick <= 15) {
         setState(() {

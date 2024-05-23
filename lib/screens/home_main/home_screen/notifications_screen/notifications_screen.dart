@@ -60,7 +60,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     final countFriendRequest = dataNotifications
                         .where((element) =>
                             element.notificationType ==
-                            NotificationTypeEnum.friendRequest.getString)
+                            NotificationTypeEnum.friendRequest.name)
                         .toList();
                     final userFirst =
                         dataNotifications.first.notificationReferenceId;

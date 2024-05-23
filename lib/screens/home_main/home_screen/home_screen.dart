@@ -366,8 +366,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilderPopupMenu: (context) {
                           if (_posts[index].uid == _currentUser!.uid) {
                             return [
-                              MenuPostEnum.delete.getString,
-                              MenuPostEnum.edit.getString
+                              MenuPostEnum.delete.name,
+                              MenuPostEnum.edit.name
                             ].map((String choice) {
                               return PopupMenuItem<String>(
                                 value: choice,
@@ -376,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             }).toList();
                           } else {
                             return [
-                              MenuPostEnum.report.getString,
+                              MenuPostEnum.report.name,
                             ].map((String choice) {
                               return PopupMenuItem<String>(
                                 value: choice,
@@ -614,11 +614,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onSelectedPopupMenu(String valueSelected, String postId) {
-    if (valueSelected == MenuPostEnum.delete.getString) {
+    if (valueSelected == MenuPostEnum.delete.name) {
       // ignore: avoid_print
       print('Delete $postId');
       _deletePost(postId);
-    } else if (valueSelected == MenuPostEnum.edit.getString) {
+    } else if (valueSelected == MenuPostEnum.edit.name) {
       // ignore: avoid_print
       print('Edit $postId');
     }

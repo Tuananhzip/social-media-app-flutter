@@ -42,7 +42,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     if (cameras.isNotEmpty) {
       _controller = CameraController(
         cameras[selectedCameraIndex],
-        ResolutionPreset.medium,
+        ResolutionPreset.max,
       );
       _initializeControllerFuture = _controller.initialize();
       setState(() {});
