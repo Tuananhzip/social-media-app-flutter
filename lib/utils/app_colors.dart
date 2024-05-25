@@ -14,5 +14,7 @@ class AppColors {
   static const Color dangerColor = Color(0xffbb2124);
   static const Color successColor = Color(0xff22bb33);
   static const Color infoColor = Color(0xff0085FF);
+  static const Color loadingLeftBlue = Color(0xFF0063DC);
+  static const Color loadingRightRed = Color(0xFFFF0084);
   // AppColors.primaryColor.withOpacity(0.5), Ví dụ sử dụng màu chủ đạo với độ trong suốt
 }

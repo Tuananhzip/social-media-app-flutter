@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/components/loading/shimmer_full.component.dart';
 
 class ListTileFriendRequestComponent extends StatelessWidget {
   const ListTileFriendRequestComponent({
@@ -45,7 +45,8 @@ class ListTileFriendRequestComponent extends StatelessWidget {
                       backgroundImage: imageProvider,
                     );
                   },
-                  placeholder: (context, url) => const OverlayLoadingWidget(),
+                  placeholder: (context, url) =>
+                      const ShimmerContainerFullComponent(),
                   errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
               ),
@@ -61,7 +62,8 @@ class ListTileFriendRequestComponent extends StatelessWidget {
                       backgroundImage: imageProvider,
                     );
                   },
-                  placeholder: (context, url) => const OverlayLoadingWidget(),
+                  placeholder: (context, url) =>
+                      const ShimmerContainerFullComponent(),
                   errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
               ),

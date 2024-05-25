@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_media_app/components/list/list_friend_request.component.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
 import 'package:social_media_app/models/friend_requests.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/services/friendRequests/friend_request.services.dart';
@@ -33,7 +33,7 @@ class _ListFriendRequestScreenState extends State<ListFriendRequestScreen> {
                 child: Text('ERROR ---> ${snapshot.error}'),
               );
             } else if (snapshot.connectionState == ConnectionState.waiting) {
-              return const OverlayLoadingWidget();
+              return const LoadingFlickrComponent();
             } else {
               final dataListFriendRequest = snapshot.data;
               if (dataListFriendRequest != null &&
@@ -48,7 +48,7 @@ class _ListFriendRequestScreenState extends State<ListFriendRequestScreen> {
                       builder: (context, userSnapshot) {
                         if (userSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const OverlayLoadingWidget();
+                          return const LoadingFlickrComponent();
                         } else if (userSnapshot.hasError) {
                           return Center(
                             child: Text(

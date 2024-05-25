@@ -1,28 +1,33 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:social_media_app/components/view/photo_view_page.component.dart';
 
-class ImageScreenComponent extends StatefulWidget {
-  const ImageScreenComponent({super.key, required this.url});
+class PostImageScreenComponent extends StatelessWidget {
+  const PostImageScreenComponent({super.key, required this.url});
   final String url;
 
   @override
-  State<ImageScreenComponent> createState() => _ImageScreenComponentState();
-}
-
-class _ImageScreenComponentState extends State<ImageScreenComponent> {
-  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width,
+      width: double.infinity,
       child: CachedNetworkImage(
-        imageUrl: widget.url,
+        imageUrl: url,
         imageBuilder: (context, imageProvider) {
-          return Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: imageProvider,
-                fit: BoxFit.cover,
+          return GestureDetector(
+            onDoubleTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    PhotoViewPageComponent(imageProvider: imageProvider),
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           );

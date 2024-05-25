@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
 import 'package:social_media_app/components/story/story_image_screen.component.dart';
+import 'package:social_media_app/components/story/story_video_screen.component.dart';
 import 'package:social_media_app/models/stories.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/utils/app_colors.dart';
@@ -33,7 +35,10 @@ class _ListStoryScreenState extends State<ListStoryScreen> {
                 return const Center(
                   child: Text('Error'),
                 );
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return const LoadingFlickrComponent();
               }
+
               final listStory = snapshot.data
                   ?.map(
                       (e) => Stories.fromMap(e.data() as Map<String, dynamic>))
@@ -47,14 +52,8 @@ class _ListStoryScreenState extends State<ListStoryScreen> {
                       storyId: listId![index],
                     );
                   } else {
-                    return Container(
-                      color: Colors.black,
-                      child: Center(
-                        child: Text(
-                          'Video',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
+                    return StoryVideoComponentScreen(
+                      storyId: listId![index],
                     );
                   }
                 },

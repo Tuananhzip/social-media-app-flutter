@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
@@ -169,7 +169,7 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
                     ),
                   ),
                   _isUploaded
-                      ? const OverlayLoadingWidget()
+                      ? const LoadingFlickrComponent()
                       : const SizedBox.shrink(),
                 ],
               ),

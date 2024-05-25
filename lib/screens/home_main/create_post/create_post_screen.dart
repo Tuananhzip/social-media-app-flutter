@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:social_media_app/screens/home_main/create_post/add_content_post.dart';
 import 'package:social_media_app/screens/home_main/create_post/create_story/create_story_screen.dart';
 import 'package:social_media_app/screens/home_main/create_post/media_details_screen.dart';
@@ -32,18 +33,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Future<void> _getMedia() async {
     try {
-      setState(() {
-        _fileList.clear();
-        _widgetList.clear();
-        _videoControllers.clear();
-      });
-
       final pickedfileList = await _imageServices.pickMedia();
-      if (pickedfileList.isEmpty) return;
-
-      setState(() {
-        _isLoading = true;
-      });
+      if (pickedfileList.isEmpty) {
+        return;
+      } else {
+        setState(() {
+          _fileList.clear();
+          _widgetList.clear();
+          _videoControllers.clear();
+          _isLoading = true;
+        });
+      }
 
       final List<Future<void>> futures = [];
 
@@ -57,12 +57,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         }
       }
 
-      await Future.wait(futures).whenComplete(() => setState(() {
+      await Future.wait(futures).then((_) => setState(() {
             _isLoading = false;
           }));
+      Logger().f(_widgetList.length);
     } catch (error) {
       // ignore: avoid_print
       print("ERROR getMedia ---> $error");
+      Logger().e(error);
     }
   }
 
@@ -87,24 +89,23 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Future<void> _compressVideo(File pickedMedia) async {
     final compressVideo =
         await _imageServices.compressVideoFile(pickedMedia.path);
-    _initializeVideo(compressVideo);
+    await _initializeVideo(compressVideo);
   }
 
   Future<void> _getImageOrVideoWithCamera(MediaTypeEnum type) async {
     try {
-      setState(() {
-        _fileList.clear();
-        _widgetList.clear();
-        _videoControllers.clear();
-      });
-
       final pickedMedia = await _imageServices.pickWithCamera(type);
 
-      if (pickedMedia == null) return;
-
-      setState(() {
-        _isLoading = true;
-      });
+      if (pickedMedia == null) {
+        return;
+      } else {
+        setState(() {
+          _fileList.clear();
+          _widgetList.clear();
+          _videoControllers.clear();
+          _isLoading = true;
+        });
+      }
 
       if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
         _compressVideo(pickedMedia);

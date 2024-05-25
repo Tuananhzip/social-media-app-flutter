@@ -133,14 +133,14 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordErrorText = error.message;
       }
 
-      if (_isLoginSuccess) {
-        Navigator.pushAndRemoveUntil(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeMain(),
-            ),
-            ModalRoute.withName('/'));
+      if (_isLoginSuccess && mounted) {
+        Navigator.pushReplacementNamed(context, '/');
+        // Navigator.pushAndRemoveUntil(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (context) => const HomeMain(),
+        //     ),
+        //     ModalRoute.withName('/'));
       }
     }
     setState(() {

@@ -4,7 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
 import 'package:social_media_app/models/audio_stories.dart';
 import 'package:social_media_app/models/stories.dart';
 import 'package:social_media_app/models/users.dart';
@@ -128,7 +128,7 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
                         },
                       ),
                     )
-                  : const OverlayLoadingWidget(),
+                  : const LoadingFlickrComponent(),
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(
@@ -213,6 +213,7 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 40.0, right: 20.0),
                   child: CircleAvatar(
+                    backgroundColor: AppColors.backgroundColor.withOpacity(0.5),
                     radius: 20.0,
                     child: _isPlaying
                         ? IconButton(

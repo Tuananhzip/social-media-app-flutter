@@ -164,7 +164,8 @@ class ImageServices {
       imageFormat: ImageFormat.JPEG,
     );
     final directory = await getTemporaryDirectory();
-    final thumbnailPath = '${directory.path}/thumbnail.jpg';
+    final thumbnailPath =
+        '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
     final file = File(thumbnailPath);
     await file.writeAsBytes(uint8list!);
     return file;

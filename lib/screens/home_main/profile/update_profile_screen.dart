@@ -2,10 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loader_overlay/loader_overlay.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/components/button/radio_button_gender.component.dart';
 import 'package:social_media_app/components/field/field_edit_profile.component.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
@@ -67,7 +67,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
 
   Future<void> updateImageProfile() async {
     context.loaderOverlay
-        .show(widgetBuilder: (_) => const OverlayLoadingWidget());
+        .show(widgetBuilder: (_) => const LoadingFlickrComponent());
     try {
       await _imageService.updateImageProfile();
     } catch (error) {
@@ -85,7 +85,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
 
   Future<void> saveUserInfo() async {
     context.loaderOverlay.show(
-      widgetBuilder: (progress) => const OverlayLoadingWidget(),
+      widgetBuilder: (progress) => const LoadingFlickrComponent(),
     );
     final bool isValidation = _formKey.currentState!.validate();
     if (!isValidation) {

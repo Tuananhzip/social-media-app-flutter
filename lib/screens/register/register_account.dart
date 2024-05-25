@@ -97,7 +97,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _navigationToLoginScreen() {
-    Navigator.pushNamed(context, '/login');
+    Navigator.pop(context);
+    Navigator.pop(context);
   }
 
   void _handleIcon(HandleIconField handle) {

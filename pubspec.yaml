@@ -41,7 +41,7 @@ dependencies:
   google_sign_in: ^6.2.1
   provider: ^6.1.2
   shared_preferences: ^2.2.2
-  image_picker: ^1.0.7
+  image_picker: ^1.1.1
   firebase_storage: ^11.7.1
   intl: ^0.19.0
   loader_overlay: ^4.0.0
@@ -68,6 +68,8 @@ dependencies:
   audioplayers: ^6.0.0
   story_view: ^0.16.5
   marquee: ^2.2.3
+  loading_animation_widget: ^1.2.1
+  photo_view: ^0.15.0
 
 dev_dependencies:
   flutter_test:
@@ -78,7 +80,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -101,25 +103,8 @@ flutter:
         - asset: assets/fonts/Roboto-Light.ttf
           weight: 300
   assets:
-    - assets/images/logo_social_media.jpg
-    - assets/images/logo_social_media.png
-    - assets/images/logo_social_media_second.jpg
-    - assets/images/logo_social_media_second.png
-    - assets/images/facebook_icon.png
-    - assets/images/google_icon.png
-    - assets/images/moon.png
-    - assets/images/sun.png
-
-    - assets/musics/AnhSaoVaBauTroi.mp3
-    - assets/musics/ChungTaCuaHienTai.mp3
-    - assets/musics/EmDongY.mp3
-    - assets/musics/HayTraoChoAnh.mp3
-    - assets/musics/NgayDauTien.mp3
-    - assets/musics/SeeTinh.mp3
-    - assets/musics/WaitingForYou.mp3
-    - assets/musics/better-day.mp3
-    - assets/musics/separation.mp3
-    - assets/musics/titanium.mp3
+    - assets/images/
+    - assets/musics/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:logger/logger.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
@@ -11,9 +12,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_media_app/components/loading/shimmer_comment.component.dart';
 import 'package:social_media_app/components/loading/shimmer_post.component.dart';
-import 'package:social_media_app/components/post/image_screen.dart';
+import 'package:social_media_app/components/post/post_image_screen.dart';
 import 'package:social_media_app/components/post/post_srceen.component.dart';
-import 'package:social_media_app/components/post/video_player_screen.dart';
+import 'package:social_media_app/components/post/post_video_player_screen.dart';
 import 'package:social_media_app/models/post_comments.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
@@ -98,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    showMaterialModalBottomSheet(
+    showCupertinoModalBottomSheet(
       context: context,
       builder: (context) => SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
@@ -136,13 +137,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context, commentsSnapshot) {
                     if (commentsSnapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
+                      return LoadingAnimationWidget.flickr(
+                        leftDotColor: AppColors.loadingLeftBlue,
+                        rightDotColor: AppColors.loadingRightRed,
+                        size: 30.0,
                       );
                     } else if (commentsSnapshot.hasError) {
                       return Center(
                         child: Text(
                             'Error loading comments ---> ${commentsSnapshot.error}'),
+                      );
+                    } else if (commentsSnapshot.data!.isEmpty) {
+                      return const Center(
+                        child: Text(
+                            'You will be the first to comment on this post'),
                       );
                     }
                     final List<PostComments> comment = commentsSnapshot.data!;
@@ -403,15 +411,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: Align(
                       alignment: Alignment.bottomCenter,
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const CircularProgressIndicator(
-                          color: Colors.white,
-                        ),
+                      child: LoadingAnimationWidget.flickr(
+                        leftDotColor: AppColors.loadingLeftBlue,
+                        rightDotColor: AppColors.loadingRightRed,
+                        size: 30.0,
                       ),
                     ),
                   )
@@ -449,13 +452,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       postData.shuffle(); // Random shuffle list 10 posts orderBy created dated
 
-      List<Posts> postDummy = postData
+      final List<Posts> postDummy = postData
           .map((data) => Posts.fromMap(data.data() as Map<String, dynamic>))
           .toList();
 
-      List<String> postIds = postData.map((post) => post.id).toList();
+      final List<String> postIds = postData.map((post) => post.id).toList();
 
-      List<Future> futures = [
+      final List<Future> futures = [
         Future.wait(postDummy
             .map((post) => _userServices.getUserDetailsByID(post.uid!))
             .toList()),
@@ -470,12 +473,12 @@ class _HomeScreenState extends State<HomeScreen> {
             .toList()),
       ];
 
-      List results = await Future.wait(futures);
+      final List results = await Future.wait(futures);
 
-      List<Users?> users = results[0];
-      List<int> postLikes = results[1];
-      List<int> postComments = results[2];
-      List<bool> isLiked = results[3];
+      final List<Users?> users = results[0];
+      final List<int> postLikes = results[1];
+      final List<int> postComments = results[2];
+      final List<bool> isLiked = results[3];
 
       _logger.i('postIds: $postIds ${postIds.length}');
       _logger.i('postLikes: $postLikes ${postLikes.length}');
@@ -496,13 +499,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _checkMediaList(List<Posts> postsDummy) async {
+  void _checkMediaList(List<Posts> postsDummy) {
     if (postsDummy.isNotEmpty) {
       List<List<Widget>> newListOfListUrlPosts = [];
       for (var post in postsDummy) {
         List<Widget> listDummy = [];
         if (post.mediaLink != null || post.mediaLink!.isNotEmpty) {
-          List<Future> futures = [];
           for (var url in post.mediaLink!) {
             final listPart = url.split('.');
             final lastPart = listPart.last.toLowerCase().split('?');
@@ -510,17 +512,15 @@ class _HomeScreenState extends State<HomeScreen> {
             if (extendsions == 'jpg' ||
                 extendsions == 'png' ||
                 extendsions == 'jpeg') {
-              listDummy.add(ImageScreenComponent(
+              listDummy.add(PostImageScreenComponent(
                 url: url,
               ));
             } else if (extendsions == 'mp4') {
-              listDummy.add(VideoPlayerScreenComponent(
+              listDummy.add(PostVideoPlayerScreenComponent(
                 url: url,
               ));
             }
           }
-          // Wait for all futures to complete
-          await Future.wait(futures);
         }
         newListOfListUrlPosts.add(listDummy);
       }

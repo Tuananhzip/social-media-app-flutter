@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-class VideoPlayerScreenComponent extends StatefulWidget {
-  const VideoPlayerScreenComponent({super.key, required this.url});
+class PostVideoPlayerScreenComponent extends StatefulWidget {
+  const PostVideoPlayerScreenComponent({super.key, required this.url});
   final String url;
 
   @override
-  State<VideoPlayerScreenComponent> createState() =>
+  State<PostVideoPlayerScreenComponent> createState() =>
       _VideoPlayerScreenComponentState();
 }
 
-class _VideoPlayerScreenComponentState extends State<VideoPlayerScreenComponent>
+class _VideoPlayerScreenComponentState
+    extends State<PostVideoPlayerScreenComponent>
     with AutomaticKeepAliveClientMixin {
   late VideoPlayerController _videoPlayerController;
   ChewieController? _chewieController;
@@ -30,6 +31,9 @@ class _VideoPlayerScreenComponentState extends State<VideoPlayerScreenComponent>
   @override
   void dispose() {
     super.dispose();
+    if (_videoPlayerController.value.isInitialized) {
+      _videoPlayerController.dispose();
+    }
     _videoPlayerController.dispose();
     _chewieController?.dispose();
   }
@@ -47,9 +51,11 @@ class _VideoPlayerScreenComponentState extends State<VideoPlayerScreenComponent>
       },
     );
     _chewieController?.setVolume(0.0);
-    setState(() {
-      _isVideoIntialized = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isVideoIntialized = true;
+      });
+    }
   }
 
   @override

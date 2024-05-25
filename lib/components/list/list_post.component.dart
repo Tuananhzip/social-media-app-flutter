@@ -12,7 +12,7 @@ class ListPostComponent extends StatelessWidget {
             padding: const EdgeInsets.only(top: 0),
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
-            crossAxisCount: 3, // Số lượng cột trong GridView
+            crossAxisCount: 3,
             children: List.generate(15, (index) {
               return buildListItemStory(
                 context,

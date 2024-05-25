@@ -4,9 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:social_media_app/components/loading/shimmer_full.component.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/users/user.services.dart';
+import 'package:social_media_app/utils/app_colors.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -67,7 +69,13 @@ class _SearchScreenState extends State<SearchScreen> {
           return Center(child: Text('Error --->: ${snapshot.error}'));
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: LoadingAnimationWidget.flickr(
+              leftDotColor: AppColors.loadingLeftBlue,
+              rightDotColor: AppColors.loadingRightRed,
+              size: 30.0,
+            ),
+          );
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('No results found'));
@@ -94,7 +102,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   imageBuilder: (context, imageProvider) => CircleAvatar(
                     backgroundImage: imageProvider,
                   ),
-                  placeholder: (context, url) => const OverlayLoadingWidget(),
+                  placeholder: (context, url) =>
+                      const ShimmerContainerFullComponent(),
                   errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
               ),

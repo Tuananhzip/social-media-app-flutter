@@ -3,11 +3,15 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:social_media_app/components/loading/overlay_loading.component.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
+import 'package:social_media_app/components/loading/shimmer_full.component.dart';
+import 'package:social_media_app/components/view/photo_view_page.component.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/home_screen/post_details_screen.dart';
@@ -158,220 +162,230 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         return Scaffold(
+          appBar: AppBar(
+            title: GestureDetector(
+              onTap: _showSignOutSnackBar,
+              child: Text.rich(
+                TextSpan(children: [
+                  TextSpan(
+                    text: _getEmail(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.0,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const WidgetSpan(
+                    child: Icon(Icons.keyboard_arrow_down_outlined),
+                  )
+                ]),
+              ),
+            ),
+            actions: [
+              IconButton(
+                  onPressed: () => {},
+                  icon: const Icon(Icons.add_box_outlined)),
+              IconButton(
+                  onPressed: () => {},
+                  icon: const Icon(Icons.notifications_none_outlined))
+            ],
+          ),
           key: _scaffoldKey,
           body: RefreshIndicator(
             onRefresh: _refreshPosts,
-            child: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  title: GestureDetector(
-                    onTap: _showSignOutSnackBar,
-                    child: Text.rich(
-                      TextSpan(children: [
-                        TextSpan(
-                          text: _getEmail(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20.0,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const WidgetSpan(
-                          child: Icon(Icons.keyboard_arrow_down_outlined),
-                        )
-                      ]),
-                    ),
-                  ),
-                  actions: [
-                    IconButton(
-                        onPressed: () => {},
-                        icon: const Icon(Icons.add_box_outlined)),
-                    IconButton(
-                        onPressed: () => {},
-                        icon: const Icon(Icons.notifications_none_outlined))
-                  ],
-                ),
-                SliverToBoxAdapter(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    color: Theme.of(context).colorScheme.background,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 140.0,
-                                height: 140.0,
-                                child: CachedNetworkImage(
-                                  imageUrl: _getImageProfile(),
-                                  placeholder: (context, url) =>
-                                      const OverlayLoadingWidget(),
-                                  imageBuilder: (context, imageProvider) {
-                                    return SizedBox(
-                                      height: 140.0,
-                                      width: 140.0,
-                                      child: _isImageLoading
-                                          ? const OverlayLoadingWidget()
-                                          : GestureDetector(
-                                              onTap: _updateImageProfile,
-                                              child: CircleAvatar(
-                                                backgroundImage: imageProvider,
-                                                child: Stack(
-                                                  children: [
-                                                    Align(
-                                                      alignment:
-                                                          Alignment.bottomRight,
-                                                      child: Container(
-                                                        width: 40.0,
-                                                        height: 40.0,
-                                                        decoration: BoxDecoration(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        30.0),
-                                                            color: AppColors
-                                                                .blueColor),
-                                                        child: const Icon(
-                                                          Icons.add,
-                                                          color: AppColors
-                                                              .backgroundColor,
-                                                          size: 32.0,
-                                                        ),
-                                                      ),
-                                                    )
-                                                  ],
+            child: SingleChildScrollView(
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                color: Theme.of(context).colorScheme.background,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 140.0,
+                            height: 140.0,
+                            child: CachedNetworkImage(
+                              imageUrl: _getImageProfile(),
+                              placeholder: (context, url) =>
+                                  const ShimmerContainerFullComponent(),
+                              imageBuilder: (context, imageProvider) {
+                                return SizedBox(
+                                  height: 140.0,
+                                  width: 140.0,
+                                  child: _isImageLoading
+                                      ? const LoadingFlickrComponent()
+                                      : Stack(
+                                          children: [
+                                            GestureDetector(
+                                              onTap: () => Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        PhotoViewPageComponent(
+                                                      imageProvider:
+                                                          imageProvider,
+                                                    ),
+                                                  )),
+                                              child: Container(
+                                                width: 140.0,
+                                                height: 140.0,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  image: DecorationImage(
+                                                    image: imageProvider,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const Expanded(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      "Post",
-                                      style: TextStyle(fontSize: 22.0),
-                                    ),
-                                    Text("202"),
-                                  ],
-                                ),
-                              ),
-                              const Expanded(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      "Friends",
-                                      style: TextStyle(fontSize: 22.0),
-                                    ),
-                                    Text("12"),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 0, horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                child: Text(
-                                  _getUsername()!,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24.0,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                child: Text(
-                                  _user.description ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 16.0,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 280.0,
-                                child: ButtonDefaultComponent(
-                                  text: 'Edit profile',
-                                  onTap: _editProfile,
-                                  colorBackground:
-                                      Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 16.0,
-                              ),
-                              Expanded(
-                                  child: ButtonDefaultComponent(
-                                onTap: () {},
-                                icon: Icons.person_add_alt_rounded,
-                                colorBackground:
-                                    Theme.of(context).colorScheme.primary,
-                              ))
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 97,
-                          child: ListView.builder(
-                            itemCount: 15,
-                            scrollDirection: Axis.horizontal,
-                            itemBuilder: (context, index) {
-                              bool statusStory = false;
-                              String userName = "Trần Ngọc Khánhsdsada";
-                              List<String> nameParts = userName.split(' ');
-                              String lastName = nameParts.isNotEmpty
-                                  ? nameParts.last
-                                  : userName;
-                              String lastNameOverflow = lastName.length > 8
-                                  ? '${lastName.substring(0, 6)}...'
-                                  : lastName;
-                              String imageUser =
-                                  "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
-                              return _buildListItemStory(
-                                context,
-                                index,
-                                imageUser,
-                                lastNameOverflow,
-                                statusStory,
-                              ); // username, status story video (User and VideoStories)
-                            },
-                          ),
-                        ),
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(6.0),
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Icons.grid_4x4_outlined),
+                                            Positioned(
+                                              bottom: 5.0,
+                                              right: 5.0,
+                                              child: GestureDetector(
+                                                onTap: _updateImageProfile,
+                                                child: Container(
+                                                  width: 32.0,
+                                                  height: 32.0,
+                                                  decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              30.0),
+                                                      color:
+                                                          AppColors.blueColor),
+                                                  child: const Icon(
+                                                    Icons.add,
+                                                    color: AppColors
+                                                        .backgroundColor,
+                                                    size: 24.0,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                );
+                              },
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          height: 350,
-                          child: _buildListPost(),
-                        ),
-                      ],
+                          const Expanded(
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Post",
+                                  style: TextStyle(fontSize: 22.0),
+                                ),
+                                Text("202"),
+                              ],
+                            ),
+                          ),
+                          const Expanded(
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Friends",
+                                  style: TextStyle(fontSize: 22.0),
+                                ),
+                                Text("12"),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            child: Text(
+                              _getUsername()!,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24.0,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            child: Text(
+                              _user.description ?? '',
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 280.0,
+                            child: ButtonDefaultComponent(
+                              text: 'Edit profile',
+                              onTap: _editProfile,
+                              colorBackground:
+                                  Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16.0,
+                          ),
+                          Expanded(
+                              child: ButtonDefaultComponent(
+                            onTap: () {},
+                            icon: Icons.person_add_alt_rounded,
+                            colorBackground:
+                                Theme.of(context).colorScheme.primary,
+                          ))
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 97,
+                      child: ListView.builder(
+                        itemCount: 15,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          bool statusStory = false;
+                          String userName = "Trần Ngọc Khánhsdsada";
+                          List<String> nameParts = userName.split(' ');
+                          String lastName =
+                              nameParts.isNotEmpty ? nameParts.last : userName;
+                          String lastNameOverflow = lastName.length > 8
+                              ? '${lastName.substring(0, 6)}...'
+                              : lastName;
+                          String imageUser =
+                              "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
+                          return _buildListItemStory(
+                            context,
+                            index,
+                            imageUser,
+                            lastNameOverflow,
+                            statusStory,
+                          ); // username, status story video (User and VideoStories)
+                        },
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.grid_4x4_outlined),
+                        ),
+                      ),
+                    ),
+                    _buildListPost()
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -384,7 +398,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       future: _futurePosts,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const LoadingFlickrComponent();
         } else if (snapshot.hasError) {
           return Center(child: Text('Error --->: ${snapshot.error}'));
         } else if (snapshot.hasData) {
@@ -396,8 +410,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return GridView.builder(
             padding: EdgeInsets.zero,
             itemCount: listPosts.length,
+            shrinkWrap: true,
+            scrollDirection: Axis.vertical,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3),
+              crossAxisCount: 3,
+            ),
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
@@ -441,15 +458,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildImage(String imageUrl) {
     return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-            width: 0.2, color: Theme.of(context).colorScheme.background),
-        image: DecorationImage(
-          fit: BoxFit.cover,
-          image: CachedNetworkImageProvider(imageUrl),
+        decoration: BoxDecoration(
+          border: Border.all(
+              width: 0.2, color: Theme.of(context).colorScheme.background),
         ),
-      ),
-    );
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          placeholder: (context, url) => Shimmer.fromColors(
+            baseColor: Theme.of(context).colorScheme.primary,
+            highlightColor: Theme.of(context).colorScheme.secondary,
+            child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: Theme.of(context).colorScheme.background),
+          ),
+          errorWidget: (context, url, error) => const Icon(Icons.error),
+          fit: BoxFit.cover,
+        ));
   }
 
   Widget _buildVideoThumbnail(String videoPath) {
