@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
+import 'package:social_media_app/components/post/create_post_image_screen.component.dart';
+import 'package:social_media_app/components/post/create_post_video_screen.component.dart';
 import 'package:social_media_app/screens/home_main/create_post/add_content_post.dart';
 import 'package:social_media_app/screens/home_main/create_post/create_story/create_story_screen.dart';
 import 'package:social_media_app/screens/home_main/create_post/media_details_screen.dart';
@@ -34,16 +37,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Future<void> _getMedia() async {
     try {
       final pickedfileList = await _imageServices.pickMedia();
-      if (pickedfileList.isEmpty) {
-        return;
-      } else {
-        setState(() {
-          _fileList.clear();
-          _widgetList.clear();
-          _videoControllers.clear();
-          _isLoading = true;
-        });
-      }
+      if (pickedfileList.isEmpty) return;
+      setState(() {
+        _fileList.clear();
+        _widgetList.clear();
+        _videoControllers.clear();
+        _isLoading = true;
+      });
 
       final List<Future<void>> futures = [];
 
@@ -51,7 +51,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (pickedMedia == null) continue;
 
         if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
-          futures.add(_compressVideo(pickedMedia));
+          setState(() {
+            _fileList.add(pickedMedia);
+            _widgetList.add(CreatePostVideoScreenComponent(file: pickedMedia));
+          });
         } else {
           futures.add(_compressImage(pickedMedia));
         }
@@ -61,6 +64,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             _isLoading = false;
           }));
       Logger().f(_widgetList.length);
+      Logger().i(pickedfileList.length);
     } catch (error) {
       // ignore: avoid_print
       print("ERROR getMedia ---> $error");
@@ -68,49 +72,33 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
-  Future<void> _initializeVideo(File pickedMedia) async {
-    final controller = VideoPlayerController.file(pickedMedia);
-    await controller.initialize();
-    setState(() {
-      _fileList.add(pickedMedia);
-      _widgetList.add(_buildVideo(controller));
-      _videoControllers.add(controller);
-    });
-  }
-
   Future<void> _compressImage(File pickedMedia) async {
     final compressImage = await _imageServices.compressImage(pickedMedia);
     setState(() {
       _fileList.add(compressImage!);
-      _widgetList.add(_buildImage(compressImage));
+      _widgetList.add(CreatePostImageScreenComponent(file: pickedMedia));
     });
-  }
-
-  Future<void> _compressVideo(File pickedMedia) async {
-    final compressVideo =
-        await _imageServices.compressVideoFile(pickedMedia.path);
-    await _initializeVideo(compressVideo);
   }
 
   Future<void> _getImageOrVideoWithCamera(MediaTypeEnum type) async {
     try {
       final pickedMedia = await _imageServices.pickWithCamera(type);
 
-      if (pickedMedia == null) {
-        return;
-      } else {
-        setState(() {
-          _fileList.clear();
-          _widgetList.clear();
-          _videoControllers.clear();
-          _isLoading = true;
-        });
-      }
+      if (pickedMedia == null) return;
+      setState(() {
+        _fileList.clear();
+        _widgetList.clear();
+        _videoControllers.clear();
+        _isLoading = true;
+      });
 
       if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
-        _compressVideo(pickedMedia);
+        setState(() {
+          _fileList.add(pickedMedia);
+          _widgetList.add(CreatePostVideoScreenComponent(file: pickedMedia));
+        });
       } else {
-        _compressImage(pickedMedia);
+        await _compressImage(pickedMedia);
       }
     } catch (error) {
       //ignore:avoid_print
@@ -179,7 +167,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             CarouselSlider.builder(
               itemCount: _widgetList.length,
               itemBuilder: (context, index, realIndex) {
-                return InkWell(
+                return GestureDetector(
                   onTap: () => _navigateToMediaDetails(_fileList[index]),
                   child: _widgetList[index],
                 );
@@ -210,7 +198,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ? const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(),
+                            LoadingFlickrComponent(),
                             Text('Loading...')
                           ],
                         )
@@ -316,35 +304,4 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       ),
     );
   }
-
-  Widget _buildImage(File file) => Container(
-        width: 400.0,
-        margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Image.file(
-            file,
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-  Widget _buildVideo(VideoPlayerController videoController) => Container(
-        width: 400.0,
-        margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: videoController.value.isInitialized
-              ? AspectRatio(
-                  aspectRatio: videoController.value.aspectRatio,
-                  child: VideoPlayer(videoController),
-                )
-              : const SizedBox(),
-        ),
-      );
 }

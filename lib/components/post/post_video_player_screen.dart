@@ -1,5 +1,6 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:social_media_app/components/loading/loading_flickr.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -82,11 +83,7 @@ class _VideoPlayerScreenComponentState
               ),
               const Align(
                 alignment: Alignment.center,
-                child: Icon(
-                  Icons.play_circle_outline_rounded,
-                  color: Colors.white,
-                  size: 50.0,
-                ),
+                child: LoadingFlickrComponent(),
               ),
               Align(
                 alignment: Alignment.bottomCenter,

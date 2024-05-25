@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:social_media_app/screens/home_main/create_post/media_details_screen.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/notifications/local_notifications_plugin.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
@@ -54,6 +55,15 @@ class _AddContentPostState extends State<AddContentPost> {
     }
   }
 
+  void _navigateToMediaDetails(File file) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MediaDetailScreen(file: file),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +81,11 @@ class _AddContentPostState extends State<AddContentPost> {
               CarouselSlider.builder(
                 itemCount: widget.widgetList.length,
                 itemBuilder: (context, index, realIndex) {
-                  return widget.widgetList[index];
+                  return GestureDetector(
+                    onTap: () =>
+                        _navigateToMediaDetails(widget.fileList[index]),
+                    child: widget.widgetList[index],
+                  );
                 },
                 options: CarouselOptions(
                   height: 300.0,

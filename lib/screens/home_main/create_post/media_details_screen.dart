@@ -22,7 +22,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
   @override
   void dispose() {
     super.dispose();
-    _videoPlayerController?.pause(); // Pause the video when leaving the screen
+    _videoPlayerController?.pause();
     _videoPlayerController?.dispose();
   }
 

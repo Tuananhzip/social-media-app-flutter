@@ -12,6 +12,7 @@ import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class StoryImageComponentScreen extends StatefulWidget {
   const StoryImageComponentScreen({
@@ -33,21 +34,12 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
   Stories? _story;
   AudioStories? _audioStory;
   Users? _user;
-  bool _isPlaying = false;
   Timer? _timer;
   double _progress = 0.0;
   @override
   void initState() {
     super.initState();
     _getStory();
-    _getAudio();
-    if (_audioStory != null) {
-      _audioPlayer.onPlayerStateChanged.listen((state) {
-        setState(() {
-          _isPlaying = state == PlayerState.playing;
-        });
-      });
-    }
   }
 
   @override
@@ -82,19 +74,14 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
   }
 
   void _displayProgress() {
-    setState(() {
-      _isPlaying = true;
-    });
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       if (timer.tick <= 15) {
         setState(() {
-          _isPlaying = true;
           _progress = timer.tick / 15;
         });
       } else {
         _audioPlayer.stop();
         setState(() {
-          _isPlaying = false;
           _progress = 0.0;
         });
         timer.cancel();
@@ -107,146 +94,130 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
     return Column(
       children: [
         Expanded(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              _story != null
-                  ? SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
-                      child: CachedNetworkImage(
-                        imageUrl: _story!.mediaURL,
-                        imageBuilder: (context, imageProvider) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  : const LoadingFlickrComponent(),
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 42.0, right: 20.0),
-                  child: CircleAvatar(
-                    backgroundColor: AppColors.backgroundColor.withOpacity(0.5),
-                    child: IconButton(
-                      onPressed: () {
-                        _timer?.cancel();
-                        setState(() {
-                          _isPlaying = true;
-                          _progress = 0.0;
-                        });
-                        _getAudio();
-                      },
-                      icon: const Icon(
-                        Icons.refresh,
-                        color: AppColors.backgroundColor,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              _user != null
-                  ? Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Padding(
-                        padding:
-                            const EdgeInsets.only(bottom: 60.0, left: 20.0),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 15,
-                              backgroundImage: CachedNetworkImageProvider(
-                                _user!.imageProfile!,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Text(
-                                _user?.username ?? 'unknown',
-                                style: const TextStyle(
-                                  color: AppColors.backgroundColor,
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w500,
+          child: _story != null
+              ? VisibilityDetector(
+                  key: Key(_story!.mediaURL),
+                  onVisibilityChanged: (info) {
+                    if (info.visibleFraction == 0 && mounted) {
+                      setState(() {
+                        _progress = 0.0;
+                      });
+                      _audioPlayer.stop();
+                      _timer?.cancel();
+                    }
+                    if (info.visibleFraction == 1 && mounted) {
+                      _timer?.cancel();
+                      setState(() {
+                        _progress = 0.0;
+                      });
+                      _getAudio();
+                    }
+                  },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        child: CachedNetworkImage(
+                          imageUrl: _story!.mediaURL,
+                          imageBuilder: (context, imageProvider) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: imageProvider,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
                       ),
-                    )
-                  : const SizedBox.shrink(),
-              _audioStory != null
-                  ? Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Padding(
-                        padding:
-                            const EdgeInsets.only(bottom: 40.0, left: 20.0),
-                        child: SizedBox(
-                          width: 220.0,
-                          height: 24.0,
-                          child: Marquee(
-                            text: _audioStory!.audioName,
-                            style: const TextStyle(
-                              color: AppColors.backgroundColor,
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w500,
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.only(top: 42.0, right: 20.0),
+                          child: CircleAvatar(
+                            backgroundColor:
+                                AppColors.backgroundColor.withOpacity(0.5),
+                            child: IconButton(
+                              onPressed: () {
+                                _timer?.cancel();
+                                setState(() {
+                                  _progress = 0.0;
+                                });
+                                _getAudio();
+                              },
+                              icon: const Icon(
+                                Icons.refresh,
+                                color: AppColors.backgroundColor,
+                              ),
                             ),
-                            blankSpace: 20.0,
-                            velocity: 100.0,
-                            startPadding: 10.0,
-                            accelerationCurve: Curves.linear,
-                            decelerationCurve: Curves.easeOut,
                           ),
                         ),
                       ),
-                    )
-                  : const SizedBox.shrink(),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 40.0, right: 20.0),
-                  child: CircleAvatar(
-                    backgroundColor: AppColors.backgroundColor.withOpacity(0.5),
-                    radius: 20.0,
-                    child: _isPlaying
-                        ? IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _isPlaying = false;
-                                _progress = 0.0;
-                              });
-                              _audioPlayer.stop();
-                              _timer?.cancel();
-                            },
-                            icon: const Icon(
-                              Icons.pause,
-                              color: AppColors.backgroundColor,
-                            ),
-                          )
-                        : IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _isPlaying = true;
-                              });
-                              _getAudio();
-                            },
-                            icon: const Icon(
-                              Icons.play_arrow,
-                              color: AppColors.backgroundColor,
-                            ),
-                          ),
+                      _user != null
+                          ? Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 60.0, left: 20.0),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 15,
+                                      backgroundImage:
+                                          CachedNetworkImageProvider(
+                                        _user!.imageProfile!,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Text(
+                                        _user?.username ?? 'unknown',
+                                        style: const TextStyle(
+                                          color: AppColors.backgroundColor,
+                                          fontSize: 12.0,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                      _audioStory != null
+                          ? Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 40.0, left: 20.0),
+                                child: SizedBox(
+                                  width: 220.0,
+                                  height: 24.0,
+                                  child: Marquee(
+                                    text: _audioStory!.audioName,
+                                    style: const TextStyle(
+                                      color: AppColors.backgroundColor,
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    blankSpace: 20.0,
+                                    velocity: 100.0,
+                                    startPadding: 10.0,
+                                    accelerationCurve: Curves.linear,
+                                    decelerationCurve: Curves.easeOut,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ],
                   ),
-                ),
-              ),
-            ],
-          ),
+                )
+              : const LoadingFlickrComponent(),
         ),
         LinearProgressIndicator(
           value: _progress,
