@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:social_media_app/screens/home_main/create_post/media_details_screen.dart';
+import 'package:social_media_app/components/post/create_post/create_post_video_player_screen.component.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/notifications/local_notifications_plugin.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
@@ -55,11 +55,13 @@ class _AddContentPostState extends State<AddContentPost> {
     }
   }
 
-  void _navigateToMediaDetails(File file) {
+  void _navigateToVideoPlayerScreen(File videoPath) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MediaDetailScreen(file: file),
+        builder: (context) => CreatePostVideoPlayerScreenComponent(
+          videoPath: videoPath,
+        ),
       ),
     );
   }
@@ -81,14 +83,21 @@ class _AddContentPostState extends State<AddContentPost> {
               CarouselSlider.builder(
                 itemCount: widget.widgetList.length,
                 itemBuilder: (context, index, realIndex) {
-                  return GestureDetector(
-                    onTap: () =>
-                        _navigateToMediaDetails(widget.fileList[index]),
-                    child: widget.widgetList[index],
-                  );
+                  if (widget.fileList[index].path
+                      .toLowerCase()
+                      .endsWith('.mp4')) {
+                    return GestureDetector(
+                      onTap: () => _navigateToVideoPlayerScreen(
+                        widget.fileList[index],
+                      ),
+                      child: widget.widgetList[index],
+                    );
+                  } else {
+                    return widget.widgetList[index];
+                  }
                 },
                 options: CarouselOptions(
-                  height: 300.0,
+                  height: 500.0,
                   viewportFraction: 1,
                   enlargeCenterPage: true,
                   enlargeStrategy: CenterPageEnlargeStrategy.height,
@@ -118,7 +127,7 @@ class _AddContentPostState extends State<AddContentPost> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: _contentController,
-                    maxLines: 8, //or null
+                    maxLines: 5, //or null
                     decoration: const InputDecoration.collapsed(
                         hintText: "What are you thinking?"),
                   ),

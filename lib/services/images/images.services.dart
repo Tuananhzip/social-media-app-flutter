@@ -155,6 +155,7 @@ class ImageServices {
     final uint8list = await VideoThumbnail.thumbnailData(
       video: videoPath,
       imageFormat: ImageFormat.JPEG,
+      quality: 100,
     );
     final directory = await getTemporaryDirectory();
     final thumbnailPath =

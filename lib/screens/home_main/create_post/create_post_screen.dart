@@ -3,11 +3,11 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:social_media_app/components/loading/loading_flickr.dart';
-import 'package:social_media_app/components/post/create_post_image_screen.component.dart';
-import 'package:social_media_app/components/post/create_post_video_screen.component.dart';
+import 'package:social_media_app/components/post/create_post/create_post_image_screen.component.dart';
+import 'package:social_media_app/components/post/create_post/create_post_video_player_screen.component.dart';
+import 'package:social_media_app/components/post/create_post/create_post_video_screen.component.dart';
 import 'package:social_media_app/screens/home_main/create_post/add_content_post.dart';
 import 'package:social_media_app/screens/home_main/create_post/create_story/create_story_screen.dart';
-import 'package:social_media_app/screens/home_main/create_post/media_details_screen.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 import 'package:video_player/video_player.dart';
@@ -51,24 +51,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (pickedMedia == null) continue;
 
         if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
+          final thumbnailVideo =
+              await _imageServices.generateThumbnail(pickedMedia.path);
           setState(() {
             _fileList.add(pickedMedia);
-            _widgetList.add(CreatePostVideoScreenComponent(file: pickedMedia));
+            _widgetList.add(CreatePostVideoScreenComponent(
+                thumbnailVideoFile: thumbnailVideo));
           });
         } else {
           futures.add(_compressImage(pickedMedia));
         }
       }
 
-      await Future.wait(futures).then((_) => setState(() {
-            _isLoading = false;
-          }));
-      Logger().f(_widgetList.length);
-      Logger().i(pickedfileList.length);
+      await Future.wait(futures);
     } catch (error) {
-      // ignore: avoid_print
-      print("ERROR getMedia ---> $error");
       Logger().e(error);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -93,9 +94,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       });
 
       if (pickedMedia.path.toLowerCase().endsWith('.mp4')) {
+        final thumbnailVideo =
+            await _imageServices.generateThumbnail(pickedMedia.path);
         setState(() {
           _fileList.add(pickedMedia);
-          _widgetList.add(CreatePostVideoScreenComponent(file: pickedMedia));
+          _widgetList.add(CreatePostVideoScreenComponent(
+            thumbnailVideoFile: thumbnailVideo,
+          ));
         });
       } else {
         await _compressImage(pickedMedia);
@@ -127,11 +132,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
-  void _navigateToMediaDetails(File file) {
+  void _navigateToVideoPlayerScreen(File videoPath) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MediaDetailScreen(file: file),
+        builder: (context) => CreatePostVideoPlayerScreenComponent(
+          videoPath: videoPath,
+        ),
       ),
     );
   }
@@ -167,13 +174,31 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             CarouselSlider.builder(
               itemCount: _widgetList.length,
               itemBuilder: (context, index, realIndex) {
-                return GestureDetector(
-                  onTap: () => _navigateToMediaDetails(_fileList[index]),
-                  child: _widgetList[index],
-                );
+                if (_fileList[index].path.toLowerCase().endsWith('.mp4')) {
+                  return GestureDetector(
+                    onTap: () => _navigateToVideoPlayerScreen(
+                      _fileList[index],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        _widgetList[index],
+                        const Positioned.fill(
+                          child: Icon(
+                            Icons.play_arrow,
+                            size: 50.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  return _widgetList[index];
+                }
               },
               options: CarouselOptions(
-                height: 500.0,
+                height: 550.0,
                 viewportFraction: 1,
                 enlargeCenterPage: true,
                 enlargeStrategy: CenterPageEnlargeStrategy.height,
@@ -195,13 +220,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
                 child: Center(
                   child: _isLoading
-                      ? const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            LoadingFlickrComponent(),
-                            Text('Loading...')
-                          ],
-                        )
+                      ? const LoadingFlickrComponent()
                       : const Icon(
                           Icons.image_outlined,
                           size: 50,
