@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/screens/home_main/create_post/create_story/add_story_video_screen.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/audio_list.dart';
@@ -19,8 +19,7 @@ class DisplayVideoScreen extends StatefulWidget {
 }
 
 class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
-  late VideoPlayerController _controller;
-  late ChewieController _chewieController;
+  late VideoPlayerController _videoController;
 
   final AudioPlayer _audioPlayer = AudioPlayer();
   Duration _duration = const Duration();
@@ -37,11 +36,7 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.file(File(widget.videoPath));
-    _controller.initialize().then((_) {
-      _initialize();
-      setState(() {});
-    });
+    _initializeVideo();
     _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
       if (mounted) {
         setState(() {
@@ -69,8 +64,7 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
-    _chewieController.dispose();
+    _videoController.dispose();
 
     _durationSubscription?.cancel();
     _playerStateSubscription?.cancel();
@@ -78,21 +72,15 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
     _audioPlayer.dispose();
   }
 
-  void _initialize() async {
-    _chewieController = ChewieController(
-      videoPlayerController: _controller,
-      aspectRatio: _controller.value.aspectRatio,
-      showControls: false,
-      autoPlay: true,
-      looping: true,
-      errorBuilder: (context, errorMessage) {
-        return Center(
-            child: Text(errorMessage,
-                style: const TextStyle(color: Colors.white)));
-      },
-    );
-    _videoDuration = _controller.value.duration;
-    _chewieController.setVolume(_isMuted ? 0 : 1);
+  void _initializeVideo() async {
+    _videoController = VideoPlayerController.file(File(widget.videoPath))
+      ..setLooping(true)
+      ..setVolume(_isMuted ? 0 : 1)
+      ..initialize().then((_) {
+        _videoController.play();
+        _videoDuration = _videoController.value.duration;
+        setState(() {});
+      });
   }
 
   @override
@@ -105,16 +93,6 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () async {
-              if (_audioUrl != null && _audioName != null) {
-                await _audioPlayer.play(AssetSource(_audioUrl!));
-                await _audioPlayer.seek(_position);
-              }
-              await _chewieController.play();
-            },
-            icon: const Icon(Icons.refresh),
-          ),
           TextButton(
             onPressed: _navigaToAddStory,
             child: Text(
@@ -126,18 +104,13 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
       ),
       body: Column(
         children: [
-          _controller.value.isInitialized
+          _videoController.value.isInitialized
               ? Stack(
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.5,
-                      child: AspectRatio(
-                        aspectRatio: _controller.value.aspectRatio,
-                        child: Chewie(
-                          controller: _chewieController,
-                        ),
-                      ),
+                      child: VideoPlayer(_videoController),
                     ),
                     Positioned(
                       top: 10.0,
@@ -155,16 +128,29 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
                             setState(() {
                               _isMuted = !_isMuted;
                               _isMuted
-                                  ? _controller.setVolume(0)
-                                  : _controller.setVolume(1);
+                                  ? _videoController.setVolume(0)
+                                  : _videoController.setVolume(1);
                             });
                           },
                         ),
                       ),
-                    )
+                    ),
+                    Positioned(
+                      bottom: 0.0,
+                      left: 0.0,
+                      right: 0.0,
+                      child: VideoProgressIndicator(
+                        _videoController,
+                        allowScrubbing: true,
+                        colors: const VideoProgressColors(
+                          playedColor: AppColors.dangerColor,
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                      ),
+                    ),
                   ],
                 )
-              : const CircularProgressIndicator(),
+              : const LoadingFlickrComponent(),
           SizedBox(
             height: 60,
             child: PageView.builder(
@@ -187,7 +173,9 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
                       _position = Duration.zero;
                     });
                     await _audioPlayer.play(AssetSource(_audioUrl!));
-                    await _chewieController.play();
+                    if (!_videoController.value.isPlaying) {
+                      await _videoController.play();
+                    }
                   },
                 );
               },
@@ -200,21 +188,21 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (_audioUrl != null) ...[
-                    CircleAvatar(
-                      radius: 35,
-                      child: IconButton(
-                        icon: Icon(
+                    GestureDetector(
+                      onTap: () async {
+                        if (_isPlaying && _videoController.value.isPlaying) {
+                          await _audioPlayer.pause();
+                          await _videoController.pause();
+                        } else {
+                          await _audioPlayer.play(AssetSource(_audioUrl!));
+                          await _videoController.play();
+                        }
+                      },
+                      child: CircleAvatar(
+                        radius: 35,
+                        child: Icon(
                           _isPlaying ? Icons.pause : Icons.play_arrow,
                         ),
-                        onPressed: () async {
-                          if (_isPlaying) {
-                            await _audioPlayer.pause();
-                            await _chewieController.play();
-                          } else {
-                            await _audioPlayer.play(AssetSource(_audioUrl!));
-                            await _chewieController.play();
-                          }
-                        },
                       ),
                     ),
                     Flexible(
@@ -295,7 +283,7 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
 
   void _navigaToAddStory() async {
     if (_audioUrl == null && _audioName == null) {
-      await _chewieController.pause();
+      await _videoController.pause();
       setState(() {});
       if (mounted) {
         Navigator.push(
@@ -312,7 +300,7 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
       }
     } else if (_duration - _position > _videoDuration) {
       await _audioPlayer.pause();
-      await _chewieController.pause();
+      await _videoController.pause();
       if (mounted) {
         Navigator.push(
           context,

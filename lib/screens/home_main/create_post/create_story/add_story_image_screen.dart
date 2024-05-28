@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:social_media_app/components/loading/loading_flickr.dart';
+import 'package:social_media_app/components/loading/loading_wave_dots.component.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
@@ -11,12 +11,13 @@ import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 
 class AddStoryImageScreen extends StatefulWidget {
-  const AddStoryImageScreen(
-      {super.key,
-      required this.image,
-      this.audioUrl,
-      this.position,
-      this.audioName});
+  const AddStoryImageScreen({
+    super.key,
+    required this.image,
+    this.audioUrl,
+    this.position,
+    this.audioName,
+  });
   final Uint8List image;
   final int? position;
   final String? audioUrl;
@@ -54,8 +55,8 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
 
   void _playAudio() async {
     if (widget.audioUrl != null && widget.position != null) {
-      _audioPlayer.play(AssetSource(widget.audioUrl!));
-      _audioPlayer.seek(Duration(seconds: widget.position!));
+      await _audioPlayer.play(AssetSource(widget.audioUrl!));
+      await _audioPlayer.seek(Duration(seconds: widget.position!));
     }
     _displayProgress();
   }
@@ -70,11 +71,11 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
           _progress = timer.tick / 15;
         });
       } else {
-        _audioPlayer.stop();
         setState(() {
           _isPlaying = false;
           _progress = 0.0;
         });
+        _audioPlayer.stop();
         timer.cancel();
       }
     });
@@ -84,7 +85,7 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
     setState(() {
       _isUploaded = true;
     });
-    final storyId = await _storyServices.addStory(widget.image);
+    final storyId = await _storyServices.addStory(image: widget.image);
     if (storyId != null) {
       if (widget.audioUrl != null &&
           widget.position != null &&
@@ -169,16 +170,16 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
                     ),
                   ),
                   _isUploaded
-                      ? const LoadingFlickrComponent()
+                      ? const LoadingWaveDotsComponent()
                       : const SizedBox.shrink(),
                 ],
               ),
             ),
             LinearProgressIndicator(
               value: _progress,
-              backgroundColor: AppColors.greyColor,
+              backgroundColor: AppColors.primaryColor,
               valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                  const AlwaysStoppedAnimation<Color>(AppColors.dangerColor),
             ),
           ],
         ),

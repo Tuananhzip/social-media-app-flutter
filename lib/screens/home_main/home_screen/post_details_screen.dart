@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:social_media_app/components/loading/loading_flickr.dart';
-import 'package:social_media_app/components/loading/shimmer_post.component.dart';
+import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/post/home_post/post_image_screen.dart';
 import 'package:social_media_app/components/post/home_post/post_srceen.component.dart';
 import 'package:social_media_app/components/post/home_post/post_video_player_screen.dart';
@@ -34,13 +33,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   final List<List<Widget>> _listMedia = [];
   final List<Posts> _listPost = [];
   Users? _user = Users();
-  bool _isDataLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _fetchListPost();
-    _fetchUser();
   }
 
   @override
@@ -50,24 +47,21 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   void _fetchListPost() async {
-    setState(() {
-      _isDataLoaded = false;
-    });
     final listDataPost =
         await _postService.getListPostByListId(widget.listPostId);
-    final List<Posts> postsDummy = listDataPost
-        .map((post) => Posts.fromMap(post.data() as Map<String, dynamic>))
-        .toList();
-    _listPost.addAll(postsDummy);
-    _checkListMedia(postsDummy);
-    setState(() {
-      _isDataLoaded = true;
-    });
-    _scrollToIndex();
-  }
+    if (listDataPost.isNotEmpty) {
+      final List<Posts> postsDummy = listDataPost
+          .map((post) => Posts.fromMap(post.data() as Map<String, dynamic>))
+          .toList();
 
-  void _fetchUser() async {
-    _user = await _userServices.getUserDetailsByID(_currentUser!.uid);
+      _user = await _userServices.getUserDetailsByID(_currentUser!.uid);
+      _listPost.addAll(postsDummy);
+      _checkListMedia(postsDummy);
+      _scrollToIndex();
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   void _scrollToIndex() {
@@ -138,7 +132,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           ],
         ),
       ),
-      body: _isDataLoaded
+      body: _listPost.isNotEmpty
           ? ListView.builder(
               controller: _scrollController,
               padding: EdgeInsets.zero,

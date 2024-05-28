@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:social_media_app/components/loading/loading_flickr.dart';
+import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/post/create_post/create_post_image_screen.component.dart';
 import 'package:social_media_app/components/post/create_post/create_post_video_player_screen.component.dart';
 import 'package:social_media_app/components/post/create_post/create_post_video_screen.component.dart';

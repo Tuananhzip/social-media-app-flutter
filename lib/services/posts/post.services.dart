@@ -56,20 +56,6 @@ class PostService {
     }
   }
 
-  Future<List<DocumentSnapshot>> loadPostsLazy(
-      {DocumentSnapshot? lastVisible}) async {
-    Query query = _postCollection
-        .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
-        .limit(10);
-
-    if (lastVisible != null) {
-      query = query.startAfterDocument(lastVisible);
-    }
-
-    QuerySnapshot querySnapshot = await query.get();
-    return querySnapshot.docs;
-  }
-
   Stream<List<Posts>> getPostsStream() {
     return _postCollection
         .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
@@ -111,6 +97,20 @@ class PostService {
       print('getListPostsForCurrentUser ERROR ---> $error');
     }
     return [];
+  }
+
+  Future<List<DocumentSnapshot>> loadPostsLazy(
+      {DocumentSnapshot? lastVisible}) async {
+    Query query = _postCollection
+        .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
+        .limit(10);
+
+    if (lastVisible != null) {
+      query = query.startAfterDocument(lastVisible);
+    }
+
+    QuerySnapshot querySnapshot = await query.get();
+    return querySnapshot.docs;
   }
 
   Future<List<DocumentSnapshot>> getListPostByListId(

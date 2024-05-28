@@ -1,5 +1,6 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/loading/loading_flickr.dart';
+import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/story/story_image_screen.component.dart';
 import 'package:social_media_app/components/story/story_video_screen.component.dart';
 import 'package:social_media_app/models/stories.dart';
@@ -25,6 +26,7 @@ class _ListStoryScreenState extends State<ListStoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.blackColor,
       body: Stack(
         alignment: Alignment.center,
         children: [
@@ -44,19 +46,32 @@ class _ListStoryScreenState extends State<ListStoryScreen> {
                       (e) => Stories.fromMap(e.data() as Map<String, dynamic>))
                   .toList();
               final listId = snapshot.data?.map((e) => e.id).toList();
-              return PageView.builder(
+              return CarouselSlider.builder(
                 itemCount: listStory?.length,
-                itemBuilder: (context, index) {
+                itemBuilder: (context, index, realIndex) {
                   if (listStory?[index].mediaType == MediaTypeEnum.image.name) {
                     return StoryImageComponentScreen(
                       storyId: listId![index],
                     );
-                  } else {
+                  } else if (listStory?[index].mediaType ==
+                      MediaTypeEnum.video.name) {
                     return StoryVideoComponentScreen(
                       storyId: listId![index],
                     );
+                  } else {
+                    return const Center(
+                      child: Text('ERROR not is image or video type'),
+                    );
                   }
                 },
+                options: CarouselOptions(
+                  autoPlay: false,
+                  height: MediaQuery.of(context).size.height,
+                  viewportFraction: 1,
+                  enlargeStrategy: CenterPageEnlargeStrategy.height,
+                  enableInfiniteScroll: false,
+                  scrollDirection: Axis.vertical,
+                ),
               );
             },
           ),

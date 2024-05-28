@@ -90,7 +90,19 @@ class _AddContentPostState extends State<AddContentPost> {
                       onTap: () => _navigateToVideoPlayerScreen(
                         widget.fileList[index],
                       ),
-                      child: widget.widgetList[index],
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          widget.widgetList[index],
+                          const Positioned.fill(
+                            child: Icon(
+                              Icons.play_arrow,
+                              size: 50.0,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   } else {
                     return widget.widgetList[index];

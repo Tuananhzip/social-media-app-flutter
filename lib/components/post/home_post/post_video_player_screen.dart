@@ -1,6 +1,6 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/loading/loading_flickr.dart';
+import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -32,8 +32,10 @@ class _VideoPlayerScreenComponentState
   @override
   void dispose() {
     super.dispose();
-    _videoPlayerController.dispose();
-    _chewieController?.dispose();
+    if (_videoPlayerController.value.isInitialized) {
+      _videoPlayerController.dispose();
+      _chewieController?.dispose();
+    }
   }
 
   void _initialize() async {

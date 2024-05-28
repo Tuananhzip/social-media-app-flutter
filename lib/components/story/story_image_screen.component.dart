@@ -4,10 +4,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
-import 'package:social_media_app/components/loading/loading_flickr.dart';
+import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/models/audio_stories.dart';
 import 'package:social_media_app/models/stories.dart';
 import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/services/users/user.services.dart';
@@ -46,15 +47,14 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
   void dispose() {
     super.dispose();
     _timer?.cancel();
-    _audioPlayer.stop();
     _audioPlayer.dispose();
   }
 
   void _getAudio() async {
     _audioStory = await _audioStoriesServices.getAudioByStoryId(widget.storyId);
     if (_audioStory != null) {
-      _audioPlayer.play(AssetSource(_audioStory!.audioLink));
-      _audioPlayer.seek(Duration(seconds: _audioStory!.position));
+      await _audioPlayer.play(AssetSource(_audioStory!.audioLink));
+      await _audioPlayer.seek(Duration(seconds: _audioStory!.position));
     }
     _displayProgress();
   }
@@ -68,22 +68,21 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
 
   void _getUserByUid(String uid) async {
     final user = await _userServices.getUserDetailsByID(uid);
-    setState(() {
-      _user = user;
-    });
+    if (mounted) {
+      setState(() {
+        _user = user;
+      });
+    }
   }
 
   void _displayProgress() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      if (timer.tick <= 15) {
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (Timer timer) {
+      if (timer.tick <= 300) {
         setState(() {
-          _progress = timer.tick / 15;
+          _progress = timer.tick / 300;
         });
       } else {
         _audioPlayer.stop();
-        setState(() {
-          _progress = 0.0;
-        });
         timer.cancel();
       }
     });
@@ -157,33 +156,44 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
                           ),
                         ),
                       ),
-                      _user != null
+                      _user != null && _story != null
                           ? Align(
                               alignment: Alignment.bottomLeft,
                               child: Padding(
                                 padding: const EdgeInsets.only(
                                     bottom: 60.0, left: 20.0),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 15,
-                                      backgroundImage:
-                                          CachedNetworkImageProvider(
-                                        _user!.imageProfile!,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      child: Text(
-                                        _user?.username ?? 'unknown',
-                                        style: const TextStyle(
-                                          color: AppColors.backgroundColor,
-                                          fontSize: 12.0,
-                                          fontWeight: FontWeight.w500,
+                                child: GestureDetector(
+                                  onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ProfileUsersScreen(
+                                                user: _user!,
+                                                uid: _story!.uid,
+                                              ))),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 15,
+                                        backgroundImage:
+                                            CachedNetworkImageProvider(
+                                          _user!.imageProfile!,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: Text(
+                                          _user?.username ?? 'unknown',
+                                          style: const TextStyle(
+                                            color: AppColors.backgroundColor,
+                                            fontSize: 12.0,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             )
@@ -205,8 +215,6 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
                                       fontWeight: FontWeight.w500,
                                     ),
                                     blankSpace: 20.0,
-                                    velocity: 100.0,
-                                    startPadding: 10.0,
                                     accelerationCurve: Curves.linear,
                                     decelerationCurve: Curves.easeOut,
                                   ),
@@ -221,9 +229,10 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
         ),
         LinearProgressIndicator(
           value: _progress,
-          backgroundColor: AppColors.greyColor,
+          backgroundColor: AppColors.primaryColor,
+          minHeight: 6.0,
           valueColor:
-              const AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+              const AlwaysStoppedAnimation<Color>(AppColors.dangerColor),
         ),
       ],
     );

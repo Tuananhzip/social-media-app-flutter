@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,16 +13,25 @@ class StoryServices {
       FirebaseFirestore.instance.collection(FirestoreCollectionNames.stories);
   final _currentUser = FirebaseAuth.instance.currentUser;
 
-  Future<String> uploadStoryToStorage(Uint8List imageData) async {
+  Future<String> uploadStoryToStorage(
+      {Uint8List? imageData, String? videoPath}) async {
     try {
-      String fileName = '${DateTime.now().microsecondsSinceEpoch}.jpg';
+      String fileName = '${DateTime.now().microsecondsSinceEpoch}';
 
       Reference ref = FirebaseStorage.instance
           .ref()
           .child(DocumentFieldNames.mediaStoryFile)
           .child(_currentUser!.email!)
           .child(fileName);
-      await ref.putData(imageData);
+      if (imageData != null) {
+        fileName += '.jpg';
+        await ref.putData(imageData);
+      } else if (videoPath != null) {
+        fileName += '.mp4';
+        File videoFile = File(videoPath);
+        await ref.putFile(videoFile);
+      }
+
       String downloadURL = await ref.getDownloadURL();
       return downloadURL;
     } catch (error) {
@@ -31,15 +41,25 @@ class StoryServices {
     }
   }
 
-  Future<String?> addStory(Uint8List imageData) async {
+  Future<String?> addStory(
+      {Uint8List? image, String? video, bool? volume}) async {
     try {
-      final mediaURL = await uploadStoryToStorage(imageData);
+      if (image == null && video == null && volume == null) return null;
+      String mediaURL = '';
+      if (image != null) {
+        mediaURL = await uploadStoryToStorage(imageData: image);
+      } else if (video != null && volume != null) {
+        mediaURL = await uploadStoryToStorage(videoPath: video);
+      }
       final Stories story = Stories(
         uid: _currentUser!.uid,
         mediaURL: mediaURL,
-        mediaType: MediaTypeEnum.image.name,
+        mediaType:
+            image != null ? MediaTypeEnum.image.name : MediaTypeEnum.video.name,
         storyCreatedTime: Timestamp.now(),
+        volume: volume,
       );
+
       final DocumentReference docRef =
           await _storyCollection.add(story.asMap());
       return docRef.id;
