@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:social_media_app/screens/home_main/create_post/create_story/add_story_image_screen.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/audio_list.dart';
+import 'package:social_media_app/utils/navigate.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 
 class DisplayPictureScreen extends StatefulWidget {
@@ -236,16 +237,18 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
   void _navigaToAddStory() async {
     if (_audioUrl == null && _audioName == null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return AddStoryImageScreen(
-              image: widget.image,
-            );
-          },
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) {
+      //       return AddStoryImageScreen(
+      //         image: widget.image,
+      //       );
+      //     },
+      //   ),
+      // );
+      navigateToScreenAnimationRightToLeft(
+          context, AddStoryImageScreen(image: widget.image));
     } else if (_duration - _position > const Duration(seconds: 15)) {
       await _audioPlayer.pause();
       if (mounted) {

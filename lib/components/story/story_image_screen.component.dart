@@ -13,6 +13,7 @@ import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/navigate.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class StoryImageComponentScreen extends StatefulWidget {
@@ -78,9 +79,11 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
   void _displayProgress() {
     _timer = Timer.periodic(const Duration(milliseconds: 50), (Timer timer) {
       if (timer.tick <= 300) {
-        setState(() {
-          _progress = timer.tick / 300;
-        });
+        if (mounted) {
+          setState(() {
+            _progress = timer.tick / 300;
+          });
+        }
       } else {
         _audioPlayer.stop();
         timer.cancel();
@@ -163,14 +166,13 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
                                 padding: const EdgeInsets.only(
                                     bottom: 60.0, left: 20.0),
                                 child: GestureDetector(
-                                  onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              ProfileUsersScreen(
-                                                user: _user!,
-                                                uid: _story!.uid,
-                                              ))),
+                                  onTap: () =>
+                                      navigateToScreenAnimationRightToLeft(
+                                          context,
+                                          ProfileUsersScreen(
+                                            user: _user!,
+                                            uid: _story!.uid,
+                                          )),
                                   child: Row(
                                     children: [
                                       CircleAvatar(

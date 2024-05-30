@@ -7,9 +7,11 @@ import 'package:social_media_app/components/field/field_default.component.dart';
 import 'package:social_media_app/components/form/general_form.component.dart';
 import 'package:social_media_app/components/text/forgot_password.component.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
+import 'package:social_media_app/screens/register/register_account.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
+import 'package:social_media_app/utils/navigate.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -80,28 +82,34 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _navigationToRegisterScreen() {
-    Navigator.pushNamed(context, "/register");
+    navigateToScreenAnimationRightToLeft(context, const RegisterScreen());
+    // Navigator.pushNamed(context, "/register");
   }
 
   Future<void> _signInWithGoogle() async {
     setState(() {
       _isLoading = true;
     });
-    final UserCredential userCredential =
+    final UserCredential? userCredential =
         await _authServices.signInWithGoogle();
-    final User? currentUser = userCredential.user;
+    if (userCredential != null) {
+      final User? currentUser = userCredential.user;
 
-    if (currentUser != null) {
-      // ignore: avoid_print
-      print('Login successed: ${currentUser.displayName}');
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => const HomeMain(),
-      ));
+      if (currentUser != null && mounted) {
+        // ignore: avoid_print
+        print('Login successed: ${currentUser.displayName}');
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) => const HomeMain(),
+        ));
+      } else {
+        // ignore: avoid_print
+        print('Login failed !!!!!!');
+      }
     } else {
       // ignore: avoid_print
-      print('Login failed !!!!!!');
+      print('Login cancelled by user');
     }
+
     setState(() {
       _isLoading = false;
     });

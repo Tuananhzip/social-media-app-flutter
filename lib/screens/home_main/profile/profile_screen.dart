@@ -10,16 +10,20 @@ import 'package:social_media_app/components/loading/loading_flickr.component.dar
 import 'package:social_media_app/components/button/button_default.component.dart';
 import 'package:social_media_app/components/loading/shimmer_full.component.dart';
 import 'package:social_media_app/components/view/photo_view_page.component.dart';
+import 'package:social_media_app/models/featured_story.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/home_screen/post_details_screen.dart';
+import 'package:social_media_app/screens/home_main/profile/add_featured_stories.dart';
 import 'package:social_media_app/screens/home_main/profile/update_profile_screen.dart';
 import 'package:social_media_app/screens/login/login.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
+import 'package:social_media_app/services/featuredStories/featured_story.service.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/navigate.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -33,21 +37,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _currentUser = FirebaseAuth.instance.currentUser;
   final UserServices _userServices = UserServices();
   final PostService _postService = PostService();
+  final FeaturedStoryServices _featuredStoryServices = FeaturedStoryServices();
   final ImageServices _imageServices = ImageServices();
+
   Users _user = Users(email: FirebaseAuth.instance.currentUser!.email!);
   late Future<List<DocumentSnapshot>> _futurePosts;
   bool _isImageLoading = false;
+  List<FeaturedStory> _featuredStories = [];
 
   @override
   initState() {
     super.initState();
     _futurePosts = _loadPosts();
+    _loadFeaturedStories();
   }
 
   Future<List<DocumentSnapshot>> _loadPosts() async {
     final List<DocumentSnapshot> posts =
         await _postService.getListPostForCurrentUser();
     return posts;
+  }
+
+  void _loadFeaturedStories() async {
+    final stories =
+        await _featuredStoryServices.getFeaturedStoriesForCurrentUser();
+    _featuredStories = stories
+        .map((featuredStory) =>
+            FeaturedStory.fromMap(featuredStory.data() as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> _refreshPosts() async {
@@ -101,12 +118,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _editProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const UpdateProfile(),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => const UpdateProfile(),
+    //   ),
+    // );
+    navigateToScreenAnimationRightToLeft(context, const UpdateProfile());
   }
 
   String? _getUsername() {
@@ -345,32 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 97,
-                      child: ListView.builder(
-                        itemCount: 15,
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          bool statusStory = false;
-                          String userName = "Trần Ngọc Khánhsdsada";
-                          List<String> nameParts = userName.split(' ');
-                          String lastName =
-                              nameParts.isNotEmpty ? nameParts.last : userName;
-                          String lastNameOverflow = lastName.length > 8
-                              ? '${lastName.substring(0, 6)}...'
-                              : lastName;
-                          String imageUser =
-                              "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
-                          return _buildListItemStory(
-                            context,
-                            index,
-                            imageUser,
-                            lastNameOverflow,
-                            statusStory,
-                          ); // username, status story video (User and VideoStories)
-                        },
-                      ),
-                    ),
+                    _buildListStory(),
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(6.0),
@@ -507,36 +500,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildListItemStory(BuildContext context, int index, String imageUser,
-      String lastNameOverflow, bool statusStory) {
-    return GestureDetector(
-      onTap: () {},
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-        child: Column(
-          children: [
-            Container(
-              width: 75,
-              height: 75,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: statusStory == true ? Colors.grey : Colors.blue,
-                  width: 4.0,
-                ),
-                image: DecorationImage(
-                  image: NetworkImage(imageUser),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Text(
-              lastNameOverflow,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            )
-          ],
-        ),
+  Widget _buildListStory() {
+    return SizedBox(
+      height: 70.0,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: _featuredStories.length + 1,
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: _featuredStories.length == index
+                ? GestureDetector(
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddFeaturedStoryScreen(),
+                        )),
+                    child: Container(
+                      width: 70.0,
+                      height: 70.0,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.background,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 3.0,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.add,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 30.0,
+                      ),
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: () {},
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 30.0,
+                          backgroundImage: CachedNetworkImageProvider(
+                              _featuredStories[index].imageUrl),
+                        ),
+                        Text(_featuredStories[index].featuredStoryDescription)
+                      ],
+                    ),
+                  ),
+          );
+        },
       ),
     );
   }

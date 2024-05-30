@@ -10,6 +10,7 @@ import 'package:social_media_app/screens/home_main/create_post/add_content_post.
 import 'package:social_media_app/screens/home_main/create_post/create_story/create_story_screen.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/utils/my_enum.dart';
+import 'package:social_media_app/utils/navigate.dart';
 import 'package:video_player/video_player.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -117,15 +118,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   void _navigateToAddContentPost() {
     if (!_isLoading) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AddContentPost(
-            fileList: _fileList,
-            widgetList: _widgetList,
-          ),
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => AddContentPost(
+      //       fileList: _fileList,
+      //       widgetList: _widgetList,
+      //     ),
+      //   ),
+      // );
+      navigateToScreenAnimationRightToLeft(context,
+          AddContentPost(fileList: _fileList, widgetList: _widgetList));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please wait, data is still loading')));
@@ -133,14 +136,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   void _navigateToVideoPlayerScreen(File videoPath) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CreatePostVideoPlayerScreenComponent(
-          videoPath: videoPath,
-        ),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => CreatePostVideoPlayerScreenComponent(
+    //       videoPath: videoPath,
+    //     ),
+    //   ),
+    // );
+    navigateToScreenAnimationRightToLeft(
+        context, CreatePostVideoPlayerScreenComponent(videoPath: videoPath));
   }
 
   @override
@@ -299,8 +304,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   child: const Text('Post'),
                 ),
                 ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const CreateStoryScreen())),
+                  onPressed: () => navigateToScreenAnimationRightToLeft(
+                      context, const CreateStoryScreen()),
                   style: ButtonStyle(
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(

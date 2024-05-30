@@ -9,6 +9,7 @@ import 'package:social_media_app/screens/home_main/home_screen/notifications_scr
 import 'package:social_media_app/services/notifications/notifications.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/my_enum.dart';
+import 'package:social_media_app/utils/navigate.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -23,12 +24,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   final UserServices _userServices = UserServices();
 
   Future<void> _onNavigateToListFriendRequests() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ListFriendRequestScreen(),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => const ListFriendRequestScreen(),
+    //   ),
+    // );
+    navigateToScreenAnimationRightToLeft(
+        context, const ListFriendRequestScreen());
     await _notificationServices.updateStatusNotificationTypeFriendRequests();
   }
 

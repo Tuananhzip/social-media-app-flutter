@@ -40,4 +40,8 @@ class DocumentFieldNames {
   static const String audioName = 'audio_name';
   static const String audioLink = 'audio_link';
   static const String position = 'position';
+  // FeaturedStories
+  static const String featuredStoryDescription = 'featured_story_description';
+  static const String featuredStoryId = 'featured_story_id';
+  static const String imageUrl = 'image_url';
 }

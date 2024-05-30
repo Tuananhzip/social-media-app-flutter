@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
-import 'package:social_media_app/components/loading/loading_wave_dots.component.dart';
 import 'package:social_media_app/models/audio_stories.dart';
 import 'package:social_media_app/models/stories.dart';
 import 'package:social_media_app/models/users.dart';
@@ -14,6 +13,7 @@ import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/navigate.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -51,11 +51,15 @@ class _MyWidgetState extends State<StoryVideoComponentScreen> {
   }
 
   void _getAudio() async {
-    _audioStory = await _audioStoriesServices.getAudioByStoryId(widget.storyId);
-    if (_audioStory != null) {
+    final audioStory =
+        await _audioStoriesServices.getAudioByStoryId(widget.storyId);
+    if (audioStory != null) {
+      setState(() {
+        _audioStory = audioStory;
+      });
       await _audioPlayer.play(AssetSource(_audioStory!.audioLink));
-      await _audioPlayer.seek(Duration(seconds: _audioStory!.position));
       await _videoPlayerController.play();
+      await _audioPlayer.seek(Duration(seconds: _audioStory!.position));
     }
   }
 
@@ -129,12 +133,6 @@ class _MyWidgetState extends State<StoryVideoComponentScreen> {
                             ? VideoPlayer(_videoPlayerController)
                             : const SizedBox.shrink(),
                       ),
-                      _videoPlayerController.value.isBuffering
-                          ? const Align(
-                              alignment: Alignment.center,
-                              child: LoadingWaveDotsComponent(),
-                            )
-                          : const SizedBox.shrink(),
                       Align(
                         alignment: Alignment.topRight,
                         child: Padding(
@@ -160,14 +158,13 @@ class _MyWidgetState extends State<StoryVideoComponentScreen> {
                                 padding: const EdgeInsets.only(
                                     bottom: 60.0, left: 20.0),
                                 child: GestureDetector(
-                                  onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              ProfileUsersScreen(
-                                                user: _user!,
-                                                uid: _story!.uid,
-                                              ))),
+                                  onTap: () =>
+                                      navigateToScreenAnimationRightToLeft(
+                                          context,
+                                          ProfileUsersScreen(
+                                            user: _user!,
+                                            uid: _story!.uid,
+                                          )),
                                   child: Row(
                                     children: [
                                       CircleAvatar(

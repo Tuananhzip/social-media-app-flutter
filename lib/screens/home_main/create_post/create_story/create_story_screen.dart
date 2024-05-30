@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_editor_plus/image_editor_plus.dart';
@@ -9,6 +8,7 @@ import 'package:social_media_app/screens/home_main/create_post/create_story/disp
 import 'package:social_media_app/screens/home_main/create_post/create_story/display_video.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/navigate.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});
@@ -75,13 +75,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ),
           );
           if (editedImage != null && mounted) {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(
-                  image: editedImage,
-                ),
-              ),
-            );
+            // Navigator.of(context).push(
+            //   MaterialPageRoute(
+            //     builder: (context) => DisplayPictureScreen(
+            //       image: editedImage,
+            //     ),
+            //   ),
+            // );
+            navigateToScreenAnimationRightToLeft(
+                context, DisplayPictureScreen(image: editedImage));
           }
         }
       }
@@ -113,11 +115,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         });
         final video = await _controller.stopVideoRecording();
         if (mounted) {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => DisplayVideoScreen(videoPath: video.path),
-            ),
-          );
+          // Navigator.of(context).push(
+          //   MaterialPageRoute(
+          //     builder: (context) => DisplayVideoScreen(videoPath: video.path),
+          //   ),
+          // );
+          navigateToScreenAnimationRightToLeft(
+              context, DisplayVideoScreen(videoPath: video.path));
         }
       }
     } catch (e) {

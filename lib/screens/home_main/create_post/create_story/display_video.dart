@@ -7,6 +7,7 @@ import 'package:social_media_app/components/loading/loading_flickr.component.dar
 import 'package:social_media_app/screens/home_main/create_post/create_story/add_story_video_screen.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/audio_list.dart';
+import 'package:social_media_app/utils/navigate.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 import 'package:video_player/video_player.dart';
 
@@ -286,17 +287,21 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
       await _videoController.pause();
       setState(() {});
       if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return AddStoryVideoScreen(
-                videoPath: widget.videoPath,
-                isMuted: _isMuted,
-              );
-            },
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) {
+        //       return AddStoryVideoScreen(
+        //         videoPath: widget.videoPath,
+        //         isMuted: _isMuted,
+        //       );
+        //     },
+        //   ),
+        // );
+        navigateToScreenAnimationRightToLeft(
+            context,
+            AddStoryVideoScreen(
+                videoPath: widget.videoPath, isMuted: _isMuted));
       }
     } else if (_duration - _position > _videoDuration) {
       await _audioPlayer.pause();

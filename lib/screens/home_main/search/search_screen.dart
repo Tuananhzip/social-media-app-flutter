@@ -9,6 +9,7 @@ import 'package:social_media_app/components/loading/shimmer_full.component.dart'
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/navigate.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -25,16 +26,19 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> getUserDetails(String docID) async {
     try {
       final user = await _userServices.getUserDetailsByID(docID);
-      Navigator.push(
-        // ignore: use_build_context_synchronously
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProfileUsersScreen(
-            user: user!,
-            uid: docID,
-          ),
-        ),
-      );
+      if (mounted) {
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ProfileUsersScreen(
+        //       user: user!,
+        //       uid: docID,
+        //     ),
+        //   ),
+        // );
+        navigateToScreenAnimationRightToLeft(
+            context, ProfileUsersScreen(user: user!, uid: docID));
+      }
     } catch (error) {
       // ignore: avoid_print
       print("getUserDetails ERROR ---> $error");

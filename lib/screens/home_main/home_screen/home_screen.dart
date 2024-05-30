@@ -30,6 +30,7 @@ import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/my_enum.dart';
+import 'package:social_media_app/utils/navigate.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class HomeScreen extends StatefulWidget {
@@ -273,12 +274,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CreatePostScreen(),
-                ),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => const CreatePostScreen(),
+              //   ),
+              // );
+              navigateToScreenAnimationRightToLeft(
+                  context, const CreatePostScreen());
             },
             icon: const Icon(Icons.add_box_outlined),
           ),
@@ -289,12 +292,14 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const NotificationsScreen(),
-                      ),
-                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => const NotificationsScreen(),
+                    //   ),
+                    // );
+                    navigateToScreenAnimationRightToLeft(
+                        context, const NotificationsScreen());
                   },
                   icon: const Icon(Icons.notifications_none_outlined),
                 ),
@@ -591,26 +596,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToLikesScreen(String postId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ListLikesScreen(postId: postId),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => ListLikesScreen(postId: postId),
+    //   ),
+    // );
+    navigateToScreenAnimationRightToLeft(
+        context, ListLikesScreen(postId: postId));
   }
 
   void _navigateToProfileScreen(String uid) async {
     final user = await _userServices.getUserDetailsByID(uid);
-    Navigator.push(
-      // ignore: use_build_context_synchronously
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfileUsersScreen(
+    // Navigator.push(
+    //   // ignore: use_build_context_synchronously
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => ProfileUsersScreen(
+    //       user: user!,
+    //       uid: uid,
+    //     ),
+    //   ),
+    // );
+    if (mounted) {
+      navigateToScreenAnimationRightToLeft(
+        context,
+        ProfileUsersScreen(
           user: user!,
           uid: uid,
         ),
-      ),
-    );
+      );
+    }
   }
 
   void _onSelectedPopupMenu(String valueSelected, String postId) {

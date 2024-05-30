@@ -9,6 +9,7 @@ import 'package:social_media_app/screens/register/register_verify.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
+import 'package:social_media_app/utils/navigate.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -139,14 +140,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         print("ERROR send email verify !!! $error");
         _emailErrorText = error.message;
       }
-      if (_isRegisterSuccess) {
+      if (_isRegisterSuccess && mounted) {
         _emailController.text = '';
         _passwordController.text = '';
         _confirmPasswordController.text = '';
-        // ignore: use_build_context_synchronously
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const RegisterVerifyScreen(),
-        ));
+        // // ignore: use_build_context_synchronously
+        // Navigator.of(context).push(MaterialPageRoute(
+        //   builder: (context) => const RegisterVerifyScreen(),
+        // ));
+        navigateToScreenAnimationRightToLeft(
+            context, const RegisterVerifyScreen());
       }
     }
     setState(() {

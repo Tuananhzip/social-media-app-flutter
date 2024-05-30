@@ -5,6 +5,7 @@ import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/postLikes/post_like.service.dart';
 import 'package:social_media_app/services/users/user.services.dart';
+import 'package:social_media_app/utils/navigate.dart';
 
 class ListLikesScreen extends StatefulWidget {
   const ListLikesScreen({super.key, required this.postId});
@@ -41,16 +42,19 @@ class _ListLikesScreenState extends State<ListLikesScreen> {
   Future<void> navigateToProfileUsersScreen(String uid) async {
     try {
       final user = await _userServices.getUserDetailsByID(uid);
-      Navigator.push(
-        // ignore: use_build_context_synchronously
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProfileUsersScreen(
-            user: user!,
-            uid: uid,
-          ),
-        ),
-      );
+      if (mounted) {
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ProfileUsersScreen(
+        //       user: user!,
+        //       uid: uid,
+        //     ),
+        //   ),
+        // );
+        navigateToScreenAnimationRightToLeft(
+            context, ProfileUsersScreen(user: user!, uid: uid));
+      }
     } catch (error) {
       // ignore: avoid_print
       print("getUserDetails ERROR ---> $error");

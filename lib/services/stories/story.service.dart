@@ -92,4 +92,17 @@ class StoryServices {
       return null;
     }
   }
+
+  Future<List<DocumentSnapshot>> getStoryByUserId(String userId) async {
+    try {
+      final QuerySnapshot querySnapshot = await _storyCollection
+          .where(DocumentFieldNames.uid, isEqualTo: userId)
+          .get();
+      return querySnapshot.docs;
+    } catch (e) {
+      // ignore: avoid_print
+      print('getStoryByUserId ERROR ---> $e');
+      return [];
+    }
+  }
 }
