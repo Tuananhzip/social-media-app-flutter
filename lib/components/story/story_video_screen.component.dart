@@ -58,8 +58,8 @@ class _MyWidgetState extends State<StoryVideoComponentScreen> {
         _audioStory = audioStory;
       });
       await _audioPlayer.play(AssetSource(_audioStory!.audioLink));
-      await _videoPlayerController.play();
       await _audioPlayer.seek(Duration(seconds: _audioStory!.position));
+      await _videoPlayerController.play();
     }
   }
 

@@ -54,7 +54,12 @@ class ImageServices {
             userDoc.data()!.containsKey(DocumentFieldNames.imageProfile) &&
             userDoc.data()![DocumentFieldNames.imageProfile] != null) {
           String oldImageUrl = userDoc.data()![DocumentFieldNames.imageProfile];
-          await FirebaseStorage.instance.refFromURL(oldImageUrl).delete();
+          try {
+            await FirebaseStorage.instance.refFromURL(oldImageUrl).delete();
+          } catch (e) {
+            // ignore: avoid_print
+            print("The file does not exist in the storage ||||||||||||||");
+          }
         }
 
         await _userCollection.doc(uid).set(

@@ -34,8 +34,8 @@ class _ListStoryScreenState extends State<ListStoryScreen> {
             future: _storyServices.getAllStory(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const Center(
-                  child: Text('Error'),
+                return Center(
+                  child: Text('Error ---> ${snapshot.error}'),
                 );
               } else if (snapshot.connectionState == ConnectionState.waiting) {
                 return const LoadingFlickrComponent();

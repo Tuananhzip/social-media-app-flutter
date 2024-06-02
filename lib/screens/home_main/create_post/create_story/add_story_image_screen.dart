@@ -53,10 +53,10 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
     _timer?.cancel();
   }
 
-  void _playAudio() async {
+  void _playAudio() {
     if (widget.audioUrl != null && widget.position != null) {
-      await _audioPlayer.play(AssetSource(widget.audioUrl!));
-      await _audioPlayer.seek(Duration(seconds: widget.position!));
+      _audioPlayer.play(AssetSource(widget.audioUrl!));
+      _audioPlayer.seek(Duration(seconds: widget.position!));
     }
     _displayProgress();
   }

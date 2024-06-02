@@ -8,7 +8,8 @@ import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
-import 'package:social_media_app/components/loading/shimmer_full.component.dart';
+import 'package:social_media_app/components/story/story_screen.component.dart';
+import 'package:social_media_app/components/story/thumbnail_story_video.component.dart';
 import 'package:social_media_app/components/view/photo_view_page.component.dart';
 import 'package:social_media_app/models/featured_story.dart';
 import 'package:social_media_app/models/posts.dart';
@@ -44,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late Future<List<DocumentSnapshot>> _futurePosts;
   bool _isImageLoading = false;
   List<FeaturedStory> _featuredStories = [];
+  List<String> _featuredStoriesId = [];
 
   @override
   initState() {
@@ -61,15 +63,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _loadFeaturedStories() async {
     final stories =
         await _featuredStoryServices.getFeaturedStoriesForCurrentUser();
+    _featuredStoriesId =
+        stories.map((featuredStory) => featuredStory.id).toList();
     _featuredStories = stories
         .map((featuredStory) =>
             FeaturedStory.fromMap(featuredStory.data() as Map<String, dynamic>))
         .toList();
+    setState(() {});
   }
 
   Future<void> _refreshPosts() async {
     setState(() {
       _futurePosts = _loadPosts();
+      _loadFeaturedStories();
     });
   }
 
@@ -77,16 +83,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final AuthenticationServices auth = AuthenticationServices();
     try {
       await auth.singOutUser();
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const LoginScreen(),
+            ),
+            (route) => false);
+      }
     } catch (error) {
       // ignore: avoid_print
       print("Sign Out ERROR (singOutUser) ---> $error");
     }
-    // ignore: use_build_context_synchronously
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
-    );
   }
 
   Future<void> _updateImageProfile() async {
@@ -226,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: CachedNetworkImage(
                               imageUrl: _getImageProfile(),
                               placeholder: (context, url) =>
-                                  const ShimmerContainerFullComponent(),
+                                  const LoadingFlickrComponent(),
                               imageBuilder: (context, imageProvider) {
                                 return SizedBox(
                                   height: 140.0,
@@ -236,15 +243,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       : Stack(
                                           children: [
                                             GestureDetector(
-                                              onTap: () => Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        PhotoViewPageComponent(
-                                                      imageProvider:
-                                                          imageProvider,
-                                                    ),
-                                                  )),
+                                              onTap: () =>
+                                                  navigateToScreenAnimationRightToLeft(
+                                                      context,
+                                                      PhotoViewPageComponent(
+                                                        imageProvider:
+                                                            imageProvider,
+                                                      )),
                                               child: Container(
                                                 width: 140.0,
                                                 height: 140.0,
@@ -408,12 +413,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             itemBuilder: (context, index) {
               return GestureDetector(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => PostDetailScreen(
-                    listPostId: listPostId,
-                    indexPost: index,
-                  ),
-                )),
+                onTap: () => navigateToScreenAnimationRightToLeft(
+                    context,
+                    PostDetailScreen(
+                      listPostId: listPostId,
+                      indexPost: index,
+                    )),
                 child: _buildGridItem(listPosts[index]),
               );
             },
@@ -502,7 +507,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildListStory() {
     return SizedBox(
-      height: 70.0,
+      height: 100.0,
       child: ListView.builder(
         padding: EdgeInsets.zero,
         itemCount: _featuredStories.length + 1,
@@ -512,40 +517,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: _featuredStories.length == index
-                ? GestureDetector(
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddFeaturedStoryScreen(),
-                        )),
-                    child: Container(
-                      width: 70.0,
-                      height: 70.0,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.background,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 3.0,
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 20.0),
+                    child: GestureDetector(
+                      onTap: () => navigateToScreenAnimationRightToLeft(
+                          context, const AddFeaturedStoryScreen()),
+                      child: Container(
+                        width: 70.0,
+                        height: 70.0,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.background,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 3.0,
+                          ),
+                          shape: BoxShape.circle,
                         ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.add,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 30.0,
+                        child: Icon(
+                          Icons.add,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 30.0,
+                        ),
                       ),
                     ),
                   )
                 : GestureDetector(
-                    onTap: () {},
+                    onTap: () => navigateToScreenAnimationRightToLeft(
+                      context,
+                      StoryComponentScreen(
+                        featuredStoryId: _featuredStoriesId[index],
+                      ),
+                    ),
                     child: Column(
                       children: [
                         CircleAvatar(
-                          radius: 30.0,
-                          backgroundImage: CachedNetworkImageProvider(
-                              _featuredStories[index].imageUrl),
+                          radius: 37.0,
+                          backgroundColor: AppColors.primaryColor,
+                          child: CircleAvatar(
+                            radius: 34.0,
+                            backgroundColor: AppColors.backgroundColor,
+                            child: _featuredStories[index]
+                                        .imageUrl
+                                        .split('.')
+                                        .last
+                                        .split('?')
+                                        .first ==
+                                    'jpg'
+                                ? CircleAvatar(
+                                    radius: 32.0,
+                                    backgroundImage: CachedNetworkImageProvider(
+                                        _featuredStories[index].imageUrl),
+                                  )
+                                : CircleAvatar(
+                                    radius: 32.0,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(32.0),
+                                      child: ThumbnailStoryVideoComponent(
+                                        videoPath:
+                                            _featuredStories[index].imageUrl,
+                                      ),
+                                    ),
+                                  ),
+                          ),
                         ),
-                        Text(_featuredStories[index].featuredStoryDescription)
+                        Text(
+                          _featuredStories[index].featuredStoryDescription != ''
+                              ? _featuredStories[index].featuredStoryDescription
+                              : 'Featured story',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        )
                       ],
                     ),
                   ),

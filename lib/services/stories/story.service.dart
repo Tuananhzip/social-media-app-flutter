@@ -16,18 +16,20 @@ class StoryServices {
   Future<String> uploadStoryToStorage(
       {Uint8List? imageData, String? videoPath}) async {
     try {
-      String fileName = '${DateTime.now().microsecondsSinceEpoch}';
-
+      String fileName = '';
+      if (imageData != null) {
+        fileName = '${DateTime.now().microsecondsSinceEpoch}.jpg';
+      } else if (videoPath != null) {
+        fileName = '${DateTime.now().microsecondsSinceEpoch}.mp4';
+      }
       Reference ref = FirebaseStorage.instance
           .ref()
           .child(DocumentFieldNames.mediaStoryFile)
           .child(_currentUser!.email!)
           .child(fileName);
       if (imageData != null) {
-        fileName += '.jpg';
         await ref.putData(imageData);
       } else if (videoPath != null) {
-        fileName += '.mp4';
         File videoFile = File(videoPath);
         await ref.putFile(videoFile);
       }
@@ -93,10 +95,23 @@ class StoryServices {
     }
   }
 
+  Future<DocumentSnapshot?> getDocStoryById(String docId) async {
+    try {
+      final DocumentSnapshot docSnapshot =
+          await _storyCollection.doc(docId).get();
+      return docSnapshot;
+    } catch (e) {
+      // ignore: avoid_print
+      print('getStoryById ERROR ---> $e');
+      return null;
+    }
+  }
+
   Future<List<DocumentSnapshot>> getStoryByUserId(String userId) async {
     try {
       final QuerySnapshot querySnapshot = await _storyCollection
           .where(DocumentFieldNames.uid, isEqualTo: userId)
+          .orderBy(DocumentFieldNames.storyCreatedTime, descending: true)
           .get();
       return querySnapshot.docs;
     } catch (e) {

@@ -73,7 +73,8 @@ class _AddFeaturedStoryScreenState extends State<AddFeaturedStoryScreen> {
                   ? () {
                       navigateToScreenAnimationRightToLeft(
                         context,
-                        const CreateFeaturedStoryScreen(),
+                        CreateFeaturedStoryScreen(
+                            selectedStories: _selectedStories),
                       );
                     }
                   : null,

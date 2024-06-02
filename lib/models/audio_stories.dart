@@ -21,6 +21,12 @@ class AudioStories {
         _audioLink = audioLink,
         _position = position;
 
+  AudioStories.empty()
+      : _storyId = '',
+        _audioName = '',
+        _audioLink = '',
+        _position = 0;
+
   factory AudioStories.fromMap(Map map) {
     return AudioStories(
       storyId: map[DocumentFieldNames.storyId],

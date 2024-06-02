@@ -70,11 +70,13 @@ class _AddStoryVideoScreenState extends State<AddStoryVideoScreen> {
     await _audioPlayer.play(AssetSource(widget.audioUrl!));
     await _audioPlayer.seek(Duration(seconds: widget.position!));
     await _videoPlayerController.play();
+    setState(() {});
   }
 
   void _playVideo() async {
     await _videoPlayerController.play();
     await _videoPlayerController.seekTo(Duration.zero);
+    setState(() {});
   }
 
   void _refresh() {
