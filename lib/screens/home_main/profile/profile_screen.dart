@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
@@ -14,12 +17,16 @@ import 'package:social_media_app/components/view/photo_view_page.component.dart'
 import 'package:social_media_app/models/featured_story.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
-import 'package:social_media_app/screens/home_main/home_screen/post_details_screen.dart';
+import 'package:social_media_app/screens/home_main/create_post/create_post_screen.dart';
+import 'package:social_media_app/screens/home_main/create_post/create_story/create_story_screen.dart';
+import 'package:social_media_app/screens/home_main/profile/post_details_screen.dart';
 import 'package:social_media_app/screens/home_main/profile/add_featured_stories.dart';
+import 'package:social_media_app/screens/home_main/profile/list_friend_screen.dart';
 import 'package:social_media_app/screens/home_main/profile/update_profile_screen.dart';
 import 'package:social_media_app/screens/login/login.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/services/featuredStories/featured_story.service.dart';
+import 'package:social_media_app/services/friendRequests/friend_request.services.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
@@ -38,11 +45,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _currentUser = FirebaseAuth.instance.currentUser;
   final UserServices _userServices = UserServices();
   final PostService _postService = PostService();
+  final FriendRequestsServices _friendRequestsServices =
+      FriendRequestsServices();
+
   final FeaturedStoryServices _featuredStoryServices = FeaturedStoryServices();
   final ImageServices _imageServices = ImageServices();
 
   Users _user = Users(email: FirebaseAuth.instance.currentUser!.email!);
   late Future<List<DocumentSnapshot>> _futurePosts;
+  late Future<int> _futureFriends;
   bool _isImageLoading = false;
   List<FeaturedStory> _featuredStories = [];
   List<String> _featuredStoriesId = [];
@@ -51,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   initState() {
     super.initState();
     _futurePosts = _loadPosts();
+    _futureFriends = _loadFriends();
     _loadFeaturedStories();
   }
 
@@ -58,6 +70,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final List<DocumentSnapshot> posts =
         await _postService.getListPostForCurrentUser();
     return posts;
+  }
+
+  Future<int> _loadFriends() async {
+    final friends =
+        await _friendRequestsServices.getCountFriendsByCurrentUser();
+    return friends;
   }
 
   void _loadFeaturedStories() async {
@@ -75,6 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _refreshPosts() async {
     setState(() {
       _futurePosts = _loadPosts();
+      _futureFriends = _loadFriends();
       _loadFeaturedStories();
     });
   }
@@ -206,11 +225,135 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             actions: [
               IconButton(
-                  onPressed: () => {},
+                  onPressed: () => showCupertinoModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 225.0,
+                            child: Column(
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.all(16.0),
+                                  width: 40.0,
+                                  height: 5.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30.0),
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                                Text(
+                                  'Create',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                Divider(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        navigateToScreenAnimationRightToLeft(
+                                      context,
+                                      const CreatePostScreen(),
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .background,
+                                            child: Icon(
+                                              Icons.grid_on_rounded,
+                                              size: 36.0,
+                                              color: Theme.of(context)
+                                                          .colorScheme
+                                                          .background ==
+                                                      AppColors.backgroundColor
+                                                  ? AppColors.blackColor
+                                                  : AppColors.backgroundColor,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16.0),
+                                            child: Text(
+                                              'Post',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelLarge,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.9,
+                                  height: 1.0,
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        navigateToScreenAnimationRightToLeft(
+                                      context,
+                                      const CreateStoryScreen(),
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .background,
+                                            child: Icon(
+                                              Icons.add_circle_outline_rounded,
+                                              size: 36.0,
+                                              color: Theme.of(context)
+                                                          .colorScheme
+                                                          .background ==
+                                                      AppColors.backgroundColor
+                                                  ? AppColors.blackColor
+                                                  : AppColors.backgroundColor,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: Text(
+                                              'Story',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelLarge,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                   icon: const Icon(Icons.add_box_outlined)),
-              IconButton(
-                  onPressed: () => {},
-                  icon: const Icon(Icons.notifications_none_outlined))
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: IconButton(
+                    onPressed: () => navigateToScreenAnimationRightToLeft(
+                          context,
+                          Container(),
+                        ),
+                    icon: const Icon(Icons.menu)),
+              )
             ],
           ),
           key: _scaffoldKey,
@@ -291,27 +434,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               },
                             ),
                           ),
-                          const Expanded(
-                            child: Column(
-                              children: [
-                                Text(
-                                  "Post",
-                                  style: TextStyle(fontSize: 22.0),
-                                ),
-                                Text("202"),
-                              ],
+                          Expanded(
+                            child: FutureBuilder(
+                              future: _futurePosts,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasError) {
+                                  return Center(
+                                      child: Text(
+                                          'Error --->: ${snapshot.error}'));
+                                } else if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const LoadingFlickrComponent();
+                                }
+                                final listPostId = snapshot.data!
+                                    .map((post) => post.id)
+                                    .toList();
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    navigateToScreenAnimationRightToLeft(
+                                        context,
+                                        PostDetailScreen(
+                                          listPostId: listPostId,
+                                          indexPost: listPostId.first.length,
+                                        ));
+                                  },
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        "Post",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                      Text("${listPostId.length}"),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                          const Expanded(
-                            child: Column(
-                              children: [
-                                Text(
-                                  "Friends",
-                                  style: TextStyle(fontSize: 22.0),
-                                ),
-                                Text("12"),
-                              ],
-                            ),
+                          Expanded(
+                            child: FutureBuilder<int>(
+                                future: _futureFriends,
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasError) {
+                                    return Center(
+                                        child: Text(
+                                            'Error --->: ${snapshot.error}'));
+                                  } else if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const LoadingFlickrComponent();
+                                  }
+                                  final countFriends = snapshot.data;
+                                  return GestureDetector(
+                                    onTap: () =>
+                                        navigateToScreenAnimationRightToLeft(
+                                            context, const ListFriendScreen()),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          "Friends",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                        ),
+                                        Text("$countFriends"),
+                                      ],
+                                    ),
+                                  );
+                                }),
                           ),
                         ],
                       ),
@@ -360,8 +552,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           Expanded(
                               child: ButtonDefaultComponent(
-                            onTap: () {},
-                            icon: Icons.person_add_alt_rounded,
+                            onTap: () => navigateToScreenAnimationRightToLeft(
+                                context, const ListFriendScreen()),
+                            icon: Icons.people_outline_rounded,
                             colorBackground:
                                 Theme.of(context).colorScheme.primary,
                           ))
@@ -369,16 +562,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     _buildListStory(),
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(6.0),
-                        child: IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.grid_4x4_outlined),
-                        ),
-                      ),
+                    SizedBox(
+                      height: 290.0,
+                      child: _buildListPost(),
                     ),
-                    _buildListPost()
                   ],
                 ),
               ),
@@ -406,8 +593,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return GridView.builder(
             padding: EdgeInsets.zero,
             itemCount: listPosts.length,
-            shrinkWrap: true,
             scrollDirection: Axis.vertical,
+            shrinkWrap: true,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
             ),
@@ -552,10 +739,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 37.0,
-                          backgroundColor: AppColors.primaryColor,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           child: CircleAvatar(
                             radius: 34.0,
-                            backgroundColor: AppColors.backgroundColor,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.background,
                             child: _featuredStories[index]
                                         .imageUrl
                                         .split('.')

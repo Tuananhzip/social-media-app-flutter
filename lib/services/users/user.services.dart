@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';
@@ -56,13 +55,8 @@ class UserServices {
     }
   }
 
-  Stream<QuerySnapshot> getUsernameStream(String searchQuery) {
-    return _usersCollection
-        .where(DocumentFieldNames.username, isGreaterThanOrEqualTo: searchQuery)
-        .where(DocumentFieldNames.username,
-            isLessThanOrEqualTo: '$searchQuery\uf7ff')
-        .snapshots()
-        .debounceTime(const Duration(milliseconds: 500));
+  Future<QuerySnapshot> getUsersOrderyByUsername() async {
+    return await _usersCollection.orderBy(DocumentFieldNames.username).get();
   }
 
   Future<Users?> getUserDetailsByID(String documentID) async {
@@ -74,6 +68,20 @@ class UserServices {
       Map<String, dynamic> userData =
           docSnapshot.data() as Map<String, dynamic>;
       return Users.fromMap(userData);
+    }
+    return null;
+  }
+
+  Future<String?> getProfileImageByCurrentUser() async {
+    try {
+      DocumentSnapshot docSnapshot =
+          await _usersCollection.doc(_currentUser!.uid).get();
+      if (docSnapshot.exists) {
+        return docSnapshot[DocumentFieldNames.imageProfile];
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print("getProfileImageByCurrentUser ERROR ---> $e");
     }
     return null;
   }

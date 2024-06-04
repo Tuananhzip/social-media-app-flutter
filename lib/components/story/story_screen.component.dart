@@ -1,7 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:marquee/marquee.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/models/audio_stories.dart';
 import 'package:social_media_app/models/stories.dart';
@@ -9,7 +8,6 @@ import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/featuredStories/featured_story.service.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:story_view/story_view.dart';
-import 'package:video_player/video_player.dart';
 
 class StoryComponentScreen extends StatefulWidget {
   const StoryComponentScreen({super.key, required this.featuredStoryId});
@@ -26,6 +24,7 @@ class _StoryComponentScreenState extends State<StoryComponentScreen> {
   final AudioStoriesServices _audioStoriesServices = AudioStoriesServices();
   final List<Stories> _stories = [];
   final List<AudioStories> _audios = [];
+  int currentIndexAudio = 0;
 
   @override
   void initState() {
@@ -35,9 +34,9 @@ class _StoryComponentScreenState extends State<StoryComponentScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _storyController.dispose();
     _audioPlayer.dispose();
+    super.dispose();
   }
 
   void _fetchStories() async {
@@ -70,6 +69,7 @@ class _StoryComponentScreenState extends State<StoryComponentScreen> {
   }
 
   void _onStoryShow(StoryItem storyItem, int index) {
+    currentIndexAudio = index;
     Logger().f("$index - ${_audios[index].audioLink}");
     if (index < _audios.length) {
       if (_audios[index].audioLink != '') {
@@ -120,7 +120,9 @@ class _StoryComponentScreenState extends State<StoryComponentScreen> {
                 storyItems: storyItems,
                 controller: _storyController,
                 onComplete: () => Navigator.pop(context),
-                onStoryShow: _onStoryShow,
+                onStoryShow: (storyItem, index) {
+                  _onStoryShow(storyItem, index);
+                },
               ),
             ),
             Positioned(

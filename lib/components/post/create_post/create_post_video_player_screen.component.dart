@@ -28,8 +28,8 @@ class _CreatePostVideoPlayerScreenComponentState
 
   @override
   void dispose() {
-    super.dispose();
     _videoPlayerController.dispose();
+    super.dispose();
   }
 
   initVideo() {

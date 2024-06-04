@@ -32,10 +32,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _formKey.currentState?.dispose();
+    super.dispose();
   }
 
   void _validateEmail(String value) {

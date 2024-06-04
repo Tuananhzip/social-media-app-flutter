@@ -19,6 +19,8 @@ class _VideoPlayerScreenComponentState
   late VideoPlayerController _videoPlayerController;
   ChewieController? _chewieController;
   bool _isVideoIntialized = false;
+  bool _isDisposed = false;
+
   @override
   void initState() {
     super.initState();
@@ -31,11 +33,10 @@ class _VideoPlayerScreenComponentState
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _videoPlayerController.dispose();
+    _chewieController?.dispose();
     super.dispose();
-    if (_videoPlayerController.value.isInitialized) {
-      _videoPlayerController.dispose();
-      _chewieController?.dispose();
-    }
   }
 
   void _initialize() async {
@@ -65,10 +66,12 @@ class _VideoPlayerScreenComponentState
         ? VisibilityDetector(
             key: Key(_videoPlayerController.dataSource.toString()),
             onVisibilityChanged: (info) {
-              if (info.visibleFraction * 100 > 50) {
-                _chewieController?.play();
-              } else {
-                _chewieController?.pause();
+              if (!_isDisposed) {
+                if (info.visibleFraction * 100 > 50 && mounted) {
+                  _chewieController?.play();
+                } else {
+                  _chewieController?.pause();
+                }
               }
             },
             child: Chewie(

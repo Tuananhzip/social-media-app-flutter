@@ -10,8 +10,8 @@ class ShimmerContainerFullComponent extends StatelessWidget {
       baseColor: Theme.of(context).colorScheme.primary,
       highlightColor: Theme.of(context).colorScheme.secondary,
       child: Container(
-        height: double.infinity,
-        width: double.infinity,
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
         color: Colors.white,
       ),
     );

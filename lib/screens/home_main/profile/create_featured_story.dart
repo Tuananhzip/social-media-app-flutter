@@ -4,7 +4,6 @@ import 'package:social_media_app/components/loading/loading_flickr.component.dar
 import 'package:social_media_app/components/story/thumbnail_story_video.component.dart';
 import 'package:social_media_app/models/stories.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
-import 'package:social_media_app/screens/home_main/profile/profile_screen.dart';
 import 'package:social_media_app/services/featuredStories/featured_story.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/utils/my_enum.dart';

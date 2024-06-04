@@ -44,10 +44,10 @@ class _MyWidgetState extends State<StoryVideoComponentScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _videoPlayerController.dispose();
     _audioPlayer.dispose();
     _timer?.cancel();
+    super.dispose();
   }
 
   void _getAudio() async {

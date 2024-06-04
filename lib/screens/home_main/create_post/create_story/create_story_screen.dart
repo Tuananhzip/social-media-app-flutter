@@ -33,8 +33,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _initCamera() async {

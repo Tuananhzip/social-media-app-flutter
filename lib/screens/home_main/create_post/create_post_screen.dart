@@ -29,16 +29,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     for (var controller in _videoControllers) {
       controller.dispose();
     }
+    super.dispose();
   }
 
   Future<void> _getMedia() async {
     try {
       final pickedfileList = await _imageServices.pickMedia();
       if (pickedfileList.isEmpty) return;
+
       setState(() {
         _fileList.clear();
         _widgetList.clear();
@@ -64,13 +65,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         }
       }
 
-      await Future.wait(futures);
+      await Future.wait(futures).then((_) => setState(() {
+            _isLoading = false;
+          }));
     } catch (error) {
       Logger().e(error);
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -106,13 +105,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       } else {
         await _compressImage(pickedMedia);
       }
-    } catch (error) {
-      //ignore:avoid_print
-      print("ERROR getImageOrVideoWithCamera ---> $error");
-    } finally {
       setState(() {
         _isLoading = false;
       });
+    } catch (error) {
+      //ignore:avoid_print
+      print("ERROR getImageOrVideoWithCamera ---> $error");
     }
   }
 

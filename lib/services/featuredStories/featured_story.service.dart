@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:social_media_app/models/featured_story.dart';
 import 'package:social_media_app/models/featured_story_detail.dart';
-import 'package:social_media_app/models/stories.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/utils/collection_names.dart';
 import 'package:social_media_app/utils/field_names.dart';

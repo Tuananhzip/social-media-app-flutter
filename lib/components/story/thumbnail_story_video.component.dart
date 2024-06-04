@@ -24,8 +24,8 @@ class _ThumbnailStoryVideoComponentState
 
   @override
   void dispose() {
-    super.dispose();
     _videoPlayerController.dispose();
+    super.dispose();
   }
 
   @override

@@ -136,6 +136,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               },
             ),
           ),
+          const Divider(height: 1.0),
           Flexible(
             child: StreamBuilder<QuerySnapshot>(
               stream: _notificationServices.getNotifications(),

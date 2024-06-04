@@ -47,10 +47,10 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _audioPlayer.stop();
     _audioPlayer.dispose();
     _timer?.cancel();
+    super.dispose();
   }
 
   void _playAudio() {

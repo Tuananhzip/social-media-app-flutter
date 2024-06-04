@@ -18,7 +18,6 @@ import 'package:social_media_app/components/post/home_post/post_video_player_scr
 import 'package:social_media_app/models/post_comments.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
-import 'package:social_media_app/screens/home_main/create_post/create_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/list_like_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
@@ -72,10 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _listScrollController.removeListener(_scrollListen);
     _listScrollController.dispose();
     _commentController.dispose();
+    super.dispose();
   }
 
   void _showComments(String postId, String uidOfPost, int indexOfCountComment,
@@ -174,14 +173,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             }
                             final Users? user = userSnapshot.data;
                             return ListTile(
-                              leading: CachedNetworkImage(
-                                imageUrl: user?.imageProfile ??
-                                    'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
-                                imageBuilder: (context, imageProvider) {
-                                  return CircleAvatar(
-                                    backgroundImage: imageProvider,
-                                  );
-                                },
+                              leading: SizedBox(
+                                height: 40.0,
+                                width: 40.0,
+                                child: CachedNetworkImage(
+                                  imageUrl: user?.imageProfile ??
+                                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                                  imageBuilder: (context, imageProvider) {
+                                    return CircleAvatar(
+                                      backgroundImage: imageProvider,
+                                    );
+                                  },
+                                ),
                               ),
                               title: Text(user?.username ?? 'Unknown'),
                               subtitle: Column(
@@ -272,21 +275,8 @@ class _HomeScreenState extends State<HomeScreen> {
               inactiveTrackColor: AppColors.blueColor,
             ),
           ),
-          IconButton(
-            onPressed: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (context) => const CreatePostScreen(),
-              //   ),
-              // );
-              navigateToScreenAnimationRightToLeft(
-                  context, const CreatePostScreen());
-            },
-            icon: const Icon(Icons.add_box_outlined),
-          ),
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: 16.0),
             child: Stack(
               alignment: Alignment.centerLeft,
               children: [

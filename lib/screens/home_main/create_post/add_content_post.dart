@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/post/create_post/create_post_video_player_screen.component.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/notifications/local_notifications_plugin.services.dart';
@@ -24,6 +25,7 @@ class AddContentPost extends StatefulWidget {
 class _AddContentPostState extends State<AddContentPost> {
   final PostService _postService = PostService();
   final TextEditingController _contentController = TextEditingController();
+  bool _isUploading = false;
 
   @override
   initState() {
@@ -32,26 +34,30 @@ class _AddContentPostState extends State<AddContentPost> {
   }
 
   Future<void> _addPost() async {
+    setState(() {
+      _isUploading = true;
+    });
     final String postText = _contentController.text;
-    if (postText.isNotEmpty || widget.fileList.isNotEmpty) {
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeMain()),
-          (Route<dynamic> route) => false);
-      DialogNotifications.notificationInfo(
-        // ignore: use_build_context_synchronously
-        context,
-        'Post uploading',
-        'New post processing upload.',
-      );
-      await _postService
-          .addPostToFirestore(postText, widget.fileList)
-          .whenComplete(() => LocalNotificationServices().showLocalNotification(
-              title: 'New post added',
-              body: 'Your new post added successfully'));
-    } else {
-      DialogNotifications.notificationInfo(context, "Can't share new post",
-          "Please enter the post content or select least one media");
+    if (mounted) {
+      if (postText.isNotEmpty || widget.fileList.isNotEmpty) {
+        DialogNotifications.notificationInfo(
+          context,
+          'Post uploading',
+          'New post processing upload.',
+        );
+        await _postService.addPostToFirestore(postText, widget.fileList).then(
+            (_) => Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomeMain()),
+                (Route<dynamic> route) => false));
+      } else {
+        DialogNotifications.notificationInfo(context, "Can't share new post",
+            "Please enter the post content or select least one media");
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _isUploading = false;
+      });
     }
   }
 
@@ -70,6 +76,7 @@ class _AddContentPostState extends State<AddContentPost> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !_isUploading,
         title: const Text('Add Content'),
         centerTitle: true,
       ),
@@ -146,19 +153,21 @@ class _AddContentPostState extends State<AddContentPost> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                height: 50,
-                width: 400,
-                child: ElevatedButton(
-                  onPressed: _addPost,
-                  child: const Text(
-                    'Share',
+            _isUploading
+                ? const LoadingFlickrComponent()
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      height: 50,
+                      width: 400,
+                      child: ElevatedButton(
+                        onPressed: _addPost,
+                        child: const Text(
+                          'Share',
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

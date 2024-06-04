@@ -64,13 +64,13 @@ class _DisplayVideoScreenState extends State<DisplayVideoScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _videoController.dispose();
 
     _durationSubscription?.cancel();
     _playerStateSubscription?.cancel();
     _positionSubscription?.cancel();
     _audioPlayer.dispose();
+    super.dispose();
   }
 
   void _initializeVideo() async {

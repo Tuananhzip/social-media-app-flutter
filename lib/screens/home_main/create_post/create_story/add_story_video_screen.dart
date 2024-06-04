@@ -50,10 +50,10 @@ class _AddStoryVideoScreenState extends State<AddStoryVideoScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _videoPlayerController.dispose();
     _audioPlayer.dispose();
     _timer?.cancel();
+    super.dispose();
   }
 
   void _initializeVideo() async {

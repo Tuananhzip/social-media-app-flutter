@@ -190,4 +190,61 @@ class FriendRequestsServices {
             .map((doc) => FriendRequest.fromMap(doc.data()))
             .toList());
   }
+
+  Future<int> getCountFriendsByCurrentUser() async {
+    try {
+      QuerySnapshot queryReceiver = await _friendRequestsCollections
+          .where(DocumentFieldNames.receiverId, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
+          .get();
+      QuerySnapshot querySender = await _friendRequestsCollections
+          .where(DocumentFieldNames.senderId, isEqualTo: _currentUser.uid)
+          .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
+          .get();
+      return queryReceiver.docs.length + querySender.docs.length;
+    } catch (error) {
+      //ignore: avoid_print
+      print('getCountFriendsByCurrentUser ERROR ---> $error');
+    }
+    return 0;
+  }
+
+  Future<List<DocumentSnapshot>> getListFriendByCurrentUser() async {
+    try {
+      List<DocumentSnapshot> listFriends = [];
+      QuerySnapshot queryReceiver = await _friendRequestsCollections
+          .where(DocumentFieldNames.receiverId, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
+          .get();
+      QuerySnapshot querySender = await _friendRequestsCollections
+          .where(DocumentFieldNames.senderId, isEqualTo: _currentUser.uid)
+          .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
+          .get();
+      for (var doc in queryReceiver.docs) {
+        String senderId = doc[DocumentFieldNames.senderId];
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection(FirestoreCollectionNames.users)
+            .doc(senderId)
+            .get();
+        if (userDoc.exists) {
+          listFriends.add(userDoc);
+        }
+      }
+      for (var doc in querySender.docs) {
+        String receiverId = doc[DocumentFieldNames.receiverId];
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection(FirestoreCollectionNames.users)
+            .doc(receiverId)
+            .get();
+        if (userDoc.exists) {
+          listFriends.add(userDoc);
+        }
+      }
+      return listFriends;
+    } catch (e) {
+      //ignore: avoid_print
+      print('getListFriend ERROR ---> $e');
+      return [];
+    }
+  }
 }

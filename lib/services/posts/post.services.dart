@@ -99,6 +99,19 @@ class PostService {
     return [];
   }
 
+  Future<int> getCountListPostForCurrentUser() async {
+    try {
+      QuerySnapshot querySnapshot = await _postCollection
+          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .get();
+      return querySnapshot.docs.length;
+    } catch (error) {
+      //ignore:avoid_print
+      print('getCountListPostForCurrentUser ERROR ---> $error');
+    }
+    return 0;
+  }
+
   Future<List<DocumentSnapshot>> loadPostsLazy(
       {DocumentSnapshot? lastVisible}) async {
     Query query = _postCollection
@@ -129,5 +142,12 @@ class PostService {
       print(e);
       return [];
     }
+  }
+
+  Future<QuerySnapshot> searchPosts(String query) async {
+    return await _postCollection
+        .where(DocumentFieldNames.postText, isGreaterThanOrEqualTo: query)
+        .where(DocumentFieldNames.postText, isLessThanOrEqualTo: '$query\uf8ff')
+        .get();
   }
 }

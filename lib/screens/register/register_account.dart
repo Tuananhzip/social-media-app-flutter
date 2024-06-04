@@ -33,11 +33,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isVisibility = false;
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _formKey.currentState?.dispose();
+    super.dispose();
   }
 
   void _validateEmail(String value) {

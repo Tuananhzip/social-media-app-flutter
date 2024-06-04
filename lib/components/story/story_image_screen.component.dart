@@ -46,9 +46,9 @@ class _StoryImageComponentScreenState extends State<StoryImageComponentScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _timer?.cancel();
     _audioPlayer.dispose();
+    super.dispose();
   }
 
   void _getAudio() async {
