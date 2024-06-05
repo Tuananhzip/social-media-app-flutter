@@ -8,6 +8,7 @@ import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/audios/audio_stories.service.dart';
 import 'package:social_media_app/services/stories/story.service.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 
 class AddStoryImageScreen extends StatefulWidget {
@@ -100,7 +101,9 @@ class _AddStoryScreenState extends State<AddStoryImageScreen> {
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => const HomeMain(),
+              builder: (context) => const HomeMain(
+                fragment: Fragments.profileScreen,
+              ),
             ),
             (route) => false);
         DialogNotifications.notificationSuccess(

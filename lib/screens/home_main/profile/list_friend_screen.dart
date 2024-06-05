@@ -7,7 +7,13 @@ import 'package:social_media_app/services/friendRequests/friend_request.services
 import 'package:social_media_app/utils/navigate.dart';
 
 class ListFriendScreen extends StatefulWidget {
-  const ListFriendScreen({super.key});
+  const ListFriendScreen({
+    super.key,
+    required this.uid,
+    this.allowPress = true,
+  });
+  final String uid;
+  final bool allowPress;
 
   @override
   State<ListFriendScreen> createState() => _ListFriendScreenState();
@@ -26,7 +32,7 @@ class _ListFriendScreenState extends State<ListFriendScreen> {
 
   void _fetchFriends() async {
     final listFriend =
-        await _friendRequestsServices.getListFriendByCurrentUser();
+        await _friendRequestsServices.getListFriendByUserId(widget.uid);
     if (listFriend.isNotEmpty) {
       final listFriendIds = listFriend.map((friend) => friend.id).toList();
       final listFriendData = listFriend
@@ -55,11 +61,13 @@ class _ListFriendScreenState extends State<ListFriendScreen> {
                   color:
                       Theme.of(context).colorScheme.primary.withOpacity(0.85),
                   child: GestureDetector(
-                    onTap: () => navigateToScreenAnimationRightToLeft(
-                        context,
-                        ProfileUsersScreen(
-                            user: _listFriends[index],
-                            uid: _listFriendIds[index])),
+                    onTap: !widget.allowPress
+                        ? null
+                        : () => navigateToScreenAnimationRightToLeft(
+                            context,
+                            ProfileUsersScreen(
+                                user: _listFriends[index],
+                                uid: _listFriendIds[index])),
                     child: ListTileFriendRequestComponent(
                       listImages: [_listFriends[index].imageProfile],
                       title: _listFriends[index].username,

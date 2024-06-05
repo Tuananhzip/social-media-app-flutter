@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/screens/login/login.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +21,9 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 1500),
-        pageBuilder: (context, animation1, animation2) => const HomeMain(),
+        pageBuilder: (context, animation1, animation2) => const HomeMain(
+          fragment: Fragments.homeScreen,
+        ),
         transitionsBuilder: (context, animation1, animation2, child) {
           return FadeTransition(
             opacity: animation1,

@@ -10,14 +10,15 @@ import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 
 class HomeMain extends StatefulWidget {
-  const HomeMain({super.key});
+  const HomeMain({super.key, required this.fragment});
+  final Fragments fragment;
 
   @override
   State<HomeMain> createState() => _HomeMainState();
 }
 
 class _HomeMainState extends State<HomeMain> {
-  Fragments _currentFragment = Fragments.homeScreen;
+  late Fragments _currentFragment;
   final UserServices _userServices = UserServices();
   String? _imageUser;
 
@@ -30,6 +31,7 @@ class _HomeMainState extends State<HomeMain> {
   @override
   void initState() {
     super.initState();
+    _currentFragment = widget.fragment;
     _getProfileImageUser();
   }
 

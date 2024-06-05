@@ -1,13 +1,28 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
-import 'package:social_media_app/components/list/list_post.component.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
+import 'package:social_media_app/components/story/story_screen.component.dart';
+import 'package:social_media_app/components/story/thumbnail_story_video.component.dart';
+import 'package:social_media_app/components/view/photo_view_page.component.dart';
+import 'package:social_media_app/models/featured_story.dart';
+import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/screens/home_main/profile/list_friend_screen.dart';
+import 'package:social_media_app/screens/home_main/profile/post_details_screen.dart';
 import 'package:social_media_app/screens/home_main/profile/update_profile_screen.dart';
+import 'package:social_media_app/services/featuredStories/featured_story.service.dart';
 import 'package:social_media_app/services/friendRequests/friend_request.services.dart';
+import 'package:social_media_app/services/images/images.services.dart';
+import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/field_names.dart';
+import 'package:social_media_app/utils/navigate.dart';
 
 class ProfileUsersScreen extends StatefulWidget {
   const ProfileUsersScreen({
@@ -24,8 +39,26 @@ class ProfileUsersScreen extends StatefulWidget {
 
 class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
   final _currentUser = FirebaseAuth.instance.currentUser;
+  final ImageServices _imageServices = ImageServices();
   final FriendRequestsServices _friendRequestsServices =
       FriendRequestsServices();
+  final PostService _postService = PostService();
+  final FeaturedStoryServices _featuredStoryServices = FeaturedStoryServices();
+  late Future<List<DocumentSnapshot>> _futurePosts;
+  final List<String> _listUidOfPosts = [];
+  late Future<int> _futureFriends;
+
+  List<FeaturedStory> _featuredStories = [];
+  List<String> _featuredStoriesId = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _futurePosts = _loadPosts();
+    _futureFriends = _loadFriends();
+    _loadFeaturedStories();
+  }
 
   void _editProfile() {
     Navigator.push(
@@ -36,17 +69,46 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
     );
   }
 
+  Future<List<DocumentSnapshot>> _loadPosts() async {
+    final List<DocumentSnapshot> posts =
+        await _postService.getListPostByUserId(widget.uid);
+    for (var post in posts) {
+      _listUidOfPosts.add(post[DocumentFieldNames.uid]);
+    }
+    return posts;
+  }
+
+  void _loadFeaturedStories() async {
+    final stories =
+        await _featuredStoryServices.getFeaturedStoriesByUserId(widget.uid);
+    _featuredStoriesId =
+        stories.map((featuredStory) => featuredStory.id).toList();
+    _featuredStories = stories
+        .map((featuredStory) =>
+            FeaturedStory.fromMap(featuredStory.data() as Map<String, dynamic>))
+        .toList();
+    setState(() {});
+  }
+
+  Future<int> _loadFriends() async {
+    final friends =
+        await _friendRequestsServices.getCountFriendsByUserId(widget.uid);
+    return friends;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(widget.user.username ?? 'Unknown user'),
+        title: Text(
+          widget.user.username ?? 'Unknown user',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
       ),
       body: SingleChildScrollView(
         child: Container(
           width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
           color: Theme.of(context).colorScheme.background,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,33 +124,100 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                         imageUrl: widget.user.imageProfile ??
                             'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
                         imageBuilder: (context, imageProvider) {
-                          return CircleAvatar(
-                            backgroundImage: imageProvider,
+                          return SizedBox(
+                            height: 140.0,
+                            width: 140.0,
+                            child: GestureDetector(
+                              onTap: () => navigateToScreenAnimationRightToLeft(
+                                  context,
+                                  PhotoViewPageComponent(
+                                    imageProvider: imageProvider,
+                                  )),
+                              child: Container(
+                                width: 140.0,
+                                height: 140.0,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
                           );
                         },
                       ),
                     ),
-                    const Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            "Post",
-                            style: TextStyle(fontSize: 22.0),
-                          ),
-                          Text("202"),
-                        ],
+                    Expanded(
+                      child: FutureBuilder(
+                        future: _futurePosts,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error --->: ${snapshot.error}'));
+                          } else if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const LoadingFlickrComponent();
+                          }
+                          final listPostId =
+                              snapshot.data!.map((post) => post.id).toList();
+
+                          return GestureDetector(
+                            onTap: () {
+                              navigateToScreenAnimationRightToLeft(
+                                  context,
+                                  PostDetailScreen(
+                                    listPostId: listPostId,
+                                    indexPost: listPostId.first.length,
+                                    listUid: _listUidOfPosts,
+                                  ));
+                            },
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Post",
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                Text("${listPostId.length}"),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    const Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            "Friends",
-                            style: TextStyle(fontSize: 22.0),
-                          ),
-                          Text("12"),
-                        ],
-                      ),
+                    Expanded(
+                      child: FutureBuilder<int>(
+                          future: _futureFriends,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error --->: ${snapshot.error}'));
+                            } else if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const LoadingFlickrComponent();
+                            }
+                            final countFriends = snapshot.data;
+                            return GestureDetector(
+                              onTap: () => navigateToScreenAnimationRightToLeft(
+                                  context,
+                                  ListFriendScreen(
+                                    uid: widget.uid,
+                                    allowPress: false,
+                                  )),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Friends",
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  Text("$countFriends"),
+                                ],
+                              ),
+                            );
+                          }),
                     ),
                   ],
                 ),
@@ -156,8 +285,13 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                 Expanded(
                                   child: ButtonDefaultComponent(
                                     text: 'Unfriend',
-                                    onTap: () => _friendRequestsServices
-                                        .unfriend(widget.uid),
+                                    onTap: () => _dialogBuilder(
+                                        context, 'You want unfriend?', () {
+                                      _friendRequestsServices
+                                          .unfriend(widget.uid);
+                                      Navigator.pop(context);
+                                    }, () => Navigator.pop(context), 'Unfriend',
+                                        'Cancel'), // dialogBuilder
                                     colorBackground:
                                         Theme.of(context).colorScheme.primary,
                                   ),
@@ -197,37 +331,13 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                   }
                 },
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 16.0),
-                child: SizedBox(
-                  height: 115,
-                  child: ListView.builder(
-                    itemCount: 15,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (context, index) {
-                      bool statusStory = false;
-                      String userName = "Trần Ngọc Khánhsdsada";
-                      List<String> nameParts = userName.split(' ');
-                      String lastName =
-                          nameParts.isNotEmpty ? nameParts.last : userName;
-                      String lastNameOverflow = lastName.length > 8
-                          ? '${lastName.substring(0, 6)}...'
-                          : lastName;
-                      String imageUser =
-                          "https://cdn.vn.alongwalk.info/vn/wp-content/uploads/2023/02/13190852/image-99-hinh-anh-con-bo-sua-cute-che-dang-yeu-dep-me-hon-2023-167626493122484.jpg";
-                      return _buildListItemStory(
-                        context,
-                        index,
-                        imageUser,
-                        lastNameOverflow,
-                        statusStory,
-                      ); // username, status story video (User and VideoStories)
-                    },
-                  ),
-                ),
+              _featuredStories.isNotEmpty
+                  ? _buildListStory()
+                  : const SizedBox.shrink(),
+              SizedBox(
+                height: 345.0,
+                child: _buildListPost(),
               ),
-              const Flexible(child: ListPostComponent())
             ],
           ),
         ),
@@ -235,36 +345,183 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
     );
   }
 
-  Widget _buildListItemStory(BuildContext context, int index, String imageUser,
-      String lastNameOverflow, bool statusStory) {
-    return GestureDetector(
-      onTap: () {},
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Container(
-              width: 75,
-              height: 75,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: statusStory == true ? Colors.grey : Colors.blue,
-                  width: 4.0,
-                ),
-                image: DecorationImage(
-                  image: NetworkImage(imageUser),
-                  fit: BoxFit.cover,
-                ),
+  Widget _buildListPost() {
+    return FutureBuilder<List<DocumentSnapshot>>(
+      future: _futurePosts,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LoadingFlickrComponent();
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error --->: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          final listPostId = snapshot.data!.map((post) => post.id).toList();
+          final listPosts = snapshot.data!
+              .map((post) => Posts.fromMap(post.data() as Map<String, dynamic>))
+              .toList();
+
+          return GridView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: listPosts.length,
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+            ),
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () => navigateToScreenAnimationRightToLeft(
+                    context,
+                    PostDetailScreen(
+                      listPostId: listPostId,
+                      indexPost: index,
+                      listUid: _listUidOfPosts,
+                    )),
+                child: _buildGridItem(listPosts[index]),
+              );
+            },
+          );
+        } else {
+          return Container();
+        }
+      },
+    );
+  }
+
+  Widget _buildGridItem(Posts post) {
+    if (post.mediaLink!.isEmpty) {
+      return _buildImage(
+          'https://t4.ftcdn.net/jpg/04/73/25/49/360_F_473254957_bxG9yf4ly7OBO5I0O5KABlN930GwaMQz.jpg');
+    } else {
+      final path = post.mediaLink!.first;
+      final extension = _getExtension(path);
+      if (extension == 'jpg' || extension == 'png' || extension == 'jpeg') {
+        return _buildImage(path);
+      } else if (extension == 'mp4') {
+        return _buildVideoThumbnail(path);
+      }
+    }
+    return const SizedBox.shrink();
+  }
+
+  String _getExtension(String path) {
+    final listPart = path.split('.');
+    final lastPart = listPart.last.toLowerCase().split('?');
+    return lastPart.first;
+  }
+
+  Widget _buildImage(String imageUrl) {
+    return Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+              width: 0.2, color: Theme.of(context).colorScheme.background),
+        ),
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          placeholder: (context, url) => Shimmer.fromColors(
+            baseColor: Theme.of(context).colorScheme.primary,
+            highlightColor: Theme.of(context).colorScheme.secondary,
+            child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: Theme.of(context).colorScheme.background),
+          ),
+          errorWidget: (context, url, error) => const Icon(Icons.error),
+          fit: BoxFit.cover,
+        ));
+  }
+
+  Widget _buildVideoThumbnail(String videoPath) {
+    return FutureBuilder<File>(
+      future: _imageServices.generateThumbnail(videoPath),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('${snapshot.error}'));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Shimmer.fromColors(
+            baseColor: Theme.of(context).colorScheme.primary,
+            highlightColor: Theme.of(context).colorScheme.secondary,
+            child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: Theme.of(context).colorScheme.background),
+          );
+        } else {
+          return Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                  width: 0.2, color: Theme.of(context).colorScheme.background),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: FileImage(snapshot.data!),
               ),
             ),
-            Text(
-              lastNameOverflow,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            )
-          ],
-        ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildListStory() {
+    return SizedBox(
+      height: 100.0,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: _featuredStories.length,
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: GestureDetector(
+              onTap: () => navigateToScreenAnimationRightToLeft(
+                context,
+                StoryComponentScreen(
+                  featuredStoryId: _featuredStoriesId[index],
+                ),
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 37.0,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: CircleAvatar(
+                      radius: 34.0,
+                      backgroundColor: Theme.of(context).colorScheme.background,
+                      child: _featuredStories[index]
+                                  .imageUrl
+                                  .split('.')
+                                  .last
+                                  .split('?')
+                                  .first ==
+                              'jpg'
+                          ? CircleAvatar(
+                              radius: 32.0,
+                              backgroundImage: CachedNetworkImageProvider(
+                                  _featuredStories[index].imageUrl),
+                            )
+                          : CircleAvatar(
+                              radius: 32.0,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(32.0),
+                                child: ThumbnailStoryVideoComponent(
+                                  videoPath: _featuredStories[index].imageUrl,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  Text(
+                    _featuredStories[index].featuredStoryDescription != ''
+                        ? _featuredStories[index].featuredStoryDescription
+                        : 'Featured story',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  )
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

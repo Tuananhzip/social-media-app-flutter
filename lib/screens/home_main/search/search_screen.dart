@@ -8,6 +8,7 @@ import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/models/posts.dart';
+import 'package:social_media_app/screens/home_main/profile/post_details_screen.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
@@ -31,6 +32,8 @@ class _SearchScreenState extends State<SearchScreen> {
   List _allResults = [];
   List _resultUsers = [];
   List<Posts> _resultPosts = [];
+  List<String> _resultPostsId = [];
+  List<String> _resultUserIdOfPosts = [];
   @override
   void initState() {
     super.initState();
@@ -88,12 +91,24 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _searchPosts(String query) async {
-    final result = await _postService.searchPosts(query).then((posts) => posts
-        .docs
-        .map((post) => Posts.fromMap(post.data() as Map<String, dynamic>))
-        .toList());
+    List<Posts> dummyPosts = [];
+    List<String> dummyPostIds = [];
+    List<String> dummyUidOfPosts = [];
+    await _postService.searchPosts(query).then((posts) => {
+          dummyPosts = posts.docs
+              .map((post) => Posts.fromMap(post.data() as Map<String, dynamic>))
+              .toList(),
+          dummyPostIds = posts.docs.map((post) => post.id).toList(),
+        });
+    if (dummyPosts.isNotEmpty) {
+      for (var post in dummyPosts) {
+        dummyUidOfPosts.add(post.uid!);
+      }
+    }
     setState(() {
-      _resultPosts = result;
+      _resultPosts = dummyPosts;
+      _resultPostsId = dummyPostIds;
+      _resultUserIdOfPosts = dummyUidOfPosts;
     });
   }
 
@@ -135,7 +150,6 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
             Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(child: _buildSearchPostsResult()),
               ],
@@ -197,12 +211,14 @@ class _SearchScreenState extends State<SearchScreen> {
           if (post.mediaLink!.first.contains('.jpg')) {
             return GestureDetector(
               onTap: () {
-                Logger().f(post.mediaLink!.first
-                    .split('.')
-                    .last
-                    .split('?')
-                    .first
-                    .toString());
+                navigateToScreenAnimationRightToLeft(
+                  context,
+                  PostDetailScreen(
+                    listPostId: _resultPostsId,
+                    indexPost: index,
+                    listUid: _resultUserIdOfPosts,
+                  ),
+                );
               },
               child: AspectRatio(
                 aspectRatio: 1 / 1,
@@ -212,12 +228,14 @@ class _SearchScreenState extends State<SearchScreen> {
           } else if (post.mediaLink!.first.contains('.mp4')) {
             return GestureDetector(
               onTap: () {
-                Logger().f(post.mediaLink!.first
-                    .split('.')
-                    .last
-                    .split('?')
-                    .first
-                    .toString());
+                navigateToScreenAnimationRightToLeft(
+                  context,
+                  PostDetailScreen(
+                    listPostId: _resultPostsId,
+                    indexPost: index,
+                    listUid: _resultUserIdOfPosts,
+                  ),
+                );
               },
               child: AspectRatio(
                 aspectRatio: 1 / 2,

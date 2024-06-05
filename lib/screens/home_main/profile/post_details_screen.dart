@@ -31,9 +31,11 @@ class PostDetailScreen extends StatefulWidget {
     super.key,
     required this.listPostId,
     required this.indexPost,
+    required this.listUid,
   });
   final List<String> listPostId;
   final int indexPost;
+  final List<String> listUid;
 
   @override
   State<PostDetailScreen> createState() => _PostDetailScreenState();
@@ -51,11 +53,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   final List<List<Widget>> _listMedia = [];
   final List<Posts> _posts = [];
+  final List<Users?> _users = [];
   final List<String> _postIds = [];
   final List<int> _postLikes = [];
   final List<int> _postComments = [];
   final List<bool> _isLiked = [];
-  Users? _user;
 
   @override
   void initState() {
@@ -81,6 +83,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       final List<String> postIds = listDataPost.map((post) => post.id).toList();
 
       final List<Future> futures = [
+        Future.wait(postsDummy
+            .map((post) => _userServices.getUserDetailsByID(post.uid!))
+            .toList()),
         Future.wait(listDataPost
             .map((post) => _postLikeServices.getQuantityPostLikes(post.id))
             .toList()),
@@ -93,16 +98,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       ];
       final List results = await Future.wait(futures);
 
-      final List<int> postLikes = results[0];
-      final List<int> postComments = results[1];
-      final List<bool> isLiked = results[2];
+      final List<Users?> users = results[0];
+      final List<int> postLikes = results[1];
+      final List<int> postComments = results[2];
+      final List<bool> isLiked = results[3];
 
+      _users.addAll(users);
       _posts.addAll(postsDummy);
       _postIds.addAll(postIds);
       _postLikes.addAll(postLikes);
       _postComments.addAll(postComments);
       _isLiked.addAll(isLiked);
-      _user = await _userServices.getUserDetailsByID(_currentUser!.uid);
 
       _checkListMedia(postsDummy);
       _scrollToIndex();
@@ -116,7 +122,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients && widget.indexPost < _posts.length) {
         _scrollController.animateTo(
-          widget.indexPost * 550.0,
+          widget.indexPost * 600.0,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
@@ -160,9 +166,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         centerTitle: true,
         title: Column(
           children: [
-            _user?.username != null
+            _users.isNotEmpty
                 ? Text(
-                    _user?.username ?? 'Unknown',
+                    _users.first?.username ?? 'Unknown',
                     style: const TextStyle(
                         color: AppColors.greyColor, fontSize: 14),
                   )
@@ -181,9 +187,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               itemCount: _posts.length,
               itemBuilder: (context, index) {
                 return PostComponent(
-                  username: _user?.username ?? 'Unknown',
+                  username: _users[index]?.username ?? 'Unknown',
                   imageUrlPosts: _listMedia[index],
-                  imageUrlProfile: _user?.imageProfile,
+                  imageUrlProfile: _users[index]?.imageProfile,
                   contentPost: _posts[index].postText ?? '',
                   createDatePost: _dateFormat(
                     _posts[index].postCreatedDate!,
@@ -348,7 +354,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                   );
                                 },
                               ),
-                              title: Text(user?.username ?? 'Unknown'),
+                              title: Text(_users[index]?.username ?? 'Unknown'),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [

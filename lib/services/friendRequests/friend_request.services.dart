@@ -209,15 +209,33 @@ class FriendRequestsServices {
     return 0;
   }
 
-  Future<List<DocumentSnapshot>> getListFriendByCurrentUser() async {
+  Future<int> getCountFriendsByUserId(String uid) async {
     try {
-      List<DocumentSnapshot> listFriends = [];
       QuerySnapshot queryReceiver = await _friendRequestsCollections
-          .where(DocumentFieldNames.receiverId, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.receiverId, isEqualTo: uid)
           .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
           .get();
       QuerySnapshot querySender = await _friendRequestsCollections
-          .where(DocumentFieldNames.senderId, isEqualTo: _currentUser.uid)
+          .where(DocumentFieldNames.senderId, isEqualTo: uid)
+          .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
+          .get();
+      return queryReceiver.docs.length + querySender.docs.length;
+    } catch (error) {
+      //ignore: avoid_print
+      print('getCountFriendsByCurrentUser ERROR ---> $error');
+    }
+    return 0;
+  }
+
+  Future<List<DocumentSnapshot>> getListFriendByUserId(String uid) async {
+    try {
+      List<DocumentSnapshot> listFriends = [];
+      QuerySnapshot queryReceiver = await _friendRequestsCollections
+          .where(DocumentFieldNames.receiverId, isEqualTo: uid)
+          .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
+          .get();
+      QuerySnapshot querySender = await _friendRequestsCollections
+          .where(DocumentFieldNames.senderId, isEqualTo: uid)
           .where(DocumentFieldNames.statusFriendRequest, isEqualTo: true)
           .get();
       for (var doc in queryReceiver.docs) {

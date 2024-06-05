@@ -85,10 +85,10 @@ class PostService {
     }
   }
 
-  Future<List<DocumentSnapshot>> getListPostForCurrentUser() async {
+  Future<List<DocumentSnapshot>> getListPostByUserId(String uid) async {
     try {
       QuerySnapshot querySnapshot = await _postCollection
-          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.uid, isEqualTo: uid)
           .orderBy(DocumentFieldNames.postCreatedDate, descending: true)
           .get();
       return querySnapshot.docs;
@@ -99,10 +99,10 @@ class PostService {
     return [];
   }
 
-  Future<int> getCountListPostForCurrentUser() async {
+  Future<int> getCountListPostByUserId(String uid) async {
     try {
       QuerySnapshot querySnapshot = await _postCollection
-          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.uid, isEqualTo: uid)
           .get();
       return querySnapshot.docs.length;
     } catch (error) {

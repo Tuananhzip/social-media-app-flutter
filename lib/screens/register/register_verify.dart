@@ -5,6 +5,7 @@ import 'package:social_media_app/components/form/general_form.component.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 
 class RegisterVerifyScreen extends StatefulWidget {
   const RegisterVerifyScreen({super.key});
@@ -36,7 +37,9 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
           // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(
-            builder: (context) => const HomeMain(),
+            builder: (context) => const HomeMain(
+              fragment: Fragments.homeScreen,
+            ),
           ),
           ModalRoute.withName('/'));
     }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:social_media_app/components/loading/shimmer_comment.component.dart';
+import 'package:social_media_app/components/comment/comment_post.component.dart';
 import 'package:social_media_app/components/loading/shimmer_post.component.dart';
 import 'package:social_media_app/components/post/home_post/post_image_screen.dart';
 import 'package:social_media_app/components/post/home_post/post_srceen.component.dart';
@@ -18,6 +17,7 @@ import 'package:social_media_app/components/post/home_post/post_video_player_scr
 import 'package:social_media_app/models/post_comments.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/screens/home_main/home_screen/list_like_post_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
@@ -101,148 +101,106 @@ class _HomeScreenState extends State<HomeScreen> {
 
     showCupertinoModalBottomSheet(
       context: context,
-      builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.8,
-        width: MediaQuery.of(context).size.width,
-        child: Scaffold(
-          resizeToAvoidBottomInset: true,
-          body: Column(
-            children: [
-              const Center(
-                child: SizedBox(
-                  width: 80.0,
-                  height: 24.0,
+      builder: (context) => SingleChildScrollView(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.8,
+          width: MediaQuery.of(context).size.width,
+          child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            body: Column(
+              children: [
+                const Center(
+                  child: SizedBox(
+                    width: 80.0,
+                    height: 24.0,
+                    child: Divider(
+                      color: AppColors.grayAccentColor,
+                      thickness: 5.0,
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    'Comments',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 16.0),
                   child: Divider(
-                    color: AppColors.grayAccentColor,
-                    thickness: 5.0,
+                    color: AppColors.greyColor,
+                    height: 1.0,
                   ),
                 ),
-              ),
-              Center(
-                child: Text(
-                  'Comments',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(top: 16.0),
-                child: Divider(
-                  color: AppColors.greyColor,
-                  height: 1.0,
-                ),
-              ),
-              Expanded(
-                child: StreamBuilder<List<PostComments>>(
-                  stream: _postCommentServices.getPostComments(postId),
-                  builder: (context, commentsSnapshot) {
-                    if (commentsSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return LoadingAnimationWidget.flickr(
-                        leftDotColor: AppColors.loadingLeftBlue,
-                        rightDotColor: AppColors.loadingRightRed,
-                        size: 30.0,
-                      );
-                    } else if (commentsSnapshot.hasError) {
-                      return Center(
-                        child: Text(
-                            'Error loading comments ---> ${commentsSnapshot.error}'),
-                      );
-                    } else if (commentsSnapshot.data!.isEmpty) {
-                      return const Center(
-                        child: Text(
-                            'You will be the first to comment on this post'),
-                      );
-                    }
-                    final List<PostComments> comment = commentsSnapshot.data!;
-                    return ListView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: comment.length,
-                      itemBuilder: (context, index) {
-                        return FutureBuilder<Users?>(
-                          future: _userServices
-                              .getUserDetailsByID(comment[index].uid),
-                          builder: (context, userSnapshot) {
-                            if (userSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const ShimmerCommentComponent();
-                            } else if (userSnapshot.hasError) {
-                              return Center(
-                                child: Text(
-                                    'Error loading comments ---> ${userSnapshot.error}'),
-                              );
-                            }
-                            final Users? user = userSnapshot.data;
-                            return ListTile(
-                              leading: SizedBox(
-                                height: 40.0,
-                                width: 40.0,
-                                child: CachedNetworkImage(
-                                  imageUrl: user?.imageProfile ??
-                                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
-                                  imageBuilder: (context, imageProvider) {
-                                    return CircleAvatar(
-                                      backgroundImage: imageProvider,
-                                    );
-                                  },
-                                ),
-                              ),
-                              title: Text(user?.username ?? 'Unknown'),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    comment[index].commentText,
-                                    style:
-                                        Theme.of(context).textTheme.labelLarge,
-                                  ),
-                                  Text(
-                                    _dateFormat(
-                                        comment[index].commentCreatedTime),
-                                    style:
-                                        Theme.of(context).textTheme.labelSmall,
-                                  )
-                                ],
-                              ),
-                            );
-                          },
+                Expanded(
+                  child: StreamBuilder<List<PostComments>>(
+                    stream: _postCommentServices.getPostComments(postId),
+                    builder: (context, commentsSnapshot) {
+                      if (commentsSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return LoadingAnimationWidget.flickr(
+                          leftDotColor: AppColors.loadingLeftBlue,
+                          rightDotColor: AppColors.loadingRightRed,
+                          size: 30.0,
                         );
-                      },
-                    );
-                  },
+                      } else if (commentsSnapshot.hasError) {
+                        return Center(
+                          child: Text(
+                              'Error loading comments ---> ${commentsSnapshot.error}'),
+                        );
+                      } else if (commentsSnapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text(
+                              'You will be the first to comment on this post'),
+                        );
+                      }
+                      final List<PostComments> comment = commentsSnapshot.data!;
+                      return ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: comment.length,
+                        itemBuilder: (context, index) {
+                          return CommentPostComponent(
+                            uid: comment[index].uid,
+                            comments: comment[index],
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                color: Theme.of(context).colorScheme.primary,
-                child: TextField(
-                  autofocus: autofocus,
-                  controller: _commentController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.background,
-                    hintText: 'Add a comment...',
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
-                      vertical: 10.0,
-                    ),
-                    suffixIcon: ValueListenableBuilder(
-                      valueListenable: _commentController,
-                      builder: (context, value, child) {
-                        return value.text.trim().isNotEmpty
-                            ? IconButton(
-                                onPressed: addComment,
-                                icon: const Icon(Icons.send),
-                              )
-                            : const SizedBox.shrink();
-                      },
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  color: Theme.of(context).colorScheme.primary,
+                  child: TextField(
+                    autofocus: autofocus,
+                    controller: _commentController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.background,
+                      hintText: 'Add a comment...',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 10.0,
+                      ),
+                      suffixIcon: ValueListenableBuilder(
+                        valueListenable: _commentController,
+                        builder: (context, value, child) {
+                          return value.text.trim().isNotEmpty
+                              ? IconButton(
+                                  onPressed: addComment,
+                                  icon: const Icon(Icons.send),
+                                )
+                              : const SizedBox.shrink();
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -252,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text(
           "Minthwhite",
@@ -597,25 +555,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToProfileScreen(String uid) async {
-    final user = await _userServices.getUserDetailsByID(uid);
-    // Navigator.push(
-    //   // ignore: use_build_context_synchronously
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => ProfileUsersScreen(
-    //       user: user!,
-    //       uid: uid,
-    //     ),
-    //   ),
-    // );
-    if (mounted) {
-      navigateToScreenAnimationRightToLeft(
+    if (uid == _currentUser!.uid) {
+      Navigator.pushReplacement(
         context,
-        ProfileUsersScreen(
-          user: user!,
-          uid: uid,
+        MaterialPageRoute(
+          builder: (context) =>
+              const HomeMain(fragment: Fragments.profileScreen),
         ),
       );
+    } else {
+      final user = await _userServices.getUserDetailsByID(uid);
+      if (mounted) {
+        navigateToScreenAnimationRightToLeft(
+          context,
+          ProfileUsersScreen(
+            user: user!,
+            uid: uid,
+          ),
+        );
+      }
     }
   }
 

@@ -11,6 +11,7 @@ import 'package:social_media_app/screens/register/register_account.dart';
 import 'package:social_media_app/services/authentication/authentication.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/handle_icon_field.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 import 'package:social_media_app/utils/navigate.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -99,7 +100,9 @@ class _LoginScreenState extends State<LoginScreen> {
         // ignore: avoid_print
         print('Login successed: ${currentUser.displayName}');
         Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => const HomeMain(),
+          builder: (context) => const HomeMain(
+            fragment: Fragments.homeScreen,
+          ),
         ));
       } else {
         // ignore: avoid_print

@@ -13,10 +13,10 @@ class FeaturedStoryServices {
       .collection(FirestoreCollectionNames.featuredStoriesDetail);
   final _featuredStoriesCollection = FirebaseFirestore.instance
       .collection(FirestoreCollectionNames.featuredStories);
-  Future<List<DocumentSnapshot>> getFeaturedStoriesForCurrentUser() async {
+  Future<List<DocumentSnapshot>> getFeaturedStoriesByUserId(String uid) async {
     try {
       final featuredStories = await _featuredStoriesCollection
-          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.uid, isEqualTo: uid)
           .get();
       return featuredStories.docs;
     } catch (e) {

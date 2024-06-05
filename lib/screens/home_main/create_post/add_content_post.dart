@@ -5,8 +5,8 @@ import 'package:logger/logger.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/post/create_post/create_post_video_player_screen.component.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
-import 'package:social_media_app/services/notifications/local_notifications_plugin.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 
 class AddContentPost extends StatefulWidget {
@@ -45,9 +45,13 @@ class _AddContentPostState extends State<AddContentPost> {
           'Post uploading',
           'New post processing upload.',
         );
-        await _postService.addPostToFirestore(postText, widget.fileList).then(
-            (_) => Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const HomeMain()),
+        await _postService
+            .addPostToFirestore(postText, widget.fileList)
+            .then((_) => Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                    builder: (context) => const HomeMain(
+                          fragment: Fragments.profileScreen,
+                        )),
                 (Route<dynamic> route) => false));
       } else {
         DialogNotifications.notificationInfo(context, "Can't share new post",

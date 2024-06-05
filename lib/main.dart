@@ -7,6 +7,7 @@ import 'package:social_media_app/screens/splash/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:social_media_app/services/notifications/local_notifications_plugin.services.dart';
 import 'package:social_media_app/theme/theme_provider.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 import 'firebase/firebase_options.dart';
 
 void main() async {
@@ -33,7 +34,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/home-main': (context) => const HomeMain(),
+        '/home-main': (context) =>
+            const HomeMain(fragment: Fragments.homeScreen),
       },
     );
   }

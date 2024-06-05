@@ -68,7 +68,9 @@ class _CreateFeaturedStoryScreenState extends State<CreateFeaturedStoryScreen> {
       });
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => const HomeMain(),
+            builder: (context) => const HomeMain(
+              fragment: Fragments.profileScreen,
+            ),
           ),
           (route) => false);
       DialogNotifications.notificationSuccess(

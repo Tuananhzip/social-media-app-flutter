@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shimmer/shimmer.dart';
@@ -31,6 +29,7 @@ import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/field_names.dart';
 import 'package:social_media_app/utils/navigate.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -57,6 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isImageLoading = false;
   List<FeaturedStory> _featuredStories = [];
   List<String> _featuredStoriesId = [];
+  final List<String> _listUidOfPosts = [];
 
   @override
   initState() {
@@ -68,7 +68,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<List<DocumentSnapshot>> _loadPosts() async {
     final List<DocumentSnapshot> posts =
-        await _postService.getListPostForCurrentUser();
+        await _postService.getListPostByUserId(_currentUser!.uid);
+    for (var post in posts) {
+      _listUidOfPosts.add(post[DocumentFieldNames.uid]);
+    }
     return posts;
   }
 
@@ -79,8 +82,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _loadFeaturedStories() async {
-    final stories =
-        await _featuredStoryServices.getFeaturedStoriesForCurrentUser();
+    final stories = await _featuredStoryServices
+        .getFeaturedStoriesByUserId(_currentUser!.uid);
     _featuredStoriesId =
         stories.map((featuredStory) => featuredStory.id).toList();
     _featuredStories = stories
@@ -457,6 +460,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         PostDetailScreen(
                                           listPostId: listPostId,
                                           indexPost: listPostId.first.length,
+                                          listUid: _listUidOfPosts,
                                         ));
                                   },
                                   child: Column(
@@ -490,7 +494,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   return GestureDetector(
                                     onTap: () =>
                                         navigateToScreenAnimationRightToLeft(
-                                            context, const ListFriendScreen()),
+                                            context,
+                                            ListFriendScreen(
+                                              uid: _currentUser!.uid,
+                                            )),
                                     child: Column(
                                       children: [
                                         Text(
@@ -553,7 +560,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Expanded(
                               child: ButtonDefaultComponent(
                             onTap: () => navigateToScreenAnimationRightToLeft(
-                                context, const ListFriendScreen()),
+                                context,
+                                ListFriendScreen(
+                                  uid: _currentUser!.uid,
+                                )),
                             icon: Icons.people_outline_rounded,
                             colorBackground:
                                 Theme.of(context).colorScheme.primary,
@@ -563,7 +573,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     _buildListStory(),
                     SizedBox(
-                      height: 290.0,
+                      height: 285.0,
                       child: _buildListPost(),
                     ),
                   ],
@@ -605,6 +615,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     PostDetailScreen(
                       listPostId: listPostId,
                       indexPost: index,
+                      listUid: _listUidOfPosts,
                     )),
                 child: _buildGridItem(listPosts[index]),
               );
