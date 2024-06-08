@@ -151,7 +151,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("Create Post"),
+        title: Text(
+          "Create Post",
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -281,7 +284,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
+                OutlinedButton(
                   onPressed: null,
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all<Color>(
@@ -299,9 +302,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ),
                     ),
                   ),
-                  child: const Text('Post'),
+                  child: Text(
+                    'Post',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
-                ElevatedButton(
+                OutlinedButton(
                   onPressed: () => navigateToScreenAnimationRightToLeft(
                       context, const CreateStoryScreen()),
                   style: ButtonStyle(
@@ -317,7 +323,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ),
                     ),
                   ),
-                  child: const Text('Story'),
+                  child: Text(
+                    'Story',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
               ],
             ),

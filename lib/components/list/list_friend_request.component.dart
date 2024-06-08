@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_app/components/loading/shimmer_full.component.dart';
+import 'package:social_media_app/utils/config.dart';
 
 class ListTileFriendRequestComponent extends StatelessWidget {
   const ListTileFriendRequestComponent({
@@ -39,8 +40,7 @@ class ListTileFriendRequestComponent extends StatelessWidget {
               Positioned(
                 left: 0,
                 child: CachedNetworkImage(
-                  imageUrl: listImages.last ??
-                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                  imageUrl: listImages.last ?? imageProfileExample,
                   imageBuilder: (context, imageProvider) {
                     return CircleAvatar(
                       backgroundImage: imageProvider,
@@ -56,8 +56,7 @@ class ListTileFriendRequestComponent extends StatelessWidget {
                 left: 20.0,
                 top: 10.0,
                 child: CachedNetworkImage(
-                  imageUrl: listImages.first ??
-                      'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                  imageUrl: listImages.first ?? imageProfileExample,
                   imageBuilder: (context, imageProvider) {
                     return CircleAvatar(
                       backgroundImage: imageProvider,

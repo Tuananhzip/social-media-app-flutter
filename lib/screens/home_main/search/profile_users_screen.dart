@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
+import 'package:social_media_app/components/loading/shimmer_tile.component.dart';
 import 'package:social_media_app/components/story/story_screen.component.dart';
 import 'package:social_media_app/components/story/thumbnail_story_video.component.dart';
 import 'package:social_media_app/components/view/photo_view_page.component.dart';
 import 'package:social_media_app/models/featured_story.dart';
 import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/screens/home_main/home_screen/message_screen/chat_screen.dart';
 import 'package:social_media_app/screens/home_main/profile/list_friend_screen.dart';
 import 'package:social_media_app/screens/home_main/profile/post_details_screen.dart';
 import 'package:social_media_app/screens/home_main/profile/update_profile_screen.dart';
@@ -21,6 +23,7 @@ import 'package:social_media_app/services/friendRequests/friend_request.services
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/config.dart';
 import 'package:social_media_app/utils/field_names.dart';
 import 'package:social_media_app/utils/navigate.dart';
 
@@ -121,8 +124,8 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                       width: 140.0,
                       height: 140.0,
                       child: CachedNetworkImage(
-                        imageUrl: widget.user.imageProfile ??
-                            'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                        imageUrl:
+                            widget.user.imageProfile ?? imageProfileExample,
                         imageBuilder: (context, imageProvider) {
                           return SizedBox(
                             height: 140.0,
@@ -158,7 +161,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                 child: Text('Error --->: ${snapshot.error}'));
                           } else if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const LoadingFlickrComponent();
+                            return const ShimmerTileComponent();
                           }
                           final listPostId =
                               snapshot.data!.map((post) => post.id).toList();
@@ -196,7 +199,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                   child: Text('Error --->: ${snapshot.error}'));
                             } else if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const LoadingFlickrComponent();
+                              return const ShimmerTileComponent();
                             }
                             final countFriends = snapshot.data;
                             return GestureDetector(
@@ -281,7 +284,7 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                           padding: const EdgeInsets.all(16.0),
                           child: Row(
                             children: [
-                              if (isFriendRequest == true)
+                              if (isFriendRequest == true) ...[
                                 Expanded(
                                   child: ButtonDefaultComponent(
                                     text: 'Unfriend',
@@ -295,8 +298,21 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                     colorBackground:
                                         Theme.of(context).colorScheme.primary,
                                   ),
-                                )
-                              else if (isFriendRequest == false)
+                                ),
+                                const SizedBox(width: 16.0),
+                                Expanded(
+                                  child: ButtonDefaultComponent(
+                                    text: 'Message',
+                                    onTap: () =>
+                                        navigateToScreenAnimationRightToLeft(
+                                      context,
+                                      ChatScreen(recipientId: widget.uid),
+                                    ),
+                                    colorBackground:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ] else if (isFriendRequest == false)
                                 Expanded(
                                   child: ButtonDefaultComponent(
                                     text: 'Cancel request',

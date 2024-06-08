@@ -19,6 +19,7 @@ import 'package:social_media_app/models/posts.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/screens/home_main/home_screen/list_like_post_screen.dart';
+import 'package:social_media_app/screens/home_main/home_screen/message_screen/list_message_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/notifications_screen.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/notifications/notifications.services.dart';
@@ -233,53 +234,50 @@ class _HomeScreenState extends State<HomeScreen> {
               inactiveTrackColor: AppColors.blueColor,
             ),
           ),
+          Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              IconButton(
+                onPressed: () => navigateToScreenAnimationRightToLeft(
+                    context, const NotificationsScreen()),
+                icon: const Icon(Icons.notifications_none_outlined),
+              ),
+              StreamBuilder<bool>(
+                stream: _notificationServices.checkNotifications(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                          'Error loading notifications ---> ${snapshot.error}'),
+                    );
+                  }
+                  if (snapshot.data == true) {
+                    return Positioned(
+                      right: 15,
+                      top: 12,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: AppColors.dangerColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => const NotificationsScreen(),
-                    //   ),
-                    // );
-                    navigateToScreenAnimationRightToLeft(
-                        context, const NotificationsScreen());
-                  },
-                  icon: const Icon(Icons.notifications_none_outlined),
-                ),
-                StreamBuilder<bool>(
-                  stream: _notificationServices.checkNotifications(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                            'Error loading notifications ---> ${snapshot.error}'),
-                      );
-                    }
-                    if (snapshot.data == true) {
-                      return Positioned(
-                        right: 15,
-                        top: 12,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(
-                            color: AppColors.dangerColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-              ],
+            child: IconButton(
+              onPressed: () => navigateToScreenAnimationRightToLeft(
+                  context, const ListMessageScreen()),
+              icon: const Icon(Icons.message_rounded),
             ),
-          ),
+          )
         ],
       ),
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -398,9 +396,11 @@ class _HomeScreenState extends State<HomeScreen> {
     List<DocumentSnapshot> postData =
         await _postService.loadPostsLazy(lastVisible: lastVisible);
     if (postData.isNotEmpty) {
-      setState(() {
-        _isDataLoaded = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isDataLoaded = false;
+        });
+      }
       _lastVisible = postData.last;
 
       postData.shuffle(); // Random shuffle list 10 posts orderBy created dated
@@ -446,9 +446,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _isLiked.addAll(isLiked);
 
       _checkMediaList(postDummy);
-      setState(() {
-        _isDataLoaded = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isDataLoaded = true;
+        });
+      }
     }
   }
 

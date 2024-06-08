@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:social_media_app/components/loading/loading_flickr.component.dart';
+import 'package:social_media_app/components/loading/shimmer_circle_avatar.component.dart';
 import 'package:video_player/video_player.dart';
 
 class ThumbnailStoryVideoComponent extends StatefulWidget {
@@ -32,6 +32,6 @@ class _ThumbnailStoryVideoComponentState
   Widget build(BuildContext context) {
     return _videoPlayerController.value.isInitialized
         ? VideoPlayer(_videoPlayerController)
-        : const LoadingFlickrComponent();
+        : const ShimmerCircleAvatarComponent();
   }
 }

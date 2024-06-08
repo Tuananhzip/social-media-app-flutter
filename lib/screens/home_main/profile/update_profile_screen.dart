@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ import 'package:social_media_app/components/field/field_edit_profile.component.d
 import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/config.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 import 'package:social_media_app/utils/notifications_dialog.dart';
 
@@ -228,13 +230,12 @@ class _UpdateProfileState extends State<UpdateProfile> {
                           height: 100.0,
                           child: CircleAvatar(
                             radius: 30.0,
-                            backgroundImage: _urlImage != null &&
-                                    _urlImage != ''
-                                ? NetworkImage(_urlImage!)
-                                : _currentUser!.photoURL != null
-                                    ? NetworkImage(_currentUser.photoURL!)
-                                    : const NetworkImage(
-                                        "https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png"),
+                            backgroundImage: CachedNetworkImageProvider(
+                                _urlImage != null && _urlImage != ''
+                                    ? _urlImage!
+                                    : _currentUser?.photoURL != null
+                                        ? _currentUser!.photoURL!
+                                        : imageProfileExample),
                           ),
                         ),
                         const Padding(

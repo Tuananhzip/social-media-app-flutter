@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:logger/logger.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:social_media_app/components/list/list_tile_user.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/models/posts.dart';
+import 'package:social_media_app/screens/home_main/home_main.dart';
 import 'package:social_media_app/screens/home_main/profile/post_details_screen.dart';
 import 'package:social_media_app/screens/home_main/search/profile_users_screen.dart';
 import 'package:social_media_app/services/images/images.services.dart';
@@ -15,6 +16,7 @@ import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
 import 'package:social_media_app/utils/field_names.dart';
+import 'package:social_media_app/utils/my_enum.dart';
 import 'package:social_media_app/utils/navigate.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -29,6 +31,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final UserServices _userServices = UserServices();
   final PostService _postService = PostService();
   final ImageServices _imageServices = ImageServices();
+  final _currentUser = FirebaseAuth.instance.currentUser;
   List _allResults = [];
   List _resultUsers = [];
   List<Posts> _resultPosts = [];
@@ -52,8 +55,17 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       final user = await _userServices.getUserDetailsByID(docID);
       if (mounted) {
-        navigateToScreenAnimationRightToLeft(
-            context, ProfileUsersScreen(user: user!, uid: docID));
+        if (docID == _currentUser!.uid) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const HomeMain(fragment: Fragments.profileScreen)),
+              (route) => false);
+        } else {
+          navigateToScreenAnimationRightToLeft(
+              context, ProfileUsersScreen(user: user!, uid: docID));
+        }
       }
     } catch (error) {
       // ignore: avoid_print
@@ -170,27 +182,10 @@ class _SearchScreenState extends State<SearchScreen> {
         final imageProfile =
             _resultUsers[index][DocumentFieldNames.imageProfile];
         final documentData = _resultUsers[index];
-        return ListTile(
-          title: Text(username),
-          subtitle: Text(description),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-          leading: CircleAvatar(
-            child: CachedNetworkImage(
-              imageUrl: imageProfile != null && imageProfile != ''
-                  ? imageProfile
-                  : "https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png",
-              imageBuilder: (context, imageProvider) => CircleAvatar(
-                backgroundImage: imageProvider,
-              ),
-              placeholder: (context, url) => Shimmer.fromColors(
-                  baseColor: Theme.of(context).colorScheme.primary,
-                  highlightColor: Theme.of(context).colorScheme.secondary,
-                  child: const CircleAvatar(
-                    backgroundColor: Colors.white,
-                  )),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
-          ),
+        return ListTileComponent(
+          username: username,
+          subtitle: description,
+          imageUrl: imageProfile,
           onTap: () => getUserDetails(documentData.id),
         );
       },

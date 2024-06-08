@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'dart:math' as math;
 
+import 'package:social_media_app/utils/config.dart';
+
 class PostComponent extends StatelessWidget {
   PostComponent({
     super.key,
@@ -64,8 +66,7 @@ class PostComponent extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: CachedNetworkImage(
-                          imageUrl: imageUrlProfile ??
-                              'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                          imageUrl: imageUrlProfile ?? imageProfileExample,
                           imageBuilder: (context, imageProvider) {
                             return CircleAvatar(
                               radius: 20,

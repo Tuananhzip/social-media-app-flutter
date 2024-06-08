@@ -6,6 +6,7 @@ import 'package:social_media_app/components/loading/shimmer_comment.component.da
 import 'package:social_media_app/models/post_comments.dart';
 import 'package:social_media_app/models/users.dart';
 import 'package:social_media_app/services/users/user.services.dart';
+import 'package:social_media_app/utils/config.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class CommentPostComponent extends StatefulWidget {
@@ -65,8 +66,7 @@ class _CommentPostComponentState extends State<CommentPostComponent> {
             height: 40.0,
             width: 40.0,
             child: CachedNetworkImage(
-              imageUrl: user?.imageProfile ??
-                  'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+              imageUrl: user?.imageProfile ?? imageProfileExample,
               imageBuilder: (context, imageProvider) {
                 return CircleAvatar(
                   backgroundImage: imageProvider,

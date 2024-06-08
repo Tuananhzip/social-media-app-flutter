@@ -22,6 +22,7 @@ import 'package:social_media_app/services/postLikes/post_like.service.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/config.dart';
 import 'package:social_media_app/utils/my_enum.dart';
 import 'package:social_media_app/utils/navigate.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -346,8 +347,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             final Users? user = userSnapshot.data;
                             return ListTile(
                               leading: CachedNetworkImage(
-                                imageUrl: user?.imageProfile ??
-                                    'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png',
+                                imageUrl:
+                                    user?.imageProfile ?? imageProfileExample,
                                 imageBuilder: (context, imageProvider) {
                                   return CircleAvatar(
                                     backgroundImage: imageProvider,

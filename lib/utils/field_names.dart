@@ -44,4 +44,11 @@ class DocumentFieldNames {
   static const String featuredStoryDescription = 'featured_story_description';
   static const String featuredStoryId = 'featured_story_id';
   static const String imageUrl = 'image_url';
+  // Messages
+  static const String recipientId = 'recipient_id';
+  static const String messageContent = 'message_content';
+  static const String messageCreatedTime = 'message_created_time';
+  // Attachments
+  static const String messageId = 'message_id';
+  static const String fileName = 'file_name';
 }

@@ -11,4 +11,6 @@ class FirestoreCollectionNames {
   static const String audioStories = 'audio_stories';
   static const String featuredStories = 'featured_stories';
   static const String featuredStoriesDetail = 'featured_stories_detail';
+  static const String messages = 'messages';
+  static const String chatRooms = 'chat_rooms';
 }

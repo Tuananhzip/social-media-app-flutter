@@ -9,6 +9,9 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:social_media_app/components/loading/loading_flickr.component.dart';
 import 'package:social_media_app/components/button/button_default.component.dart';
+import 'package:social_media_app/components/loading/shimmer_circle_avatar.component.dart';
+import 'package:social_media_app/components/loading/shimmer_full.component.dart';
+import 'package:social_media_app/components/loading/shimmer_tile.component.dart';
 import 'package:social_media_app/components/story/story_screen.component.dart';
 import 'package:social_media_app/components/story/thumbnail_story_video.component.dart';
 import 'package:social_media_app/components/view/photo_view_page.component.dart';
@@ -29,6 +32,7 @@ import 'package:social_media_app/services/images/images.services.dart';
 import 'package:social_media_app/services/posts/post.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
 import 'package:social_media_app/utils/app_colors.dart';
+import 'package:social_media_app/utils/config.dart';
 import 'package:social_media_app/utils/field_names.dart';
 import 'package:social_media_app/utils/navigate.dart';
 
@@ -53,14 +57,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Users _user = Users(email: FirebaseAuth.instance.currentUser!.email!);
   late Future<List<DocumentSnapshot>> _futurePosts;
   late Future<int> _futureFriends;
+  late Stream<DocumentSnapshot> _futureUser;
   bool _isImageLoading = false;
   List<FeaturedStory> _featuredStories = [];
   List<String> _featuredStoriesId = [];
   final List<String> _listUidOfPosts = [];
 
+  bool _isLoadingStories = false;
+
   @override
   initState() {
     super.initState();
+    _futureUser = _userServices.getUserStream();
     _futurePosts = _loadPosts();
     _futureFriends = _loadFriends();
     _loadFeaturedStories();
@@ -82,6 +90,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _loadFeaturedStories() async {
+    setState(() {
+      _isLoadingStories = true;
+    });
     final stories = await _featuredStoryServices
         .getFeaturedStoriesByUserId(_currentUser!.uid);
     _featuredStoriesId =
@@ -90,7 +101,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .map((featuredStory) =>
             FeaturedStory.fromMap(featuredStory.data() as Map<String, dynamic>))
         .toList();
-    setState(() {});
+    setState(() {
+      _isLoadingStories = false;
+    });
   }
 
   Future<void> _refreshPosts() async {
@@ -181,24 +194,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else if (_currentUser!.photoURL != null && _currentUser.photoURL != '') {
       return _currentUser.photoURL!;
     } else {
-      return 'https://theatrepugetsound.org/wp-content/uploads/2023/06/Single-Person-Icon.png';
+      return imageProfileExample;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
-      stream: _userServices.getUserStream(),
+      stream: _futureUser,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error --->: ${snapshot.error}'));
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.data!.data() != null) {
+        } else if (snapshot.hasData) {
           final Map<String, dynamic> userData =
               snapshot.data!.data() as Map<String, dynamic>;
           _user = Users.fromMap(userData);
@@ -228,126 +237,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             actions: [
               IconButton(
-                  onPressed: () => showCupertinoModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return SizedBox(
-                            width: double.infinity,
-                            height: 225.0,
-                            child: Column(
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.all(16.0),
-                                  width: 40.0,
-                                  height: 5.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                                Text(
-                                  'Create',
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
-                                ),
-                                Divider(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        navigateToScreenAnimationRightToLeft(
-                                      context,
-                                      const CreatePostScreen(),
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            backgroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .background,
-                                            child: Icon(
-                                              Icons.grid_on_rounded,
-                                              size: 36.0,
-                                              color: Theme.of(context)
-                                                          .colorScheme
-                                                          .background ==
-                                                      AppColors.backgroundColor
-                                                  ? AppColors.blackColor
-                                                  : AppColors.backgroundColor,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 16.0),
-                                            child: Text(
-                                              'Post',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .labelLarge,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.9,
-                                  height: 1.0,
-                                ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        navigateToScreenAnimationRightToLeft(
-                                      context,
-                                      const CreateStoryScreen(),
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16.0),
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            backgroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .background,
-                                            child: Icon(
-                                              Icons.add_circle_outline_rounded,
-                                              size: 36.0,
-                                              color: Theme.of(context)
-                                                          .colorScheme
-                                                          .background ==
-                                                      AppColors.backgroundColor
-                                                  ? AppColors.blackColor
-                                                  : AppColors.backgroundColor,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(16.0),
-                                            child: Text(
-                                              'Story',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .labelLarge,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                  icon: const Icon(Icons.add_box_outlined)),
+                onPressed: showPopup,
+                icon: const Icon(Icons.add_box_outlined),
+              ),
               Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: IconButton(
@@ -447,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           'Error --->: ${snapshot.error}'));
                                 } else if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return const LoadingFlickrComponent();
+                                  return const ShimmerTileComponent();
                                 }
                                 final listPostId = snapshot.data!
                                     .map((post) => post.id)
@@ -488,7 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             'Error --->: ${snapshot.error}'));
                                   } else if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return const LoadingFlickrComponent();
+                                    return const ShimmerTileComponent();
                                   }
                                   final countFriends = snapshot.data;
                                   return GestureDetector(
@@ -586,12 +478,123 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void showPopup() {
+    showCupertinoModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SizedBox(
+          width: double.infinity,
+          height: 225.0,
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.all(16.0),
+                width: 40.0,
+                height: 5.0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30.0),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Text(
+                'Create',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Divider(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => navigateToScreenAnimationRightToLeft(
+                    context,
+                    const CreatePostScreen(),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.background,
+                          child: Icon(
+                            Icons.grid_on_rounded,
+                            size: 36.0,
+                            color: Theme.of(context).colorScheme.background ==
+                                    AppColors.backgroundColor
+                                ? AppColors.blackColor
+                                : AppColors.backgroundColor,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'Post',
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                color: Theme.of(context).colorScheme.primary,
+                width: MediaQuery.of(context).size.width * 0.9,
+                height: 1.0,
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => navigateToScreenAnimationRightToLeft(
+                    context,
+                    const CreateStoryScreen(),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.background,
+                          child: Icon(
+                            Icons.add_circle_outline_rounded,
+                            size: 36.0,
+                            color: Theme.of(context).colorScheme.background ==
+                                    AppColors.backgroundColor
+                                ? AppColors.blackColor
+                                : AppColors.backgroundColor,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Story',
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildListPost() {
     return FutureBuilder<List<DocumentSnapshot>>(
       future: _futurePosts,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LoadingFlickrComponent();
+          return GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+              ),
+              itemCount: 9,
+              itemBuilder: (context, index) =>
+                  const ShimmerContainerFullComponent());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error --->: ${snapshot.error}'));
         } else if (snapshot.hasData) {
@@ -704,94 +707,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildListStory() {
-    return SizedBox(
-      height: 100.0,
-      child: ListView.builder(
-        padding: EdgeInsets.zero,
-        itemCount: _featuredStories.length + 1,
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: _featuredStories.length == index
-                ? Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
-                    child: GestureDetector(
-                      onTap: () => navigateToScreenAnimationRightToLeft(
-                          context, const AddFeaturedStoryScreen()),
-                      child: Container(
-                        width: 70.0,
-                        height: 70.0,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.background,
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 3.0,
+    return _isLoadingStories
+        ? SizedBox(
+            height: 100.0,
+            child: ListView.builder(
+                itemCount: 5,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) {
+                  return const Padding(
+                    padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 20.0),
+                    child: ShimmerCircleAvatarComponent(),
+                  );
+                }),
+          )
+        : SizedBox(
+            height: 100.0,
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: _featuredStories.length + 1,
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: _featuredStories.length == index
+                      ? Padding(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: GestureDetector(
+                            onTap: () => navigateToScreenAnimationRightToLeft(
+                                context, const AddFeaturedStoryScreen()),
+                            child: Container(
+                              width: 70.0,
+                              height: 70.0,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.background,
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 3.0,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 30.0,
+                              ),
+                            ),
                           ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.add,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 30.0,
-                        ),
-                      ),
-                    ),
-                  )
-                : GestureDetector(
-                    onTap: () => navigateToScreenAnimationRightToLeft(
-                      context,
-                      StoryComponentScreen(
-                        featuredStoryId: _featuredStoriesId[index],
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 37.0,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          child: CircleAvatar(
-                            radius: 34.0,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.background,
-                            child: _featuredStories[index]
-                                        .imageUrl
-                                        .split('.')
-                                        .last
-                                        .split('?')
-                                        .first ==
-                                    'jpg'
-                                ? CircleAvatar(
-                                    radius: 32.0,
-                                    backgroundImage: CachedNetworkImageProvider(
-                                        _featuredStories[index].imageUrl),
-                                  )
-                                : CircleAvatar(
-                                    radius: 32.0,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(32.0),
-                                      child: ThumbnailStoryVideoComponent(
-                                        videoPath:
-                                            _featuredStories[index].imageUrl,
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        Text(
-                          _featuredStories[index].featuredStoryDescription != ''
-                              ? _featuredStories[index].featuredStoryDescription
-                              : 'Featured story',
-                          style: Theme.of(context).textTheme.labelSmall,
                         )
-                      ],
-                    ),
-                  ),
+                      : GestureDetector(
+                          onTap: () => navigateToScreenAnimationRightToLeft(
+                            context,
+                            StoryComponentScreen(
+                              featuredStoryId: _featuredStoriesId[index],
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 37.0,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                child: CircleAvatar(
+                                  radius: 34.0,
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.background,
+                                  child: _featuredStories[index]
+                                              .imageUrl
+                                              .split('.')
+                                              .last
+                                              .split('?')
+                                              .first ==
+                                          'jpg'
+                                      ? CircleAvatar(
+                                          radius: 32.0,
+                                          backgroundImage:
+                                              CachedNetworkImageProvider(
+                                                  _featuredStories[index]
+                                                      .imageUrl),
+                                        )
+                                      : CircleAvatar(
+                                          radius: 32.0,
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(32.0),
+                                            child: ThumbnailStoryVideoComponent(
+                                              videoPath: _featuredStories[index]
+                                                  .imageUrl,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              Text(
+                                _featuredStories[index]
+                                            .featuredStoryDescription !=
+                                        ''
+                                    ? _featuredStories[index]
+                                        .featuredStoryDescription
+                                    : 'Featured story',
+                                style: Theme.of(context).textTheme.labelSmall,
+                              )
+                            ],
+                          ),
+                        ),
+                );
+              },
+            ),
           );
-        },
-      ),
-    );
   }
 }
