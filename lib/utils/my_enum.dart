@@ -12,6 +12,7 @@ enum NotificationTypeEnum {
   friendRequest,
   acceptFriend,
   comment,
+  message,
 }
 
 extension NotificationTypeEnumExtension on NotificationTypeEnum {
@@ -23,6 +24,8 @@ extension NotificationTypeEnumExtension on NotificationTypeEnum {
         return 'Accepted Friend';
       case NotificationTypeEnum.comment:
         return 'Comment Post';
+      case NotificationTypeEnum.message:
+        return 'Message';
     }
   }
 }

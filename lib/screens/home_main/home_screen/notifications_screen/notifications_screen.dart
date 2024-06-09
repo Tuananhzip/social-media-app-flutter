@@ -5,6 +5,7 @@ import 'package:social_media_app/components/list/list_friend_request.component.d
 import 'package:social_media_app/components/loading/shimmer_comment.component.dart';
 import 'package:social_media_app/models/notifications.dart';
 import 'package:social_media_app/models/users.dart';
+import 'package:social_media_app/screens/home_main/home_screen/message_screen/chat_screen.dart';
 import 'package:social_media_app/screens/home_main/home_screen/notifications_screen/list_friend_request_screen.dart';
 import 'package:social_media_app/services/notifications/notifications.services.dart';
 import 'package:social_media_app/services/users/user.services.dart';
@@ -54,7 +55,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   return const ShimmerCommentComponent();
                 } else if (snapshot.hasError) {
                   return Center(
-                    child: Text('ERROR : ---> ${snapshot.error}'),
+                    child: Text(
+                        'ERROR getNotificationsForFriendRequest: ---> ${snapshot.error}'),
                   );
                 } else if (snapshot.hasData) {
                   final List<Notifications> dataNotifications =
@@ -138,23 +140,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const Divider(height: 1.0),
           Flexible(
-            child: StreamBuilder<QuerySnapshot>(
+            child: StreamBuilder<List<QueryDocumentSnapshot>>(
               stream: _notificationServices.getNotifications(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('ERROR : ---> ${snapshot.error}'),
+                    child:
+                        Text('ERROR getNotifications: ---> ${snapshot.error}'),
                   );
                 } else if (snapshot.hasData) {
-                  final List<Notifications> dataNotifications = snapshot
-                      .data!.docs
+                  final List<Notifications> dataNotifications = snapshot.data!
                       .map((doc) => Notifications.fromMap(
                           doc.data() as Map<String, dynamic>))
                       .toList();
                   return ListView.builder(
                     itemCount: dataNotifications.length,
                     itemBuilder: (context, index) {
-                      final notificationId = snapshot.data!.docs[index].id;
+                      final notificationId = snapshot.data![index].id;
                       final notification = dataNotifications[index];
                       DateFormat dateFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
                       String formattedDateTime = dateFormat.format(
@@ -178,14 +180,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 ConnectionState.waiting) {
                               return const ShimmerCommentComponent();
                             }
-                            return ListTileFriendRequestComponent(
-                              title: notification.notificationType,
-                              subtitle:
-                                  '${notification.notificationContent} $formattedDateTime',
-                              listImages: [
-                                dataUser?.imageProfile,
-                              ],
-                            );
+                            if (notification.notificationType ==
+                                NotificationTypeEnum.message.name) {
+                              return GestureDetector(
+                                onTap: () =>
+                                    navigateToScreenAnimationRightToLeft(
+                                  context,
+                                  ChatScreen(
+                                    recipientId:
+                                        notification.notificationReferenceId!,
+                                  ),
+                                ),
+                                child: ListTileFriendRequestComponent(
+                                  title: notification.notificationType,
+                                  subtitle:
+                                      '${notification.notificationContent} $formattedDateTime',
+                                  listImages: [
+                                    dataUser?.imageProfile,
+                                  ],
+                                ),
+                              );
+                            } else {
+                              return ListTileFriendRequestComponent(
+                                title: notification.notificationType,
+                                subtitle:
+                                    '${notification.notificationContent} $formattedDateTime',
+                                listImages: [
+                                  dataUser?.imageProfile,
+                                ],
+                              );
+                            }
                           },
                         ),
                       );

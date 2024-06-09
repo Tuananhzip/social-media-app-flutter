@@ -10,9 +10,13 @@ class ChatBubbleComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: EdgeInsets.only(
+        left: isSender ? 100.0 : 0.0,
+        right: isSender ? 0.0 : 100.0,
+      ),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(20.0),
         color: isSender
             ? AppColors.blueColor
             : Theme.of(context).colorScheme.primary,

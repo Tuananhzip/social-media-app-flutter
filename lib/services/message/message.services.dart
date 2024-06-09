@@ -40,11 +40,12 @@ class MessageServices {
     ids.sort();
     String chatRoomId = ids.join("_");
 
-    return _firestore
+    Query query = _firestore
         .collection(FirestoreCollectionNames.chatRooms)
         .doc(chatRoomId)
         .collection(FirestoreCollectionNames.messages)
-        .orderBy(DocumentFieldNames.messageCreatedTime, descending: false)
-        .snapshots();
+        .orderBy(DocumentFieldNames.messageCreatedTime, descending: true);
+
+    return query.snapshots();
   }
 }

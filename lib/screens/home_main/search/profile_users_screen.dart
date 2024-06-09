@@ -32,9 +32,11 @@ class ProfileUsersScreen extends StatefulWidget {
     super.key,
     required this.user,
     required this.uid,
+    this.isChatScreen,
   });
   final Users user;
   final String uid;
+  final bool? isChatScreen;
 
   @override
   State<ProfileUsersScreen> createState() => _ProfileUsersScreenState();
@@ -303,11 +305,18 @@ class _ProfileUsersScreenState extends State<ProfileUsersScreen> {
                                 Expanded(
                                   child: ButtonDefaultComponent(
                                     text: 'Message',
-                                    onTap: () =>
+                                    onTap: () {
+                                      if (widget.isChatScreen != null) {
+                                        if (widget.isChatScreen == true) {
+                                          Navigator.pop(context);
+                                        }
+                                      } else {
                                         navigateToScreenAnimationRightToLeft(
-                                      context,
-                                      ChatScreen(recipientId: widget.uid),
-                                    ),
+                                          context,
+                                          ChatScreen(recipientId: widget.uid),
+                                        );
+                                      }
+                                    },
                                     colorBackground:
                                         Theme.of(context).colorScheme.primary,
                                   ),

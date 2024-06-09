@@ -109,19 +109,25 @@ class NotificationServices {
             .toList());
   }
 
-  Stream<QuerySnapshot> getNotifications() {
+  Stream<List<QueryDocumentSnapshot>> getNotifications() {
     return _notificationsCollection
         .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
         .where(DocumentFieldNames.notificationType,
             isNotEqualTo: NotificationTypeEnum.friendRequest.name)
         .orderBy(DocumentFieldNames.notificationCreatedDate, descending: true)
-        .snapshots();
+        .snapshots()
+        .map((snapshot) => snapshot.docs.where((doc) {
+              final notificationType = doc[DocumentFieldNames.notificationType];
+              return notificationType != NotificationTypeEnum.message.name;
+            }).toList());
   }
 
   Stream<bool> checkNotifications() {
     return _notificationsCollection
         .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
         .where(DocumentFieldNames.notificationStatus, isEqualTo: false)
+        .where(DocumentFieldNames.notificationType,
+            isNotEqualTo: NotificationTypeEnum.message.name)
         .snapshots()
         .map((snapshot) => snapshot.docs.isNotEmpty);
   }
@@ -130,8 +136,6 @@ class NotificationServices {
     try {
       QuerySnapshot querySnapshot = await _notificationsCollection
           .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
-          .where(DocumentFieldNames.notificationType,
-              isEqualTo: NotificationTypeEnum.friendRequest.name)
           .where(DocumentFieldNames.notificationStatus, isEqualTo: false)
           .get();
       for (var doc in querySnapshot.docs) {
@@ -162,5 +166,86 @@ class NotificationServices {
     await _notificationsCollection.doc(notificationId).update({
       DocumentFieldNames.notificationStatus: true,
     });
+  }
+
+  Future<void> sendNotificationTypeMessage(
+      String senderId, String usernameSender, String reciepientId) async {
+    final Notifications notification = Notifications(
+      uid: reciepientId,
+      notificationType: NotificationTypeEnum.message.name,
+      notificationReferenceId: senderId,
+      notificationContent: '$usernameSender sent you a message.',
+      notificationCreatedDate: Timestamp.now(),
+      notificationStatus: false,
+    );
+    QuerySnapshot query = await _notificationsCollection
+        .where(DocumentFieldNames.uid, isEqualTo: reciepientId)
+        .where(DocumentFieldNames.notificationReferenceId, isEqualTo: senderId)
+        .where(DocumentFieldNames.notificationType,
+            isEqualTo: NotificationTypeEnum.message.name)
+        .get();
+    if (query.docs.isEmpty) {
+      await _notificationsCollection.add(notification.asMap());
+    } else {
+      query.docs.first.reference.update(
+        {
+          DocumentFieldNames.notificationStatus: false,
+          DocumentFieldNames.messageCreatedTime: Timestamp.now(),
+        },
+      );
+    }
+  }
+
+  Stream<int> checkNotificationMessage() {
+    try {
+      return _notificationsCollection
+          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.notificationType,
+              isEqualTo: NotificationTypeEnum.message.name)
+          .where(DocumentFieldNames.notificationStatus, isEqualTo: false)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.length);
+    } catch (e) {
+      // ignore: avoid_print
+      print("checkNotificationMessage ERROR ----> $e");
+    }
+    return Stream.value(0);
+  }
+
+  Stream<bool> checkNotificationMessageForUser(String userId) {
+    try {
+      return _notificationsCollection
+          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.notificationReferenceId, isEqualTo: userId)
+          .where(DocumentFieldNames.notificationType,
+              isEqualTo: NotificationTypeEnum.message.name)
+          .where(DocumentFieldNames.notificationStatus, isEqualTo: false)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.isNotEmpty);
+    } catch (e) {
+      // ignore: avoid_print
+      print("checkNotificationMessageForUser ERROR ----> $e");
+    }
+    return Stream.value(false);
+  }
+
+  Future<void> markAsSeenNotificationMessage(String userId) async {
+    try {
+      QuerySnapshot querySnapshot = await _notificationsCollection
+          .where(DocumentFieldNames.uid, isEqualTo: _currentUser!.uid)
+          .where(DocumentFieldNames.notificationReferenceId, isEqualTo: userId)
+          .where(DocumentFieldNames.notificationType,
+              isEqualTo: NotificationTypeEnum.message.name)
+          .where(DocumentFieldNames.notificationStatus, isEqualTo: false)
+          .get();
+      for (var doc in querySnapshot.docs) {
+        await doc.reference.update({
+          DocumentFieldNames.notificationStatus: true,
+        });
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print("markAsSeenNotificationMessage ERROR ----> $e");
+    }
   }
 }

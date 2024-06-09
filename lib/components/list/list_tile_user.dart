@@ -10,11 +10,13 @@ class ListTileComponent extends StatelessWidget {
     this.imageUrl,
     required this.subtitle,
     this.onTap,
+    this.trailingWidget,
   });
   final String username;
   final String? imageUrl;
   final String subtitle;
   final void Function()? onTap;
+  final Widget? trailingWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,7 @@ class ListTileComponent extends StatelessWidget {
         errorWidget: (context, url, error) => const Icon(Icons.error),
       ),
       onTap: onTap,
+      trailing: trailingWidget,
     );
   }
 }

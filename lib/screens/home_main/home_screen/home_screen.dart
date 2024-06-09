@@ -271,11 +271,51 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              onPressed: () => navigateToScreenAnimationRightToLeft(
-                  context, const ListMessageScreen()),
-              icon: const Icon(Icons.message_rounded),
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Stack(
+              children: [
+                IconButton(
+                  onPressed: () => navigateToScreenAnimationRightToLeft(
+                      context, const ListMessageScreen()),
+                  icon: const Icon(Icons.message_rounded),
+                ),
+                StreamBuilder<int>(
+                  stream: _notificationServices.checkNotificationMessage(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                            'Error loading notifications ---> ${snapshot.error}'),
+                      );
+                    } else if (snapshot.data != 0) {
+                      return Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          width: 16.0,
+                          height: 16.0,
+                          decoration: const BoxDecoration(
+                            color: AppColors.dangerColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              snapshot.data.toString(),
+                              style: const TextStyle(
+                                color: AppColors.backgroundColor,
+                                fontSize: 10.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  },
+                ),
+              ],
             ),
           )
         ],

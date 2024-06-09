@@ -223,11 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 TextSpan(children: [
                   TextSpan(
                     text: _getEmail(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20.0,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const WidgetSpan(
                     child: Icon(Icons.keyboard_arrow_down_outlined),
